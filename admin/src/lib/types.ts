@@ -5,6 +5,7 @@ export interface SaStats {
   signUpsLast7Days: number;
 }
 
+/** status: "active" | "inactive" (soft-deactivated). metadata: free-form JSON string. */
 export interface SaClub {
   id: string;
   name: string;
@@ -18,6 +19,10 @@ export interface SaClub {
   teamCount: number;
 }
 
+/**
+ * status: "pending" (invite sent, not yet accepted) | "active" (accepted or pre-existing user).
+ * userId: null while invite is pending.
+ */
 export interface SaManager {
   id: string;
   clubId: string;
@@ -29,6 +34,10 @@ export interface SaManager {
   acceptedAt: string | null;
 }
 
+/**
+ * actorId: the real SA user ID (even during impersonation).
+ * impersonatedAs: manager user ID when entry was recorded under impersonation; otherwise null.
+ */
 export interface AuditLogEntry {
   id: string;
   actorId: string;

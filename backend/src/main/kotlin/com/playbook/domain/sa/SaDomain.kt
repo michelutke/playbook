@@ -10,6 +10,11 @@ data class SaStats(
     val signUpsLast7Days: Int,
 )
 
+/**
+ * Club summary returned by SA club list/detail endpoints.
+ * [status]: "active" | "inactive" (soft-deactivated, not yet deleted)
+ * [metadata]: free-form JSON string; null if not set.
+ */
 @Serializable
 data class SaClub(
     val id: String,
@@ -24,6 +29,12 @@ data class SaClub(
     val teamCount: Int,
 )
 
+/**
+ * Club manager row (from club_managers table).
+ * [userId]: null while invite is pending (user hasn't registered yet).
+ * [status]: "pending" (invite sent, not accepted) | "active" (accepted or pre-existing user).
+ * [acceptedAt]: null while still pending.
+ */
 @Serializable
 data class SaManager(
     val id: String,
@@ -56,6 +67,7 @@ data class InviteManagerRequest(
     val email: String,
 )
 
+/** Requires club name confirmation to prevent accidental permanent deletion. */
 @Serializable
 data class DeleteClubRequest(
     val confirmName: String,
@@ -94,6 +106,10 @@ data class ExportJobResponse(
     val jobId: String,
 )
 
+/**
+ * [status]: "pending" | "processing" | "done" | "failed"
+ * [downloadUrl]: non-null only when status == "done"; points to GET /sa/audit-log/export/{id}/download
+ */
 @Serializable
 data class ExportStatusResponse(
     val jobId: String,

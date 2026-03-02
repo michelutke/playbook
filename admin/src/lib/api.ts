@@ -10,6 +10,7 @@ import type {
   UserSearchResult
 } from './types.js';
 
+/** Backend base URL. Override via PUBLIC_API_URL env var (e.g. in production docker-compose). */
 const API_URL = process.env.PUBLIC_API_URL ?? 'http://localhost:8080';
 
 export class ApiError extends Error {
@@ -22,6 +23,10 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Authenticated fetch wrapper. Throws [ApiError] on non-2xx responses.
+ * Returns undefined for 204 No Content.
+ */
 async function request<T>(
   path: string,
   token: string,
@@ -46,6 +51,11 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
+/**
+ * Returns a typed API client bound to the given JWT [token].
+ * Pass the SA JWT (from sa_jwt cookie via hooks.server.ts) for all SA routes,
+ * or an impersonation token for ending an active impersonation session.
+ */
 export function createApiClient(token: string) {
   return {
     auth: {

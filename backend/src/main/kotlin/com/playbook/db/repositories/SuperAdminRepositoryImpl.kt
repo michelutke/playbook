@@ -164,6 +164,15 @@ class SuperAdminRepositoryImpl(
             createManagerInviteInternal(clubId, email, actorId)
         }
 
+    /**
+     * Creates a club_managers row and (if the user doesn't exist yet) fires an invite email.
+     *
+     * If [email] matches an existing user the row is immediately set to "active".
+     * Otherwise status is "pending" and an invite email is sent via [emailScope] (fire-and-forget;
+     * failures are logged to stderr — caller can retry by re-inviting).
+     *
+     * Must be called inside an open Exposed transaction.
+     */
     private fun createManagerInviteInternal(clubId: String, email: String, actorId: String): SaManager {
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val id = UUID.randomUUID()
