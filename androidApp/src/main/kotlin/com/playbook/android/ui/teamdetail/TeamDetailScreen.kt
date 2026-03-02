@@ -59,6 +59,8 @@ fun TeamDetailScreen(
     teamId: String,
     clubId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToEvents: () -> Unit = {},
+    onNavigateToSubgroups: () -> Unit = {},
     viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId, clubId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -73,6 +75,8 @@ fun TeamDetailScreen(
         state = state,
         onAction = viewModel::submitAction,
         onNavigateBack = onNavigateBack,
+        onNavigateToEvents = onNavigateToEvents,
+        onNavigateToSubgroups = onNavigateToSubgroups,
     )
 }
 
@@ -82,6 +86,8 @@ private fun TeamDetailContent(
     state: TeamDetailScreenState,
     onAction: (TeamDetailAction) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToEvents: () -> Unit,
+    onNavigateToSubgroups: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -124,7 +130,7 @@ private fun TeamDetailContent(
                 }
                 else -> when (state.selectedTab) {
                     TeamDetailTab.ROSTER -> RosterTab(state, onAction)
-                    TeamDetailTab.SUB_GROUPS -> SubGroupsTab()
+                    TeamDetailTab.SUB_GROUPS -> SubGroupsTab(onNavigateToSubgroups, onNavigateToEvents)
                     TeamDetailTab.SETTINGS -> SettingsTab(state, onAction)
                 }
             }
@@ -229,9 +235,15 @@ private fun SwipeToDismissRosterItem(member: RosterMember, onDismiss: () -> Unit
 }
 
 @Composable
-private fun SubGroupsTab() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Sub-groups coming soon")
+private fun SubGroupsTab(onNavigateToSubgroups: () -> Unit, onNavigateToEvents: () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        OutlinedButton(onClick = onNavigateToSubgroups, modifier = Modifier.fillMaxWidth()) {
+            Text("Manage Sub-groups")
+        }
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = onNavigateToEvents, modifier = Modifier.fillMaxWidth()) {
+            Text("View Events")
+        }
     }
 }
 

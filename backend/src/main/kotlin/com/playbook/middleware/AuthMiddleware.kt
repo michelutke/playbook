@@ -1,10 +1,13 @@
 package com.playbook.middleware
 
 import com.playbook.db.tables.ClubManagersTable
+import com.playbook.db.tables.EventTeamsTable
+import com.playbook.db.tables.SubgroupsTable
 import com.playbook.db.tables.TeamMembershipsTable
 import com.playbook.plugins.ForbiddenException
 import com.playbook.plugins.userId
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
@@ -42,4 +45,34 @@ suspend fun RoutingContext.requireCoachOnTeam(teamId: String): String {
     }
     if (!isCoach) throw ForbiddenException("Coach access required for this team")
     return uid
+}
+
+/**
+ * ES: Verify the authenticated user is a Coach on any team targeting this event.
+ */
+suspend fun RoutingContext.requireCoachOnEventTeam(eventId: String): String {
+    val uid = call.userId
+    val isCoach = newSuspendedTransaction {
+        EventTeamsTable
+            .join(TeamMembershipsTable, JoinType.INNER, EventTeamsTable.teamId, TeamMembershipsTable.teamId)
+            .select {
+                (EventTeamsTable.eventId eq UUID.fromString(eventId)) and
+                (TeamMembershipsTable.userId eq UUID.fromString(uid)) and
+                (TeamMembershipsTable.role eq "coach")
+            }.count() > 0
+    }
+    if (!isCoach) throw ForbiddenException("Coach access required for this event")
+    return uid
+}
+
+/**
+ * ES: Verify the authenticated user is a Coach on the team that owns this subgroup.
+ */
+suspend fun RoutingContext.requireCoachOnSubgroupTeam(subgroupId: String): String {
+    val uid = call.userId
+    val teamId = newSuspendedTransaction {
+        SubgroupsTable.select { SubgroupsTable.id eq UUID.fromString(subgroupId) }
+            .singleOrNull()?.get(SubgroupsTable.teamId)
+    } ?: throw ForbiddenException("Subgroup not found")
+    return requireCoachOnTeam(teamId.toString())
 }

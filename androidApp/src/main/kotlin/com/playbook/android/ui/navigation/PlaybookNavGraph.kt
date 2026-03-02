@@ -9,10 +9,16 @@ import androidx.navigation.toRoute
 import com.playbook.android.ui.clubdashboard.ClubDashboardScreen
 import com.playbook.android.ui.clubedit.ClubEditScreen
 import com.playbook.android.ui.clubsetup.ClubSetupScreen
+import com.playbook.android.ui.eventcalendar.EventCalendarScreen
+import com.playbook.android.ui.eventdetail.EventDetailScreen
+import com.playbook.android.ui.eventform.EventFormScreen
+import com.playbook.android.ui.eventlist.EventListScreen
 import com.playbook.android.ui.inviteaccept.InviteAcceptScreen
 import com.playbook.android.ui.playerprofile.PlayerProfileScreen
+import com.playbook.android.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.android.ui.teamdetail.TeamDetailScreen
 import com.playbook.android.ui.teamsetup.TeamSetupScreen
+import com.playbook.domain.RecurringScope
 
 @Composable
 fun PlaybookNavGraph() {
@@ -48,6 +54,12 @@ fun PlaybookNavGraph() {
                 teamId = screen.teamId,
                 clubId = screen.clubId,
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToEvents = {
+                    navController.navigate(Screen.EventList(teamId = screen.teamId, clubId = screen.clubId))
+                },
+                onNavigateToSubgroups = {
+                    navController.navigate(Screen.SubgroupMgmt(screen.teamId))
+                },
             )
         }
 
@@ -89,6 +101,77 @@ fun PlaybookNavGraph() {
                     }
                 },
                 onDeclined = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.EventList> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.EventList>()
+            EventListScreen(
+                teamId = screen.teamId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { eventId ->
+                    navController.navigate(Screen.EventDetail(eventId))
+                },
+                onNavigateToCreate = { teamId ->
+                    val clubId = screen.clubId ?: return@EventListScreen
+                    navController.navigate(Screen.EventForm(clubId = clubId, preselectedTeamId = teamId))
+                },
+                onNavigateToCalendar = { teamId ->
+                    navController.navigate(Screen.EventCalendar(teamId))
+                },
+            )
+        }
+
+        composable<Screen.EventCalendar> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.EventCalendar>()
+            EventCalendarScreen(
+                teamId = screen.teamId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { eventId ->
+                    navController.navigate(Screen.EventDetail(eventId))
+                },
+                onNavigateToList = { teamId ->
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        composable<Screen.EventDetail> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.EventDetail>()
+            EventDetailScreen(
+                eventId = screen.eventId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { eventId, scope ->
+                    navController.navigate(
+                        Screen.EventForm(
+                            clubId = "TODO_clubId",
+                            eventId = eventId,
+                            editScope = scope.name,
+                        )
+                    )
+                },
+                onNavigateToDuplicate = { sourceEventId ->
+                    navController.navigate(Screen.EventForm(clubId = "TODO_clubId", eventId = null))
+                },
+            )
+        }
+
+        composable<Screen.EventForm> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.EventForm>()
+            EventFormScreen(
+                clubId = screen.clubId,
+                eventId = screen.eventId,
+                preselectedTeamId = screen.preselectedTeamId,
+                editScope = RecurringScope.valueOf(screen.editScope),
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.SubgroupMgmt> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.SubgroupMgmt>()
+            SubgroupMgmtScreen(
+                teamId = screen.teamId,
+                onNavigateBack = { navController.popBackStack() },
             )
         }
     }

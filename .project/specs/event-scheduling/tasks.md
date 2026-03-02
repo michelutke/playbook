@@ -1,7 +1,7 @@
 ---
 template: tasks
 version: 0.1.0
-gate: READY GO
+gate: DONE
 ---
 # Tasks: Event Scheduling
 

@@ -53,4 +53,6 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    // DateTime
+    implementation(libs.kotlinx.datetime)
 }

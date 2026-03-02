@@ -24,4 +24,24 @@ sealed interface Screen {
 
     @Serializable
     data class InviteAccept(val token: String) : Screen
+
+    @Serializable
+    data class EventList(val teamId: String? = null, val clubId: String? = null) : Screen
+
+    @Serializable
+    data class EventCalendar(val teamId: String? = null) : Screen
+
+    @Serializable
+    data class EventDetail(val eventId: String) : Screen
+
+    @Serializable
+    data class EventForm(
+        val clubId: String,
+        val eventId: String? = null,
+        val preselectedTeamId: String? = null,
+        val editScope: String = "THIS_ONLY",
+    ) : Screen
+
+    @Serializable
+    data class SubgroupMgmt(val teamId: String) : Screen
 }

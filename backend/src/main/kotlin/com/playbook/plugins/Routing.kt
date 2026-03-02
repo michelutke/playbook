@@ -2,8 +2,10 @@ package com.playbook.plugins
 
 import com.playbook.routes.registerClubRoutes
 import com.playbook.routes.registerCoachLinkRoutes
+import com.playbook.routes.registerEventRoutes
 import com.playbook.routes.registerInviteRoutes
 import com.playbook.routes.registerMemberRoutes
+import com.playbook.routes.registerSubgroupRoutes
 import com.playbook.routes.registerTeamRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -55,6 +57,8 @@ fun Application.configureRouting() {
             registerMemberRoutes()
             registerInviteRoutes(authenticated = true)
             registerCoachLinkRoutes(authenticated = true)
+            registerEventRoutes()
+            registerSubgroupRoutes()
         }
     }
 }
