@@ -537,7 +537,7 @@
       "title": "S2 Club Dashboard",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-047"
       ]
@@ -547,7 +547,7 @@
       "title": "S3 Team Detail \u2014 Roster tab",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-048"
       ]
@@ -557,7 +557,7 @@
       "title": "S3 Team Detail \u2014 Settings + Sub-groups tabs",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-047"
       ]
@@ -567,7 +567,7 @@
       "title": "S4 Club Profile Edit screen",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-046"
       ]
@@ -577,7 +577,7 @@
       "title": "S5 Team Edit Sheet",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-047"
       ]
@@ -587,7 +587,7 @@
       "title": "S6 Invite Sheet + S6b Club Coach Invite Sheet",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-049"
       ]
@@ -597,7 +597,7 @@
       "title": "S7 Player Profile screen",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-048",
         "TM-050"
@@ -608,7 +608,7 @@
       "title": "S8 Coach First-Team Setup screen",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-047"
       ]
@@ -618,7 +618,7 @@
       "title": "F9 Invite link deep link handling",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-049"
       ]
@@ -628,7 +628,7 @@
       "title": "F13 Pending team approval flow",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-047"
       ]
@@ -638,7 +638,7 @@
       "title": "Role chip components (Gold/Blue/Grey)",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": []
     },
     {
@@ -646,7 +646,7 @@
       "title": "Invite state badge components",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": []
     },
     {
@@ -654,7 +654,7 @@
       "title": "Multiple-role roster display",
       "phase": 4,
       "type": "ui",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "TM-054",
         "TM-063"
