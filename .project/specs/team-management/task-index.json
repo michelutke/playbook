@@ -1,0 +1,664 @@
+{
+  "feature": "team-management",
+  "gate": "READY GO",
+  "tasks": [
+    {
+      "id": "TM-001",
+      "title": "Create clubs table migration",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": []
+    },
+    {
+      "id": "TM-002",
+      "title": "Create teams table migration",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-001"
+      ]
+    },
+    {
+      "id": "TM-003",
+      "title": "Create team_memberships table + unique constraint",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-002"
+      ]
+    },
+    {
+      "id": "TM-004",
+      "title": "Create player_profiles table",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-003"
+      ]
+    },
+    {
+      "id": "TM-005",
+      "title": "Create invites table",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-002"
+      ]
+    },
+    {
+      "id": "TM-006",
+      "title": "Create club_coach_links table",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-001"
+      ]
+    },
+    {
+      "id": "TM-007",
+      "title": "Add all DB indexes",
+      "phase": 1,
+      "type": "db",
+      "status": "done",
+      "deps": [
+        "TM-003",
+        "TM-005"
+      ]
+    },
+    {
+      "id": "TM-008",
+      "title": "Configure Koin shared + server modules",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-001"
+      ]
+    },
+    {
+      "id": "TM-009",
+      "title": "Set up Simple Java Mail Mailer singleton",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-010",
+      "title": "Configure staticFiles route for logos",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-011",
+      "title": "Implement requireClubManager() middleware",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-012",
+      "title": "Implement requireCoachOnTeam() middleware",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-013",
+      "title": "POST /clubs \u2014 create club",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-014",
+      "title": "GET /clubs/{id} \u2014 detail",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-013"
+      ]
+    },
+    {
+      "id": "TM-015",
+      "title": "PATCH /clubs/{id} \u2014 edit",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-013"
+      ]
+    },
+    {
+      "id": "TM-016",
+      "title": "POST /clubs/{id}/logo \u2014 multipart upload",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-010",
+        "TM-013"
+      ]
+    },
+    {
+      "id": "TM-017",
+      "title": "GET /clubs/{clubId}/teams \u2014 list",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011"
+      ]
+    },
+    {
+      "id": "TM-018",
+      "title": "POST /clubs/{clubId}/teams \u2014 create",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011"
+      ]
+    },
+    {
+      "id": "TM-019",
+      "title": "POST /clubs/{clubId}/teams/request \u2014 coach submit",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-012"
+      ]
+    },
+    {
+      "id": "TM-020",
+      "title": "GET /teams/{id} \u2014 detail",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-018"
+      ]
+    },
+    {
+      "id": "TM-021",
+      "title": "PATCH /teams/{id} \u2014 edit",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-012",
+        "TM-020"
+      ]
+    },
+    {
+      "id": "TM-022",
+      "title": "POST /teams/{id}/archive + unarchive",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-020"
+      ]
+    },
+    {
+      "id": "TM-023",
+      "title": "DELETE /teams/{id} \u2014 hard delete",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-020"
+      ]
+    },
+    {
+      "id": "TM-024",
+      "title": "POST /teams/{id}/approve + reject",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009",
+        "TM-011",
+        "TM-019"
+      ]
+    },
+    {
+      "id": "TM-025",
+      "title": "GET /teams/{id}/members \u2014 roster",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-012"
+      ]
+    },
+    {
+      "id": "TM-026",
+      "title": "POST /teams/{id}/members/{userId}/roles \u2014 add role",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-025"
+      ]
+    },
+    {
+      "id": "TM-027",
+      "title": "DELETE /teams/{id}/members/{userId}/roles/{role} \u2014 remove with last-coach guard",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-025"
+      ]
+    },
+    {
+      "id": "TM-028",
+      "title": "DELETE /teams/{id}/members/{userId} \u2014 remove all roles",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-025"
+      ]
+    },
+    {
+      "id": "TM-029",
+      "title": "DELETE /users/me/teams/{teamId} \u2014 leave team",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-020"
+      ]
+    },
+    {
+      "id": "TM-030",
+      "title": "GET + PATCH /teams/{id}/members/{userId}/profile",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-025"
+      ]
+    },
+    {
+      "id": "TM-031",
+      "title": "Implement generateToken() \u2014 SecureRandom + Base64-URL",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": []
+    },
+    {
+      "id": "TM-032",
+      "title": "POST /teams/{id}/invites \u2014 generate + send email",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009",
+        "TM-031",
+        "TM-012"
+      ]
+    },
+    {
+      "id": "TM-033",
+      "title": "GET /teams/{id}/invites \u2014 list pending",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-012"
+      ]
+    },
+    {
+      "id": "TM-034",
+      "title": "DELETE /teams/{id}/invites/{inviteId} \u2014 revoke",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-012"
+      ]
+    },
+    {
+      "id": "TM-035",
+      "title": "GET /invites/{token} \u2014 public resolve; 410 if expired/revoked",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-031"
+      ]
+    },
+    {
+      "id": "TM-036",
+      "title": "POST /invites/{token}/accept \u2014 validate + create membership",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-035"
+      ]
+    },
+    {
+      "id": "TM-037",
+      "title": "GET /clubs/{id}/coach-link \u2014 current active link",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011"
+      ]
+    },
+    {
+      "id": "TM-038",
+      "title": "POST /clubs/{id}/coach-link \u2014 rotate",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011",
+        "TM-031"
+      ]
+    },
+    {
+      "id": "TM-039",
+      "title": "DELETE /clubs/{id}/coach-link \u2014 revoke",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-011"
+      ]
+    },
+    {
+      "id": "TM-040",
+      "title": "GET /club-links/{token} \u2014 public resolve; 410 if expired/revoked",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-031"
+      ]
+    },
+    {
+      "id": "TM-041",
+      "title": "POST /club-links/{token}/join \u2014 create membership + trigger team request",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-040",
+        "TM-019"
+      ]
+    },
+    {
+      "id": "TM-042",
+      "title": "Invite email template \u2014 HTML + plain text",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009"
+      ]
+    },
+    {
+      "id": "TM-043",
+      "title": "Club coach link email template",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009"
+      ]
+    },
+    {
+      "id": "TM-044",
+      "title": "Team approval notification email",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009"
+      ]
+    },
+    {
+      "id": "TM-045",
+      "title": "Team rejection notification email",
+      "phase": 2,
+      "type": "backend",
+      "status": "done",
+      "deps": [
+        "TM-009"
+      ]
+    },
+    {
+      "id": "TM-046",
+      "title": "ClubRepository interface + impl",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-013"
+      ]
+    },
+    {
+      "id": "TM-047",
+      "title": "TeamRepository interface + impl",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-018"
+      ]
+    },
+    {
+      "id": "TM-048",
+      "title": "MembershipRepository interface + impl",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-025"
+      ]
+    },
+    {
+      "id": "TM-049",
+      "title": "InviteRepository interface + impl",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-032"
+      ]
+    },
+    {
+      "id": "TM-050",
+      "title": "hasRole(teamId, role): Boolean shared utility",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-048"
+      ]
+    },
+    {
+      "id": "TM-051",
+      "title": "Koin platform modules: Android + iOS SQLite drivers",
+      "phase": 3,
+      "type": "kmp",
+      "status": "done",
+      "deps": [
+        "TM-008"
+      ]
+    },
+    {
+      "id": "TM-052",
+      "title": "S1 Club Setup screen",
+      "phase": 4,
+      "type": "ui",
+      "status": "done",
+      "deps": [
+        "TM-046"
+      ]
+    },
+    {
+      "id": "TM-053",
+      "title": "S2 Club Dashboard",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-047"
+      ]
+    },
+    {
+      "id": "TM-054",
+      "title": "S3 Team Detail \u2014 Roster tab",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-048"
+      ]
+    },
+    {
+      "id": "TM-055",
+      "title": "S3 Team Detail \u2014 Settings + Sub-groups tabs",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-047"
+      ]
+    },
+    {
+      "id": "TM-056",
+      "title": "S4 Club Profile Edit screen",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-046"
+      ]
+    },
+    {
+      "id": "TM-057",
+      "title": "S5 Team Edit Sheet",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-047"
+      ]
+    },
+    {
+      "id": "TM-058",
+      "title": "S6 Invite Sheet + S6b Club Coach Invite Sheet",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-049"
+      ]
+    },
+    {
+      "id": "TM-059",
+      "title": "S7 Player Profile screen",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-048",
+        "TM-050"
+      ]
+    },
+    {
+      "id": "TM-060",
+      "title": "S8 Coach First-Team Setup screen",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-047"
+      ]
+    },
+    {
+      "id": "TM-061",
+      "title": "F9 Invite link deep link handling",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-049"
+      ]
+    },
+    {
+      "id": "TM-062",
+      "title": "F13 Pending team approval flow",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-047"
+      ]
+    },
+    {
+      "id": "TM-063",
+      "title": "Role chip components (Gold/Blue/Grey)",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": []
+    },
+    {
+      "id": "TM-064",
+      "title": "Invite state badge components",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": []
+    },
+    {
+      "id": "TM-065",
+      "title": "Multiple-role roster display",
+      "phase": 4,
+      "type": "ui",
+      "status": "pending",
+      "deps": [
+        "TM-054",
+        "TM-063"
+      ]
+    }
+  ]
+}
