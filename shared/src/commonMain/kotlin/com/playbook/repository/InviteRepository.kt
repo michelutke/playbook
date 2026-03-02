@@ -8,7 +8,7 @@ import com.playbook.domain.InviteStatus
 interface InviteRepository {
     suspend fun create(teamId: String, request: CreateInviteRequest, invitedByUserId: String): Invite
     suspend fun listPending(teamId: String): List<Invite>
-    suspend fun revoke(inviteId: String)
+    suspend fun revoke(inviteId: String, teamId: String)
     suspend fun resolveToken(token: String): InviteContext?
     suspend fun accept(token: String, userId: String)
 }

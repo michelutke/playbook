@@ -5,6 +5,13 @@ import kotlinx.coroutines.withContext
 import org.simplejavamail.api.mailer.Mailer
 import org.simplejavamail.email.EmailBuilder
 
+private fun String.escapeHtml(): String = this
+    .replace("&", "&amp;")
+    .replace("<", "&lt;")
+    .replace(">", "&gt;")
+    .replace("\"", "&quot;")
+    .replace("'", "&#x27;")
+
 // TM-044: Team approval notification
 suspend fun sendTeamApprovalEmail(
     mailer: Mailer,
@@ -31,7 +38,7 @@ suspend fun sendTeamApprovalEmail(
             <html>
             <body style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2>Your team has been approved!</h2>
-              <p>Your team <strong>$teamName</strong> has been approved by <strong>$clubName</strong>.</p>
+              <p>Your team <strong>${teamName.escapeHtml()}</strong> has been approved by <strong>${clubName.escapeHtml()}</strong>.</p>
               <p>You can now manage your team and invite players via the Playbook app.</p>
             </body>
             </html>
@@ -70,8 +77,8 @@ suspend fun sendTeamRejectionEmail(
             <html>
             <body style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2>Update on your team request</h2>
-              <p>Your request to create the team <strong>$teamName</strong> at <strong>$clubName</strong> was not approved.</p>
-              ${if (reason != null) "<p><strong>Reason:</strong> $reason</p>" else ""}
+              <p>Your request to create the team <strong>${teamName.escapeHtml()}</strong> at <strong>${clubName.escapeHtml()}</strong> was not approved.</p>
+              ${if (reason != null) "<p><strong>Reason:</strong> ${reason.escapeHtml()}</p>" else ""}
               <p style="color: #666;">Please contact your club manager for more information.</p>
             </body>
             </html>

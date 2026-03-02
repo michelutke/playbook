@@ -3,7 +3,7 @@ package com.playbook.domain
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-enum class TeamStatus { ACTIVE, ARCHIVED, PENDING }
+enum class TeamStatus { ACTIVE, ARCHIVED, PENDING, REJECTED }
 
 @Serializable
 data class Team(

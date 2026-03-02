@@ -25,11 +25,8 @@ class InviteRepositoryImpl(
             bearerAuth(config.authTokenProvider() ?: "")
         }.body()
 
-    override suspend fun revoke(inviteId: String) {
-        // inviteId here is used as the path; the route DELETE /teams/{id}/invites/{inviteId}
-        // requires teamId, but the client tracks this via invite.teamId
-        // This is a simplification — caller should track teamId
-        client.delete("${config.baseUrl}/invites/$inviteId") {
+    override suspend fun revoke(inviteId: String, teamId: String) {
+        client.delete("${config.baseUrl}/teams/$teamId/invites/$inviteId") {
             bearerAuth(config.authTokenProvider() ?: "")
         }
     }

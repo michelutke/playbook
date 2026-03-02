@@ -22,7 +22,12 @@ fun Route.registerTeamRoutes() {
     get("/clubs/{clubId}/teams") {
         val clubId = call.parameters["clubId"]!!
         requireClubManager(clubId)
-        val teams = teamRepo.listByClub(clubId)
+        val statusParams = call.request.queryParameters.getAll("status")
+        val statuses = statusParams
+            ?.mapNotNull { s -> runCatching { TeamStatus.valueOf(s.uppercase()) }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() }
+            ?: TeamStatus.entries
+        val teams = teamRepo.listByClub(clubId, statuses)
         call.respond(teams)
     }
 
@@ -47,6 +52,7 @@ fun Route.registerTeamRoutes() {
     // TM-020: GET /teams/{id}
     get("/teams/{id}") {
         val id = call.parameters["id"]!!
+        requireCoachOnTeam(id)
         val team = teamRepo.getById(id) ?: throw NotFoundException("Team not found")
         call.respond(team)
     }

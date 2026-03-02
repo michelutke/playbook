@@ -14,6 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
+    val allowedHost = environment.config.propertyOrNull("cors.allowedHost")?.getString() ?: "localhost:3000"
     install(CORS) {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Put)
@@ -21,7 +22,7 @@ fun Application.configureRouting() {
         allowMethod(HttpMethod.Patch)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        anyHost()
+        allowHost(allowedHost, schemes = listOf("https", "http"))
     }
 
     install(StatusPages) {

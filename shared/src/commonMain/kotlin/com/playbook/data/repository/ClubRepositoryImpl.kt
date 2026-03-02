@@ -36,8 +36,7 @@ class ClubRepositoryImpl(
         }.body()
 
     override suspend fun updateLogoUrl(clubId: String, logoUrl: String): Club =
-        // Logo upload is handled separately via multipart; this updates the URL in the domain
-        getById(clubId)!!
+        getById(clubId) ?: error("Club $clubId not found after logo upload")
 
     override suspend fun uploadLogo(clubId: String, contentType: String, imageBytes: ByteArray): Club =
         client.post("${config.baseUrl}/clubs/$clubId/logo") {

@@ -8,16 +8,16 @@ import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.UUID
 
 /**
  * TM-011: Verify the authenticated user is a ClubManager for the given club.
  * Checks club_managers table directly (DB per-request, no JWT caching).
  */
-fun RoutingContext.requireClubManager(clubId: String): String {
+suspend fun RoutingContext.requireClubManager(clubId: String): String {
     val uid = call.userId
-    val isManager = transaction {
+    val isManager = newSuspendedTransaction {
         ClubManagersTable.select {
             (ClubManagersTable.clubId eq UUID.fromString(clubId)) and
             (ClubManagersTable.userId eq UUID.fromString(uid))
@@ -31,9 +31,9 @@ fun RoutingContext.requireClubManager(clubId: String): String {
  * TM-012: Verify the authenticated user is a Coach on the given team.
  * Checks team_memberships table directly.
  */
-fun RoutingContext.requireCoachOnTeam(teamId: String): String {
+suspend fun RoutingContext.requireCoachOnTeam(teamId: String): String {
     val uid = call.userId
-    val isCoach = transaction {
+    val isCoach = newSuspendedTransaction {
         TeamMembershipsTable.select {
             (TeamMembershipsTable.teamId eq UUID.fromString(teamId)) and
             (TeamMembershipsTable.userId eq UUID.fromString(uid)) and

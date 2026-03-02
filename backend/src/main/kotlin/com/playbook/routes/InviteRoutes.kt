@@ -57,7 +57,7 @@ fun Route.registerInviteRoutes(authenticated: Boolean) {
             val teamId = call.parameters["id"]!!
             requireCoachOnTeam(teamId)
             val inviteId = call.parameters["inviteId"]!!
-            inviteRepo.revoke(inviteId)
+            inviteRepo.revoke(inviteId, teamId)
             call.respond(HttpStatusCode.NoContent)
         }
     }

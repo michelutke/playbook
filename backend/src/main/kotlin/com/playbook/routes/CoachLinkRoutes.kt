@@ -4,6 +4,7 @@ import com.playbook.domain.CreateCoachLinkRequest
 import com.playbook.middleware.requireClubManager
 import com.playbook.plugins.NotFoundException
 import com.playbook.plugins.userId
+import com.playbook.plugins.userIdOrNull
 import com.playbook.repository.CoachLinkRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -29,7 +30,7 @@ fun Route.registerCoachLinkRoutes(authenticated: Boolean) {
         // TM-041: POST /club-links/{token}/join
         post("/club-links/{token}/join") {
             val token = call.parameters["token"]!!
-            val uid = call.userId
+            val uid = call.userIdOrNull ?: throw IllegalArgumentException("Authentication required to join")
             coachLinkRepo.join(token, uid)
             call.respond(HttpStatusCode.NoContent)
         }

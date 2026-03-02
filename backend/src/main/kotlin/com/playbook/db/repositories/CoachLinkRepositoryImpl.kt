@@ -12,6 +12,7 @@ import com.playbook.infra.generateToken
 import com.playbook.plugins.GoneException
 import com.playbook.repository.CoachLinkRepository
 import kotlinx.datetime.toKotlinInstant
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -91,7 +92,9 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
             if (row[ClubCoachLinksTable.revokedAt] != null || row[ClubCoachLinksTable.expiresAt].isBefore(now)) {
                 throw GoneException("Coach link is no longer valid")
             }
-            // Find or create a pending team for this coach
+            // Find or create a pending team for this coach.
+            // uq_pending_team_per_coach (V10 migration) enforces at most one pending team
+            // per coach per club at the DB level, making concurrent joins idempotent.
             val clubId = row[ClubCoachLinksTable.clubId]
             val pendingTeam = TeamsTable.select {
                 (TeamsTable.clubId eq clubId) and
@@ -100,20 +103,27 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
             }.singleOrNull()
             if (pendingTeam == null) {
                 val teamId = UUID.randomUUID()
-                TeamsTable.insert {
-                    it[id] = teamId
-                    it[TeamsTable.clubId] = clubId
-                    it[name] = "New Team"
-                    it[status] = "pending"
-                    it[requestedBy] = UUID.fromString(userId)
-                    it[createdAt] = now
-                    it[updatedAt] = now
-                }
-                TeamMembershipsTable.insert {
-                    it[teamId] = teamId
-                    it[TeamMembershipsTable.userId] = UUID.fromString(userId)
-                    it[role] = "coach"
-                    it[joinedAt] = now
+                try {
+                    // Team name defaults to "My Team" — coach should rename via PATCH /teams/{id}
+                    TeamsTable.insert {
+                        it[id] = teamId
+                        it[TeamsTable.clubId] = clubId
+                        it[name] = "My Team"
+                        it[status] = "pending"
+                        it[requestedBy] = UUID.fromString(userId)
+                        it[createdAt] = now
+                        it[updatedAt] = now
+                    }
+                    TeamMembershipsTable.insert {
+                        it[teamId] = teamId
+                        it[TeamMembershipsTable.userId] = UUID.fromString(userId)
+                        it[role] = "coach"
+                        it[joinedAt] = now
+                    }
+                } catch (e: ExposedSQLException) {
+                    if (e.sqlState == "23505") {
+                        // Concurrent join already created the pending team — idempotent, nothing to do
+                    } else throw e
                 }
             }
         }.let {}

@@ -23,8 +23,8 @@ class InviteRepositoryImpl(
     private val config: ApplicationConfig,
 ) : InviteRepository {
 
-    override suspend fun create(teamId: String, request: CreateInviteRequest, invitedByUserId: String): Invite =
-        newSuspendedTransaction {
+    override suspend fun create(teamId: String, request: CreateInviteRequest, invitedByUserId: String): Invite {
+        val (invite, teamName) = newSuspendedTransaction {
             val tid = UUID.fromString(teamId)
             val team = TeamsTable.select { TeamsTable.id eq tid }.single()
             val now = OffsetDateTime.now(ZoneOffset.UTC)
@@ -43,10 +43,11 @@ class InviteRepositoryImpl(
                 it[createdAt] = now
             }
             val invite = InvitesTable.select { InvitesTable.id eq id }.single().toInvite()
-            // Send email async (fire-and-forget; email failures don't fail the request)
-            sendInviteEmail(invite, team[TeamsTable.name])
-            invite
+            Pair(invite, team[TeamsTable.name])
         }
+        sendInviteEmail(invite, teamName)
+        return invite
+    }
 
     override suspend fun listPending(teamId: String): List<Invite> =
         newSuspendedTransaction {
@@ -56,9 +57,12 @@ class InviteRepositoryImpl(
             }.map { it.toInvite() }
         }
 
-    override suspend fun revoke(inviteId: String) =
+    override suspend fun revoke(inviteId: String, teamId: String) =
         newSuspendedTransaction {
-            InvitesTable.update({ InvitesTable.id eq UUID.fromString(inviteId) }) {
+            InvitesTable.update({
+                (InvitesTable.id eq UUID.fromString(inviteId)) and
+                (InvitesTable.teamId eq UUID.fromString(teamId))
+            }) {
                 it[status] = "revoked"
             }
         }.let {}
@@ -81,16 +85,17 @@ class InviteRepositoryImpl(
 
     override suspend fun accept(token: String, userId: String) =
         newSuspendedTransaction {
-            val row = InvitesTable.select { InvitesTable.inviteToken eq token }.singleOrNull()
-                ?: throw GoneException("Invite not found")
             val now = OffsetDateTime.now(ZoneOffset.UTC)
-            if (row[InvitesTable.status] != "pending" || row[InvitesTable.expiresAt].isBefore(now)) {
-                throw GoneException("Invite is no longer valid")
-            }
-            InvitesTable.update({ InvitesTable.inviteToken eq token }) {
+            val updated = InvitesTable.update({
+                (InvitesTable.inviteToken eq token) and
+                (InvitesTable.status eq "pending") and
+                (InvitesTable.expiresAt greater now)
+            }) {
                 it[status] = "accepted"
                 it[acceptedAt] = now
             }
+            if (updated == 0) throw GoneException("Invite is no longer valid")
+            val row = InvitesTable.select { InvitesTable.inviteToken eq token }.single()
             TeamMembershipsTable.insert {
                 it[teamId] = row[InvitesTable.teamId]
                 it[TeamMembershipsTable.userId] = UUID.fromString(userId)

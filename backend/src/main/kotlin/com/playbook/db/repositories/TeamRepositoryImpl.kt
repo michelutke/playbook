@@ -87,7 +87,7 @@ class TeamRepositoryImpl : TeamRepository {
         newSuspendedTransaction {
             val now = OffsetDateTime.now(ZoneOffset.UTC)
             TeamsTable.update({ TeamsTable.id eq UUID.fromString(teamId) }) {
-                it[status] = "archived"
+                it[status] = "rejected"
                 it[rejectionReason] = request.reason
                 it[updatedAt] = now
             }
@@ -107,6 +107,7 @@ class TeamRepositoryImpl : TeamRepository {
         status = when (this[TeamsTable.status]) {
             "active" -> TeamStatus.ACTIVE
             "archived" -> TeamStatus.ARCHIVED
+            "rejected" -> TeamStatus.REJECTED
             else -> TeamStatus.PENDING
         },
         requestedBy = this[TeamsTable.requestedBy]?.toString(),

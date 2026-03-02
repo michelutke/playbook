@@ -16,6 +16,7 @@ class TeamRepositoryImpl(
     override suspend fun listByClub(clubId: String, statuses: List<TeamStatus>): List<Team> =
         client.get("${config.baseUrl}/clubs/$clubId/teams") {
             bearerAuth(config.authTokenProvider() ?: "")
+            statuses.forEach { status -> parameter("status", status.name.lowercase()) }
         }.body()
 
     override suspend fun getById(teamId: String): Team? =

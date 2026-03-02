@@ -11,5 +11,4 @@ fun serverModule(config: ApplicationConfig) = module {
         config // expose config for other components
     }
     single { MailerFactory.create(config) }
-    single { config }
 }
