@@ -143,11 +143,11 @@ fun Route.registerSuperAdminRoutes() {
             )
         }
 
-        // SA-024: end impersonation
+        // SA-024: end impersonation (H-5: verify session ownership)
         post("/impersonation/{sessionId}/end") {
-            requireSuperAdmin()
+            val saId = requireSuperAdmin()
             val sessionId = call.parameters["sessionId"]!!
-            repo.endImpersonation(sessionId)
+            repo.endImpersonation(sessionId, saId)
             call.respond(HttpStatusCode.NoContent)
         }
 

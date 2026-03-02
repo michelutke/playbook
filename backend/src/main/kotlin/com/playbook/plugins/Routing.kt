@@ -2,6 +2,7 @@ package com.playbook.plugins
 
 import com.playbook.plugins.AuditPlugin
 import com.playbook.routes.registerClubRoutes
+import com.playbook.routes.registerSaAuthRoutes
 import com.playbook.routes.registerCoachLinkRoutes
 import com.playbook.routes.registerEventRoutes
 import com.playbook.routes.registerInviteRoutes
@@ -51,6 +52,7 @@ fun Application.configureRouting() {
         // Public routes (no auth)
         registerInviteRoutes(authenticated = false)
         registerCoachLinkRoutes(authenticated = false)
+        registerSaAuthRoutes()
 
         // Protected routes
         authenticate("auth-jwt") {

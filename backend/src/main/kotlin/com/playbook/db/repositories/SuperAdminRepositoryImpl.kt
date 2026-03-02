@@ -3,7 +3,12 @@ package com.playbook.db.repositories
 import com.playbook.db.tables.*
 import com.playbook.domain.sa.*
 import com.playbook.infra.generateToken
+import com.playbook.plugins.NotFoundException
 import io.ktor.server.config.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.datetime.toKotlinInstant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -19,6 +24,7 @@ class SuperAdminRepositoryImpl(
     private val mailer: Mailer,
     private val config: ApplicationConfig,
 ) {
+    private val emailScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     // SA-012: dashboard stats
     suspend fun getStats(): SaStats = newSuspendedTransaction {
@@ -30,7 +36,7 @@ class SuperAdminRepositoryImpl(
             EventsTable.selectAll().where {
                 (EventsTable.startAt greaterEq todayStart) and
                 (EventsTable.startAt less todayEnd) and
-                (EventsTable.status eq "scheduled")
+                (EventsTable.status eq "active")
             }.count().toInt()
         } catch (_: Exception) { 0 }
         val sevenDaysAgo = OffsetDateTime.now(ZoneOffset.UTC).minusDays(7)
@@ -38,12 +44,18 @@ class SuperAdminRepositoryImpl(
         SaStats(totalClubs, totalUsers, activeEventsToday, signUps)
     }
 
-    // SA-013: list clubs
+    // SA-013: list clubs (batched counts — no N+1)
     suspend fun listClubs(status: String?, search: String?): List<SaClub> = newSuspendedTransaction {
         var query = ClubsTable.selectAll().where { ClubsTable.deletedAt.isNull() }
         status?.let { s -> query = query.andWhere { ClubsTable.status eq s } }
         search?.let { q -> query = query.andWhere { ClubsTable.name.lowerCase() like "%${q.lowercase()}%" } }
-        query.map { it.toSaClub() }
+        val clubs = query.toList()
+        val clubIds = clubs.map { it[ClubsTable.id] }
+        val counts = fetchClubCounts(clubIds)
+        clubs.map { row ->
+            val (mc, tc, mem) = counts[row[ClubsTable.id]] ?: Triple(0, 0, 0)
+            row.toSaClub(mc, tc, mem)
+        }
     }
 
     // SA-014: create club
@@ -60,54 +72,61 @@ class SuperAdminRepositoryImpl(
             it[createdAt] = now
             it[updatedAt] = now
         }
-        val club = ClubsTable.selectAll().where { ClubsTable.id eq clubId }.single().toSaClub()
-        // Queue manager invites
         for (email in request.managerEmails) {
             createManagerInviteInternal(clubId.toString(), email, actorId)
         }
-        club
+        val row = ClubsTable.selectAll().where { ClubsTable.id eq clubId }.single()
+        val (mc, tc, mem) = fetchClubCounts(listOf(clubId))[clubId] ?: Triple(0, 0, 0)
+        row.toSaClub(mc, tc, mem)
     }
 
     // SA-015: club detail
     suspend fun getClub(clubId: String): SaClub? = newSuspendedTransaction {
-        ClubsTable.selectAll().where {
-            (ClubsTable.id eq UUID.fromString(clubId)) and ClubsTable.deletedAt.isNull()
-        }.singleOrNull()?.toSaClub()
+        val uid = UUID.fromString(clubId)
+        val row = ClubsTable.selectAll().where {
+            (ClubsTable.id eq uid) and ClubsTable.deletedAt.isNull()
+        }.singleOrNull() ?: return@newSuspendedTransaction null
+        val (mc, tc, mem) = fetchClubCounts(listOf(uid))[uid] ?: Triple(0, 0, 0)
+        row.toSaClub(mc, tc, mem)
     }
 
     // SA-016: edit club
     suspend fun updateClub(clubId: String, request: UpdateSaClubRequest): SaClub = newSuspendedTransaction {
+        val uid = UUID.fromString(clubId)
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        ClubsTable.update({ ClubsTable.id eq UUID.fromString(clubId) }) {
+        ClubsTable.update({ ClubsTable.id eq uid }) {
             request.name?.let { v -> it[name] = v }
             request.metadata?.let { v -> it[metadata] = v }
             it[updatedAt] = now
         }
-        ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }.single().toSaClub()
+        val row = ClubsTable.selectAll().where { ClubsTable.id eq uid }.single()
+        val (mc, tc, mem) = fetchClubCounts(listOf(uid))[uid] ?: Triple(0, 0, 0)
+        row.toSaClub(mc, tc, mem)
     }
 
     // SA-017: deactivate
     suspend fun deactivateClub(clubId: String) = newSuspendedTransaction {
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
         ClubsTable.update({ ClubsTable.id eq UUID.fromString(clubId) }) {
             it[status] = "inactive"
-            it[updatedAt] = now
+            it[updatedAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
     }
 
     // SA-018: reactivate
     suspend fun reactivateClub(clubId: String) = newSuspendedTransaction {
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
         ClubsTable.update({ ClubsTable.id eq UUID.fromString(clubId) }) {
             it[status] = "active"
-            it[updatedAt] = now
+            it[updatedAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
     }
 
-    // SA-019: permanent delete (server-side confirm_name validation)
+    // SA-019: permanent delete — requires club to be inactive first (H-2 fix)
     suspend fun deleteClub(clubId: String, confirmName: String) = newSuspendedTransaction {
         val club = ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }.singleOrNull()
-            ?: throw IllegalArgumentException("Club not found")
+            ?: throw NotFoundException("Club not found")
+        if (club[ClubsTable.status] != "inactive") {
+            throw IllegalArgumentException("Club must be deactivated before deletion")
+        }
         if (club[ClubsTable.name] != confirmName) {
             throw IllegalArgumentException("Club name does not match")
         }
@@ -137,7 +156,6 @@ class SuperAdminRepositoryImpl(
     // SA-021: invite manager by email
     suspend fun inviteManager(clubId: String, email: String, actorId: String): SaManager =
         newSuspendedTransaction {
-            // Check if already a manager
             val existing = ClubManagersTable.selectAll().where {
                 (ClubManagersTable.clubId eq UUID.fromString(clubId)) and
                 (ClubManagersTable.invitedEmail eq email)
@@ -150,7 +168,6 @@ class SuperAdminRepositoryImpl(
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val id = UUID.randomUUID()
         val token = generateToken()
-        // Check if user already exists
         val existingUser = UsersTable.selectAll().where { UsersTable.email eq email }.singleOrNull()
         ClubManagersTable.insert {
             it[ClubManagersTable.id] = id
@@ -163,7 +180,7 @@ class SuperAdminRepositoryImpl(
             it[acceptedAt] = if (existingUser != null) now else null
         }
         val row = ClubManagersTable.selectAll().where { ClubManagersTable.id eq id }.single()
-        // Send invite email if user doesn't exist yet
+        // H-3 fix: fire-and-forget with scoped coroutine, logging failures
         if (existingUser == null) {
             val baseUrl = config.propertyOrNull("app.baseUrl")?.getString() ?: "https://app.playbook.example"
             val link = "$baseUrl/manager-invite/$token"
@@ -171,10 +188,13 @@ class SuperAdminRepositoryImpl(
             val fromName = config.propertyOrNull("smtp.fromName")?.getString() ?: "Playbook"
             val clubName = ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }
                 .singleOrNull()?.get(ClubsTable.name) ?: ""
-            kotlinx.coroutines.GlobalScope.launch {
-                try {
+            emailScope.launch {
+                runCatching {
                     com.playbook.email.sendManagerInviteEmail(mailer, email, clubName, link, fromAddress, fromName)
-                } catch (_: Exception) {}
+                }.onFailure { e ->
+                    // Best-effort; caller can resend
+                    System.err.println("Failed to send manager invite email to $email: ${e.message}")
+                }
             }
         }
         return SaManager(
@@ -197,23 +217,7 @@ class SuperAdminRepositoryImpl(
         }
     }
 
-    // SA-023: start impersonation session
-    suspend fun startImpersonation(clubId: String, managerId: String): Pair<UUID, OffsetDateTime> =
-        newSuspendedTransaction {
-            val now = OffsetDateTime.now(ZoneOffset.UTC)
-            val expiresAt = now.plusHours(1)
-            val sessionId = UUID.randomUUID()
-            ImpersonationSessionsTable.insert {
-                it[id] = sessionId
-                it[superadminId] = UUID.fromString(managerId) // will be overwritten with real SA id at route level
-                it[ImpersonationSessionsTable.managerId] = UUID.fromString(managerId)
-                it[ImpersonationSessionsTable.clubId] = UUID.fromString(clubId)
-                it[startedAt] = now
-                it[ImpersonationSessionsTable.expiresAt] = expiresAt
-            }
-            Pair(sessionId, expiresAt)
-        }
-
+    // SA-023: start impersonation session (C-2 fix: deleted the dead startImpersonation() duplicate)
     suspend fun startImpersonationSession(
         saId: String,
         clubId: String,
@@ -233,11 +237,15 @@ class SuperAdminRepositoryImpl(
         Pair(sessionId, expiresAt)
     }
 
-    // SA-024: end impersonation session
-    suspend fun endImpersonation(sessionId: String) = newSuspendedTransaction {
-        ImpersonationSessionsTable.update({ ImpersonationSessionsTable.id eq UUID.fromString(sessionId) }) {
+    // SA-024: end impersonation — H-5 fix: verify session belongs to calling SA
+    suspend fun endImpersonation(sessionId: String, saId: String) = newSuspendedTransaction {
+        val updated = ImpersonationSessionsTable.update({
+            (ImpersonationSessionsTable.id eq UUID.fromString(sessionId)) and
+            (ImpersonationSessionsTable.superadminId eq UUID.fromString(saId))
+        }) {
             it[endedAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
+        if (updated == 0) throw NotFoundException("Session not found or not owned by this account")
     }
 
     // SA-025: user search
@@ -309,7 +317,6 @@ class SuperAdminRepositoryImpl(
 
     // SA-028: enqueue export job
     suspend fun enqueueExportJob(actorId: String, filters: String?): String = newSuspendedTransaction {
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
         val jobId = UUID.randomUUID()
         ExportJobsTable.insert {
             it[id] = jobId
@@ -317,7 +324,7 @@ class SuperAdminRepositoryImpl(
             it[ExportJobsTable.actorId] = UUID.fromString(actorId)
             it[status] = "pending"
             it[ExportJobsTable.filters] = filters
-            it[createdAt] = now
+            it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
         jobId.toString()
     }
@@ -334,22 +341,20 @@ class SuperAdminRepositoryImpl(
     }
 
     fun getExportFilePath(jobId: String): String? {
-        val dir = File(System.getProperty("user.dir"), "exports")
-        val file = File(dir, "$jobId.csv")
+        val file = File(System.getProperty("user.dir"), "exports/$jobId.csv")
         return if (file.exists()) file.absolutePath else null
     }
 
-    // SA-030: club members
+    // SA-030: club members — distinct per user (no cross-team duplicates)
     suspend fun listClubMembers(clubId: String): List<SaClubMember> = newSuspendedTransaction {
-        (TeamMembershipsTable innerJoin UsersTable innerJoin TeamsTable)
+        (TeamMembershipsTable innerJoin TeamsTable)
+            .leftJoin(UsersTable, { TeamMembershipsTable.userId }, { UsersTable.id })
             .selectAll()
-            .where {
-                (TeamsTable.clubId eq UUID.fromString(clubId)) and
-                (TeamMembershipsTable.userId eq UsersTable.id)
-            }
+            .where { TeamsTable.clubId eq UUID.fromString(clubId) }
+            .distinctBy { it[TeamMembershipsTable.userId] }
             .map { row ->
                 SaClubMember(
-                    userId = row[UsersTable.id].toString(),
+                    userId = row[TeamMembershipsTable.userId].toString(),
                     email = row[UsersTable.email],
                     displayName = row[UsersTable.displayName],
                     role = row[TeamMembershipsTable.role],
@@ -358,52 +363,65 @@ class SuperAdminRepositoryImpl(
             }
     }
 
-    // SA-031: billing summary
+    // SA-031: billing summary — SQL COUNT DISTINCT (no in-memory distinctBy)
     suspend fun getBillingSummary(rateChf: Double): List<ClubBillingEntry> = newSuspendedTransaction {
         val clubs = ClubsTable.selectAll().where { ClubsTable.deletedAt.isNull() }.toList()
-        clubs.map { club ->
-            val clubId = club[ClubsTable.id]
-            val memberCount = (TeamMembershipsTable innerJoin TeamsTable)
-                .selectAll()
-                .where {
-                    (TeamsTable.clubId eq clubId) and
-                    (TeamMembershipsTable.teamId eq TeamsTable.id)
+        val clubIds = clubs.map { it[ClubsTable.id] }
+        val memberCountMap = if (clubIds.isEmpty()) emptyMap() else {
+            (TeamMembershipsTable innerJoin TeamsTable)
+                .select(TeamsTable.clubId, TeamMembershipsTable.userId.countDistinct())
+                .where { TeamsTable.clubId inList clubIds }
+                .groupBy(TeamsTable.clubId)
+                .associate {
+                    it[TeamsTable.clubId] to it[TeamMembershipsTable.userId.countDistinct()].toInt()
                 }
-                .distinctBy { it[TeamMembershipsTable.userId] }
-                .size
+        }
+        clubs.map { club ->
+            val count = memberCountMap[club[ClubsTable.id]] ?: 0
             ClubBillingEntry(
-                clubId = clubId.toString(),
+                clubId = club[ClubsTable.id].toString(),
                 clubName = club[ClubsTable.name],
-                activeMemberCount = memberCount,
-                annualBillingChf = memberCount * rateChf,
+                activeMemberCount = count,
+                annualBillingChf = count * rateChf,
             )
         }
     }
 
-    private fun ResultRow.toSaClub(): SaClub {
-        val clubId = this[ClubsTable.id]
-        val managerCount = ClubManagersTable.selectAll()
-            .where { (ClubManagersTable.clubId eq clubId) and (ClubManagersTable.status eq "active") }
-            .count().toInt()
-        val teamCount = TeamsTable.selectAll().where { TeamsTable.clubId eq clubId }.count().toInt()
-        val memberCount = (TeamMembershipsTable innerJoin TeamsTable)
-            .selectAll()
-            .where { TeamsTable.clubId eq clubId }
-            .distinctBy { it[TeamMembershipsTable.userId] }
-            .size
-        return SaClub(
-            id = clubId.toString(),
-            name = this[ClubsTable.name],
-            status = this[ClubsTable.status],
-            sportType = this[ClubsTable.sportType],
-            location = this[ClubsTable.location],
-            metadata = this[ClubsTable.metadata],
-            createdAt = this[ClubsTable.createdAt].toInstant().toKotlinInstant().toString(),
-            managerCount = managerCount,
-            memberCount = memberCount,
-            teamCount = teamCount,
-        )
+    // H-4 fix: batch counts for multiple clubs in 3 queries instead of 3×N
+    private fun fetchClubCounts(clubIds: List<UUID>): Map<UUID, Triple<Int, Int, Int>> {
+        if (clubIds.isEmpty()) return emptyMap()
+        val managerCounts = ClubManagersTable
+            .select(ClubManagersTable.clubId, ClubManagersTable.id.count())
+            .where { (ClubManagersTable.clubId inList clubIds) and (ClubManagersTable.status eq "active") }
+            .groupBy(ClubManagersTable.clubId)
+            .associate { it[ClubManagersTable.clubId] to it[ClubManagersTable.id.count()].toInt() }
+        val teamCounts = TeamsTable
+            .select(TeamsTable.clubId, TeamsTable.id.count())
+            .where { TeamsTable.clubId inList clubIds }
+            .groupBy(TeamsTable.clubId)
+            .associate { it[TeamsTable.clubId] to it[TeamsTable.id.count()].toInt() }
+        val memberCounts = (TeamMembershipsTable innerJoin TeamsTable)
+            .select(TeamsTable.clubId, TeamMembershipsTable.userId.countDistinct())
+            .where { TeamsTable.clubId inList clubIds }
+            .groupBy(TeamsTable.clubId)
+            .associate { it[TeamsTable.clubId] to it[TeamMembershipsTable.userId.countDistinct()].toInt() }
+        return clubIds.associateWith { id ->
+            Triple(managerCounts[id] ?: 0, teamCounts[id] ?: 0, memberCounts[id] ?: 0)
+        }
     }
+
+    private fun ResultRow.toSaClub(managerCount: Int, teamCount: Int, memberCount: Int) = SaClub(
+        id = this[ClubsTable.id].toString(),
+        name = this[ClubsTable.name],
+        status = this[ClubsTable.status],
+        sportType = this[ClubsTable.sportType],
+        location = this[ClubsTable.location],
+        metadata = this[ClubsTable.metadata],
+        createdAt = this[ClubsTable.createdAt].toInstant().toKotlinInstant().toString(),
+        managerCount = managerCount,
+        memberCount = memberCount,
+        teamCount = teamCount,
+    )
 
     private fun ResultRow.toAuditLogEntry() = AuditLogEntry(
         id = this[AuditLogTable.id].toString(),

@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/auth/login`, {
+    res = await fetch(`${API_URL}/auth/sa-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })

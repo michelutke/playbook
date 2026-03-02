@@ -6,7 +6,7 @@ import com.playbook.db.tables.UsersTable
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.UUID
 
@@ -31,19 +31,20 @@ fun Application.configureAuth() {
             }
         }
 
-        // SA-006: super-admin JWT — same signing key but validates super_admin DB flag
+        // SA-006 / C-1 fix: super-admin JWT uses distinct "playbook-sa" audience.
+        // Regular user tokens (audience "playbook-app") structurally cannot pass this verifier.
         jwt("super-admin") {
             realm = "Playbook SA"
             verifier(
                 JWT.require(Algorithm.HMAC256(jwtSecret))
                     .withIssuer(jwtIssuer)
-                    .withAudience(jwtAudience)
+                    .withAudience("playbook-sa")
                     .build()
             )
             validate { credential ->
                 val userId = credential.payload.getClaim("sub").asString() ?: return@validate null
                 val isSa = newSuspendedTransaction {
-                    UsersTable.select { UsersTable.id eq UUID.fromString(userId) }
+                    UsersTable.selectAll().where { UsersTable.id eq UUID.fromString(userId) }
                         .singleOrNull()?.get(UsersTable.superAdmin) ?: false
                 }
                 if (isSa) JWTPrincipal(credential.payload) else null

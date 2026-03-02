@@ -8,14 +8,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.update
 import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -23,15 +23,12 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 /**
- * SA-032: Background coroutine that picks up pending export jobs,
- * runs CSV generation, and updates status.
- *
- * SA-034: Cleanup coroutine deletes export files and job rows older than 1 hour.
+ * SA-032: Processes pending export jobs every 5 seconds.
+ * SA-034: Cleanup coroutine deletes done/failed jobs + files older than 1 hour.
  */
 fun Application.startExportJobRunner() {
     val scope = CoroutineScope(Dispatchers.IO)
 
-    // SA-032: process pending jobs every 5 seconds
     scope.launch {
         while (isActive) {
             runCatching { processPendingExportJobs() }
@@ -40,7 +37,6 @@ fun Application.startExportJobRunner() {
         }
     }
 
-    // SA-034: cleanup every 15 minutes
     scope.launch {
         while (isActive) {
             runCatching { cleanupOldExports() }
@@ -53,30 +49,18 @@ fun Application.startExportJobRunner() {
 private suspend fun processPendingExportJobs() {
     val pendingJobs = newSuspendedTransaction {
         ExportJobsTable.selectAll().where { ExportJobsTable.status eq "pending" }
-            .map { row ->
-                Triple(
-                    row[ExportJobsTable.id].toString(),
-                    row[ExportJobsTable.type],
-                    row[ExportJobsTable.filters],
-                )
-            }
+            .map { Triple(it[ExportJobsTable.id].toString(), it[ExportJobsTable.type], it[ExportJobsTable.filters]) }
     }
 
     for ((jobId, type, filtersJson) in pendingJobs) {
         runCatching {
-            // Mark running
             newSuspendedTransaction {
-                ExportJobsTable.update({ ExportJobsTable.id eq UUID.fromString(jobId) }) {
-                    it[status] = "running"
-                }
+                ExportJobsTable.update({ ExportJobsTable.id eq UUID.fromString(jobId) }) { it[status] = "running" }
             }
-
             val filePath = when (type) {
                 "audit_log_csv" -> generateAuditLogCsv(jobId, filtersJson)
                 else -> throw IllegalArgumentException("Unknown export type: $type")
             }
-
-            // Mark done
             newSuspendedTransaction {
                 ExportJobsTable.update({ ExportJobsTable.id eq UUID.fromString(jobId) }) {
                     it[status] = "done"
@@ -84,7 +68,7 @@ private suspend fun processPendingExportJobs() {
                     it[completedAt] = OffsetDateTime.now(ZoneOffset.UTC)
                 }
             }
-        }.onFailure { err ->
+        }.onFailure {
             newSuspendedTransaction {
                 ExportJobsTable.update({ ExportJobsTable.id eq UUID.fromString(jobId) }) {
                     it[status] = "failed"
@@ -95,16 +79,39 @@ private suspend fun processPendingExportJobs() {
     }
 }
 
+// H-1 fix: parse and apply filters from stored JSON
 private suspend fun generateAuditLogCsv(jobId: String, filtersJson: String?): String {
+    val filters = filtersJson?.let { json ->
+        runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull()
+    }
+
     val rows = newSuspendedTransaction {
-        AuditLogTable.selectAll()
-            .orderBy(AuditLogTable.createdAt)
-            .toList()
+        var query = AuditLogTable.selectAll()
+        filters?.let { f ->
+            f["actorId"]?.jsonPrimitive?.content?.let { id ->
+                runCatching { UUID.fromString(id) }.getOrNull()?.let { uid ->
+                    query = query.andWhere { AuditLogTable.actorId eq uid }
+                }
+            }
+            f["action"]?.jsonPrimitive?.content?.let { a ->
+                query = query.andWhere { AuditLogTable.action like "%$a%" }
+            }
+            f["from"]?.jsonPrimitive?.content?.let { from ->
+                runCatching { OffsetDateTime.parse(from) }.getOrNull()?.let { dt ->
+                    query = query.andWhere { AuditLogTable.createdAt greaterEq dt }
+                }
+            }
+            f["to"]?.jsonPrimitive?.content?.let { to ->
+                runCatching { OffsetDateTime.parse(to) }.getOrNull()?.let { dt ->
+                    query = query.andWhere { AuditLogTable.createdAt less dt }
+                }
+            }
+        }
+        query.orderBy(AuditLogTable.createdAt).toList()
     }
 
     val exportDir = File(System.getProperty("user.dir"), "exports").apply { mkdirs() }
     val file = File(exportDir, "$jobId.csv")
-
     file.bufferedWriter().use { writer ->
         writer.write("id,actor_id,action,target_type,target_id,impersonated_as,created_at\n")
         for (row in rows) {
@@ -119,24 +126,20 @@ private suspend fun generateAuditLogCsv(jobId: String, filtersJson: String?): St
             )
         }
     }
-
     return file.absolutePath
 }
 
+// M-3 fix: cleanup both done AND failed jobs older than 1h
 private suspend fun cleanupOldExports() {
     val cutoff = OffsetDateTime.now(ZoneOffset.UTC).minusHours(1)
-
     val oldJobs = newSuspendedTransaction {
         ExportJobsTable.selectAll().where {
             (ExportJobsTable.createdAt less cutoff) and
-            (ExportJobsTable.status eq "done")
+            (ExportJobsTable.status inList listOf("done", "failed"))
         }.map { Pair(it[ExportJobsTable.id].toString(), it[ExportJobsTable.resultPath]) }
     }
-
     for ((jobId, path) in oldJobs) {
-        // Delete file
         path?.let { File(it).delete() }
-        // Delete row
         newSuspendedTransaction {
             ExportJobsTable.deleteWhere { id eq UUID.fromString(jobId) }
         }
