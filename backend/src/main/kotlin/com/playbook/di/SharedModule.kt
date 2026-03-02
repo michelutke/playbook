@@ -6,6 +6,7 @@ import com.playbook.db.repositories.EventRepositoryImpl
 import com.playbook.db.repositories.InviteRepositoryImpl
 import com.playbook.db.repositories.MembershipRepositoryImpl
 import com.playbook.db.repositories.SubgroupRepositoryImpl
+import com.playbook.db.repositories.SuperAdminRepositoryImpl
 import com.playbook.db.repositories.TeamRepositoryImpl
 import com.playbook.repository.ClubRepository
 import com.playbook.repository.CoachLinkRepository
@@ -24,4 +25,5 @@ val sharedModule = module {
     single<CoachLinkRepository> { CoachLinkRepositoryImpl() }
     single<EventRepository> { EventRepositoryImpl() }
     single<SubgroupRepository> { SubgroupRepositoryImpl() }
+    single { SuperAdminRepositoryImpl(get(), get()) } // Mailer + config
 }

@@ -23,7 +23,8 @@ suspend fun RoutingContext.requireClubManager(clubId: String): String {
     val isManager = newSuspendedTransaction {
         ClubManagersTable.select {
             (ClubManagersTable.clubId eq UUID.fromString(clubId)) and
-            (ClubManagersTable.userId eq UUID.fromString(uid))
+            (ClubManagersTable.userId eq UUID.fromString(uid)) and
+            (ClubManagersTable.status eq "active")
         }.count() > 0
     }
     if (!isManager) throw ForbiddenException("Club manager access required")

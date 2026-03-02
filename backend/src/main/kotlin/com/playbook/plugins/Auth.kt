@@ -2,9 +2,13 @@ package com.playbook.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.playbook.db.tables.UsersTable
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.util.UUID
 
 fun Application.configureAuth() {
     val jwtSecret = environment.config.property("jwt.secret").getString()
@@ -12,6 +16,7 @@ fun Application.configureAuth() {
     val jwtAudience = environment.config.property("jwt.audience").getString()
 
     install(Authentication) {
+        // SA-006: regular user JWT
         jwt("auth-jwt") {
             realm = "Playbook"
             verifier(
@@ -23,6 +28,43 @@ fun Application.configureAuth() {
             validate { credential ->
                 val userId = credential.payload.getClaim("sub").asString()
                 if (userId != null) JWTPrincipal(credential.payload) else null
+            }
+        }
+
+        // SA-006: super-admin JWT — same signing key but validates super_admin DB flag
+        jwt("super-admin") {
+            realm = "Playbook SA"
+            verifier(
+                JWT.require(Algorithm.HMAC256(jwtSecret))
+                    .withIssuer(jwtIssuer)
+                    .withAudience(jwtAudience)
+                    .build()
+            )
+            validate { credential ->
+                val userId = credential.payload.getClaim("sub").asString() ?: return@validate null
+                val isSa = newSuspendedTransaction {
+                    UsersTable.select { UsersTable.id eq UUID.fromString(userId) }
+                        .singleOrNull()?.get(UsersTable.superAdmin) ?: false
+                }
+                if (isSa) JWTPrincipal(credential.payload) else null
+            }
+        }
+
+        // SA-008: impersonation JWT — separate audience, custom claims
+        jwt("impersonation") {
+            realm = "Playbook Impersonation"
+            verifier(
+                JWT.require(Algorithm.HMAC256(jwtSecret))
+                    .withIssuer(jwtIssuer)
+                    .withAudience("playbook-impersonation")
+                    .build()
+            )
+            validate { credential ->
+                val userId = credential.payload.getClaim("sub").asString() ?: return@validate null
+                val impersonatedBy = credential.payload.getClaim("impersonated_by").asString()
+                val sessionId = credential.payload.getClaim("impersonation_session_id").asString()
+                if (userId != null && impersonatedBy != null && sessionId != null)
+                    JWTPrincipal(credential.payload) else null
             }
         }
     }

@@ -10,6 +10,8 @@ object ClubsTable : Table("clubs") {
     val sportType = text("sport_type")
     val location = text("location").nullable()
     val status = text("status").default("active")
+    val metadata = text("metadata").nullable()
+    val deletedAt = timestampWithTimeZone("deleted_at").nullable()
     val createdAt = timestampWithTimeZone("created_at")
     val updatedAt = timestampWithTimeZone("updated_at")
     override val primaryKey = PrimaryKey(id)

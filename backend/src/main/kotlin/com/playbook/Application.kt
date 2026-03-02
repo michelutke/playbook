@@ -1,5 +1,6 @@
 package com.playbook
 
+import com.playbook.infra.startExportJobRunner
 import com.playbook.infra.startMaterializationJob
 import com.playbook.plugins.configureAuth
 import com.playbook.plugins.configureKoin
@@ -20,4 +21,5 @@ fun Application.module() {
     configureKoin()
     configureRouting()
     startMaterializationJob()
+    startExportJobRunner()
 }
