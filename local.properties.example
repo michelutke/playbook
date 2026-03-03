@@ -1,0 +1,9 @@
+# Copy this file to local.properties and fill in your values.
+# local.properties is gitignored and must never be committed.
+# In CI/CD, set these as environment variables prefixed with ORG_GRADLE_PROJECT_
+# e.g. ORG_GRADLE_PROJECT_ONESIGNAL_APP_ID, ORG_GRADLE_PROJECT_BACKEND_BASE_URL
+
+sdk.dir=/Users/your-username/Library/Android/sdk
+
+ONESIGNAL_APP_ID=your_onesignal_app_id_here
+BACKEND_BASE_URL=http://10.0.2.2:8080
