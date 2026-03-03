@@ -1,10 +1,12 @@
 package com.playbook.routes
 
 import com.playbook.domain.UpdateAttendanceRequest
+import com.playbook.infra.launchNotifyAttendanceResponse
 import com.playbook.middleware.requireCoachOnTeam
 import com.playbook.middleware.requireMemberOnEventTeam
 import com.playbook.middleware.requireSelfOrSharedCoach
 import com.playbook.plugins.userId
+import com.playbook.push.NotificationService
 import com.playbook.repository.AttendanceRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -12,9 +14,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.datetime.Instant
 import org.koin.ktor.ext.inject
+import java.util.UUID
 
 fun Route.registerAttendanceRoutes() {
     val attendanceRepo: AttendanceRepository by inject()
+    val notificationService: NotificationService by inject()
 
     // T-005: GET /events/{id}/attendance - team view
     get("/events/{id}/attendance") {
@@ -38,6 +42,13 @@ fun Route.registerAttendanceRoutes() {
         val uid = call.userId
         val request = call.receive<UpdateAttendanceRequest>()
         val response = attendanceRepo.upsertAttendance(eventId, uid, request)
+        // NT-039: notify coaches of attendance response
+        launchNotifyAttendanceResponse(
+            UUID.fromString(eventId),
+            UUID.fromString(uid),
+            request.status.name.lowercase(),
+            notificationService,
+        )
         call.respond(response)
     }
 

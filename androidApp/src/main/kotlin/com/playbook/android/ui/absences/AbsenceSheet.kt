@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -101,7 +102,7 @@ fun AbsenceSheet(
                                     )
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.transparent,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                         shape = RoundedCornerShape(8.dp),
                                     )
                                     .clickable {

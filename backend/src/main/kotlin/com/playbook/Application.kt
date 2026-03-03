@@ -3,18 +3,17 @@ package com.playbook
 import com.playbook.infra.startAutoPresentJob
 import com.playbook.infra.startExportJobRunner
 import com.playbook.infra.startMaterializationJob
+import com.playbook.infra.startNotificationScheduler
 import com.playbook.plugins.configureAuth
 import com.playbook.plugins.configureKoin
 import com.playbook.plugins.configureRouting
 import com.playbook.plugins.configureSerialization
+import com.playbook.push.NotificationService
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import org.koin.ktor.ext.inject
 
-fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
-}
+fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 fun Application.module() {
     configureSerialization()
@@ -24,4 +23,6 @@ fun Application.module() {
     startMaterializationJob()
     startExportJobRunner()
     startAutoPresentJob()
+    val notificationService: NotificationService by inject()
+    startNotificationScheduler(notificationService)
 }

@@ -92,7 +92,7 @@ class EventDetailViewModel(
             try {
                 val event = eventRepository.getById(eventId)
                 _state.update { it.copy(event = event, isLoading = false) }
-                _attendanceState.update { it.copy(isDeadlinePassed = isDeadlinePassed(event)) }
+                _attendanceState.update { it.copy(isDeadlinePassed = event?.let { e -> isDeadlinePassed(e) } ?: false) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = "Failed to load event.") }
             }

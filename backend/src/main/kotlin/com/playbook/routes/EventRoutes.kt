@@ -4,10 +4,14 @@ import com.playbook.domain.CancelEventRequest
 import com.playbook.domain.CreateEventRequest
 import com.playbook.domain.EventType
 import com.playbook.domain.UpdateEventRequest
+import com.playbook.infra.launchNotifyEventCancelled
+import com.playbook.infra.launchNotifyEventCreated
+import com.playbook.infra.launchNotifyEventUpdated
 import com.playbook.middleware.requireCoachOnEventTeam
 import com.playbook.middleware.requireCoachOnTeam
 import com.playbook.plugins.NotFoundException
 import com.playbook.plugins.userId
+import com.playbook.push.NotificationService
 import com.playbook.repository.EventRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -15,9 +19,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.datetime.Instant
 import org.koin.ktor.ext.inject
+import java.util.UUID
 
 fun Route.registerEventRoutes() {
     val eventRepo: EventRepository by inject()
+    val notificationService: NotificationService by inject()
 
     // ES-009: GET /users/me/events — deduplicated player view
     get("/users/me/events") {
@@ -60,6 +66,8 @@ fun Route.registerEventRoutes() {
         }
         if (!isCoachOnAny) throw com.playbook.plugins.ForbiddenException("Not a coach on any target team")
         val event = eventRepo.create(request, uid)
+        // NT-036: notify team members of new event
+        launchNotifyEventCreated(UUID.fromString(event.id), notificationService)
         call.respond(HttpStatusCode.Created, event)
     }
 
@@ -69,6 +77,11 @@ fun Route.registerEventRoutes() {
         requireCoachOnEventTeam(id)
         val request = call.receive<UpdateEventRequest>()
         val event = eventRepo.update(id, request)
+        // NT-037: notify if time or location changed
+        val timeOrLocationChanged = request.startAt != null || request.endAt != null || request.location != null
+        if (timeOrLocationChanged) {
+            launchNotifyEventUpdated(UUID.fromString(id), notificationService)
+        }
         call.respond(event)
     }
 
@@ -78,6 +91,8 @@ fun Route.registerEventRoutes() {
         requireCoachOnEventTeam(id)
         val request = call.receiveNullable<CancelEventRequest>() ?: CancelEventRequest()
         val event = eventRepo.cancel(id, request)
+        // NT-038: notify team members of cancellation
+        launchNotifyEventCancelled(UUID.fromString(id), notificationService)
         call.respond(event)
     }
 
