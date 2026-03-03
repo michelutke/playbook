@@ -6,17 +6,20 @@ import com.playbook.db.tables.ClubManagersTable
 import com.playbook.db.tables.UsersTable
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.insert
 import org.mindrot.jbcrypt.BCrypt
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.Date
 import java.util.UUID
 
@@ -53,11 +56,17 @@ fun Route.registerAuthRoutes() {
                 }
                 existing[UsersTable.id].toString()
             } else {
-                UsersTable.insertAndGetId {
+                val newId = UUID.randomUUID()
+                val now = OffsetDateTime.now(ZoneOffset.UTC)
+                UsersTable.insert {
+                    it[id] = newId
                     it[email] = req.email
                     it[passwordHash] = hash
                     it[displayName] = req.displayName
-                }.toString()
+                    it[createdAt] = now
+                    it[updatedAt] = now
+                }
+                newId.toString()
             }
         }
         val token = issueToken(jwtSecret, jwtIssuer, jwtAudience, userId)
