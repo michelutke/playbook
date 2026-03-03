@@ -1,5 +1,7 @@
 package com.playbook.di
 
+import com.playbook.db.repositories.AbwesenheitRepositoryImpl
+import com.playbook.db.repositories.AttendanceRepositoryImpl
 import com.playbook.db.repositories.ClubRepositoryImpl
 import com.playbook.db.repositories.CoachLinkRepositoryImpl
 import com.playbook.db.repositories.EventRepositoryImpl
@@ -8,6 +10,8 @@ import com.playbook.db.repositories.MembershipRepositoryImpl
 import com.playbook.db.repositories.SubgroupRepositoryImpl
 import com.playbook.db.repositories.SuperAdminRepositoryImpl
 import com.playbook.db.repositories.TeamRepositoryImpl
+import com.playbook.repository.AbwesenheitRepository
+import com.playbook.repository.AttendanceRepository
 import com.playbook.repository.ClubRepository
 import com.playbook.repository.CoachLinkRepository
 import com.playbook.repository.EventRepository
@@ -26,4 +30,6 @@ val sharedModule = module {
     single<EventRepository> { EventRepositoryImpl() }
     single<SubgroupRepository> { SubgroupRepositoryImpl() }
     single { SuperAdminRepositoryImpl(get(), get()) } // Mailer + config
+    single<AttendanceRepository> { AttendanceRepositoryImpl() }
+    single<AbwesenheitRepository> { AbwesenheitRepositoryImpl() }
 }

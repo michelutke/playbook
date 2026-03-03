@@ -19,11 +19,11 @@ class SubgroupRepositoryImpl : SubgroupRepository {
     override suspend fun listForTeam(teamId: String): List<Subgroup> =
         newSuspendedTransaction {
             val tid = UUID.fromString(teamId)
-            val subgroupRows = SubgroupsTable.select { SubgroupsTable.teamId eq tid }.toList()
+            val subgroupRows = SubgroupsTable.selectAll().where { SubgroupsTable.teamId eq tid }.toList()
             val subgroupIds = subgroupRows.map { it[SubgroupsTable.id] }
 
             val memberRows = if (subgroupIds.isEmpty()) emptyList()
-            else SubgroupMembersTable.select { SubgroupMembersTable.subgroupId inList subgroupIds }.toList()
+            else SubgroupMembersTable.selectAll().where { SubgroupMembersTable.subgroupId inList subgroupIds }.toList()
 
             val membersBySubgroup = memberRows.groupBy { it[SubgroupMembersTable.subgroupId] }
             subgroupRows.map { row ->
@@ -74,8 +74,8 @@ class SubgroupRepositoryImpl : SubgroupRepository {
     }
 
     private fun fetchSubgroup(id: UUID): Subgroup {
-        val row = SubgroupsTable.select { SubgroupsTable.id eq id }.single()
-        val members = SubgroupMembersTable.select { SubgroupMembersTable.subgroupId eq id }
+        val row = SubgroupsTable.selectAll().where { SubgroupsTable.id eq id }.single()
+        val members = SubgroupMembersTable.selectAll().where { SubgroupMembersTable.subgroupId eq id }
             .map { it[SubgroupMembersTable.userId].toString() }
         return row.toSubgroup(members)
     }

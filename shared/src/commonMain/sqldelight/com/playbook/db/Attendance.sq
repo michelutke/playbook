@@ -1,0 +1,70 @@
+-- T-022: Local cache tables for attendance-tracking offline support
+
+CREATE TABLE IF NOT EXISTS cached_attendance_responses (
+    event_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'no-response',
+    reason TEXT,
+    abwesenheit_rule_id TEXT,
+    manual_override INTEGER NOT NULL DEFAULT 0,
+    responded_at TEXT,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (event_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS cached_abwesenheit_rules (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    preset_type TEXT NOT NULL,
+    label TEXT NOT NULL,
+    rule_type TEXT NOT NULL,
+    weekdays TEXT,
+    start_date TEXT,
+    end_date TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS attendance_mutation_queue (
+    id TEXT NOT NULL PRIMARY KEY,
+    type TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- Queries
+
+getMyAttendance:
+SELECT * FROM cached_attendance_responses WHERE event_id = :eventId AND user_id = :userId;
+
+upsertAttendanceResponse:
+INSERT OR REPLACE INTO cached_attendance_responses
+(event_id, user_id, status, reason, abwesenheit_rule_id, manual_override, responded_at, updated_at)
+VALUES (:eventId, :userId, :status, :reason, :abwesenheitRuleId, :manualOverride, :respondedAt, :updatedAt);
+
+deleteAttendanceResponse:
+DELETE FROM cached_attendance_responses WHERE event_id = :eventId AND user_id = :userId;
+
+getRulesForUser:
+SELECT * FROM cached_abwesenheit_rules WHERE user_id = :userId;
+
+upsertAbwesenheitRule:
+INSERT OR REPLACE INTO cached_abwesenheit_rules
+(id, user_id, preset_type, label, rule_type, weekdays, start_date, end_date, created_at, updated_at)
+VALUES (:id, :userId, :presetType, :label, :ruleType, :weekdays, :startDate, :endDate, :createdAt, :updatedAt);
+
+deleteAbwesenheitRule:
+DELETE FROM cached_abwesenheit_rules WHERE id = :id;
+
+getPendingMutations:
+SELECT * FROM attendance_mutation_queue ORDER BY created_at ASC;
+
+insertMutation:
+INSERT INTO attendance_mutation_queue (id, type, payload, created_at)
+VALUES (:id, :type, :payload, :createdAt);
+
+deleteMutation:
+DELETE FROM attendance_mutation_queue WHERE id = :id;
+
+clearMutations:
+DELETE FROM attendance_mutation_queue;

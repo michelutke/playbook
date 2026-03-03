@@ -147,10 +147,11 @@ fun TeamInviteSheet(
                 }
             }
 
-            if (state.error != null) {
+            val inviteError = state.error
+            if (inviteError != null) {
                 item {
                     Text(
-                        text = state.error,
+                        text = inviteError,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )

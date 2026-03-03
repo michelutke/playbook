@@ -72,13 +72,13 @@ private suspend fun resolveSeriesContext(
     seriesId: UUID,
 ): Triple<List<UUID>, List<UUID>, EventContent>? = newSuspendedTransaction {
     val lastEvent = EventsTable
-        .select { (EventsTable.seriesId eq seriesId) and (EventsTable.seriesOverride eq false) }
+        .selectAll().where { (EventsTable.seriesId eq seriesId) and (EventsTable.seriesOverride eq false) }
         .sortedByDescending { it[EventsTable.startAt] }
         .firstOrNull() ?: return@newSuspendedTransaction null
 
     val eventId = lastEvent[EventsTable.id]
-    val teamIds = EventTeamsTable.select { EventTeamsTable.eventId eq eventId }.map { it[EventTeamsTable.teamId] }
-    val subgroupIds = EventSubgroupsTable.select { EventSubgroupsTable.eventId eq eventId }.map { it[EventSubgroupsTable.subgroupId] }
+    val teamIds = EventTeamsTable.selectAll().where { EventTeamsTable.eventId eq eventId }.map { it[EventTeamsTable.teamId] }
+    val subgroupIds = EventSubgroupsTable.selectAll().where { EventSubgroupsTable.eventId eq eventId }.map { it[EventSubgroupsTable.subgroupId] }
 
     Triple(
         teamIds,

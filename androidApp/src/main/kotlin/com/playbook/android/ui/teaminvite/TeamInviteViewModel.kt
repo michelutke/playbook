@@ -73,7 +73,7 @@ class TeamInviteViewModel(
     private fun revoke(inviteId: String) {
         viewModelScope.launch {
             try {
-                inviteRepository.revoke(inviteId)
+                inviteRepository.revoke(inviteId, teamId)
                 val invites = inviteRepository.listPending(teamId)
                 _state.update { it.copy(pendingInvites = invites) }
             } catch (e: Exception) {

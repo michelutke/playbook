@@ -55,9 +55,10 @@ fun Route.registerEventRoutes() {
         val uid = call.userId
         val request = call.receive<CreateEventRequest>()
         // Verify coach on at least one target team
-        for (teamId in request.teamIds) {
-            runCatching { requireCoachOnTeam(teamId) }.onSuccess { break }
+        val isCoachOnAny = request.teamIds.any { teamId ->
+            runCatching { requireCoachOnTeam(teamId) }.isSuccess
         }
+        if (!isCoachOnAny) throw com.playbook.plugins.ForbiddenException("Not a coach on any target team")
         val event = eventRepo.create(request, uid)
         call.respond(HttpStatusCode.Created, event)
     }

@@ -1,5 +1,6 @@
 package com.playbook.android.ui.eventdetail
 
+import com.playbook.domain.AttendanceResponseStatus
 import com.playbook.domain.RecurringScope
 
 sealed class EventDetailAction {
@@ -12,4 +13,7 @@ sealed class EventDetailAction {
     data object DismissScopeSheet : EventDetailAction()
     data object ConfirmCancel : EventDetailAction()
     data object DismissCancelDialog : EventDetailAction()
+    data class AttendanceResponseTapped(val status: AttendanceResponseStatus) : EventDetailAction()
+    data class BegrundungSubmitted(val reason: String?) : EventDetailAction()
+    data object BegrundungDismissed : EventDetailAction()
 }

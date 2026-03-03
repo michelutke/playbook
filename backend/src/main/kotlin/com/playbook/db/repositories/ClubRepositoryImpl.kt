@@ -29,12 +29,12 @@ class ClubRepositoryImpl : ClubRepository {
                 it[createdAt] = now
                 it[updatedAt] = now
             }
-            ClubsTable.select { ClubsTable.id eq id }.single().toClub()
+            ClubsTable.selectAll().where { ClubsTable.id eq id }.single().toClub()
         }
 
     override suspend fun getById(clubId: String): Club? =
         newSuspendedTransaction {
-            ClubsTable.select { ClubsTable.id eq UUID.fromString(clubId) }.singleOrNull()?.toClub()
+            ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }.singleOrNull()?.toClub()
         }
 
     override suspend fun update(clubId: String, request: UpdateClubRequest): Club =
@@ -46,7 +46,7 @@ class ClubRepositoryImpl : ClubRepository {
                 request.location?.let { v -> it[location] = v }
                 it[updatedAt] = now
             }
-            ClubsTable.select { ClubsTable.id eq UUID.fromString(clubId) }.single().toClub()
+            ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }.single().toClub()
         }
 
     override suspend fun updateLogoUrl(clubId: String, logoUrl: String): Club =
@@ -56,8 +56,11 @@ class ClubRepositoryImpl : ClubRepository {
                 it[ClubsTable.logoUrl] = logoUrl
                 it[updatedAt] = now
             }
-            ClubsTable.select { ClubsTable.id eq UUID.fromString(clubId) }.single().toClub()
+            ClubsTable.selectAll().where { ClubsTable.id eq UUID.fromString(clubId) }.single().toClub()
         }
+
+    override suspend fun uploadLogo(clubId: String, contentType: String, imageBytes: ByteArray): Club =
+        throw UnsupportedOperationException("Logo upload is handled by the route layer on the backend")
 
     private fun ResultRow.toClub() = Club(
         id = this[ClubsTable.id].toString(),

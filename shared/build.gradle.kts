@@ -3,11 +3,17 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
-    alias(libs.plugins.compose.multiplatform)
 }
 
 kotlin {
-    androidTarget()
+    jvm()
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()

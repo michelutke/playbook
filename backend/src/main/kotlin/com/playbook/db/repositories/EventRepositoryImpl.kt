@@ -8,6 +8,7 @@ import com.playbook.db.tables.SubgroupMembersTable
 import com.playbook.db.tables.SubgroupsTable
 import com.playbook.db.tables.TeamMembershipsTable
 import com.playbook.db.tables.TeamsTable
+import com.playbook.infra.launchBackfillForNewEvent
 import com.playbook.domain.CancelEventRequest
 import com.playbook.domain.CreateEventRequest
 import com.playbook.domain.Event
@@ -36,7 +37,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
 import java.time.OffsetDateTime
@@ -55,7 +56,7 @@ class EventRepositoryImpl : EventRepository {
     ): List<Event> = newSuspendedTransaction {
         val uid = UUID.fromString(userId)
         val userTeamIds = TeamMembershipsTable
-            .select { TeamMembershipsTable.userId eq uid }
+            .selectAll().where { TeamMembershipsTable.userId eq uid }
             .map { it[TeamMembershipsTable.teamId] }
 
         if (userTeamIds.isEmpty()) return@newSuspendedTransaction emptyList()
@@ -69,7 +70,7 @@ class EventRepositoryImpl : EventRepository {
         val rows = EventsTable
             .join(EventTeamsTable, JoinType.INNER, EventsTable.id, EventTeamsTable.eventId)
             .join(TeamsTable, JoinType.INNER, EventTeamsTable.teamId, TeamsTable.id)
-            .select {
+            .selectAll().where {
                 var cond: Op<Boolean> = EventTeamsTable.teamId inList filteredTeamIds
                 from?.let { f -> cond = cond and (EventsTable.startAt greaterEq f.toJavaInstant().atOffset(ZoneOffset.UTC)) }
                 to?.let { t -> cond = cond and (EventsTable.startAt lessEq t.toJavaInstant().atOffset(ZoneOffset.UTC)) }
@@ -84,16 +85,16 @@ class EventRepositoryImpl : EventRepository {
         val eventIds = rows.map { it[EventsTable.id] }.distinct()
 
         val restrictedEventIds = EventSubgroupsTable
-            .select { EventSubgroupsTable.eventId inList eventIds }
+            .selectAll().where { EventSubgroupsTable.eventId inList eventIds }
             .map { it[EventSubgroupsTable.eventId] }.toSet()
 
         val allowedRestrictedEventIds: Set<UUID> = if (restrictedEventIds.isEmpty()) emptySet() else {
             val userSubgroupIds = SubgroupMembersTable
-                .select { SubgroupMembersTable.userId eq uid }
+                .selectAll().where { SubgroupMembersTable.userId eq uid }
                 .map { it[SubgroupMembersTable.subgroupId] }.toSet()
             if (userSubgroupIds.isEmpty()) emptySet()
             else EventSubgroupsTable
-                .select {
+                .selectAll().where {
                     (EventSubgroupsTable.eventId inList restrictedEventIds) and
                     (EventSubgroupsTable.subgroupId inList userSubgroupIds)
                 }
@@ -125,7 +126,7 @@ class EventRepositoryImpl : EventRepository {
         val tid = UUID.fromString(teamId)
         val rows = EventsTable
             .join(EventTeamsTable, JoinType.INNER, EventsTable.id, EventTeamsTable.eventId)
-            .select {
+            .selectAll().where {
                 var cond: Op<Boolean> = EventTeamsTable.teamId eq tid
                 from?.let { f -> cond = cond and (EventsTable.startAt greaterEq f.toJavaInstant().atOffset(ZoneOffset.UTC)) }
                 to?.let { t -> cond = cond and (EventsTable.startAt lessEq t.toJavaInstant().atOffset(ZoneOffset.UTC)) }
@@ -147,7 +148,7 @@ class EventRepositoryImpl : EventRepository {
     // ES-011
     override suspend fun getById(eventId: String): Event? = newSuspendedTransaction {
         val id = UUID.fromString(eventId)
-        val row = EventsTable.select { EventsTable.id eq id }.singleOrNull() ?: return@newSuspendedTransaction null
+        val row = EventsTable.selectAll().where { EventsTable.id eq id }.singleOrNull() ?: return@newSuspendedTransaction null
         val teams = fetchTeamsByEvents(listOf(id))[id] ?: emptyList()
         val subgroups = fetchSubgroupsByEvents(listOf(id))[id] ?: emptyList()
         row.toEvent(teams = teams, subgroups = subgroups)
@@ -160,7 +161,8 @@ class EventRepositoryImpl : EventRepository {
             val creatorId = UUID.fromString(createdBy)
             val eventId = UUID.randomUUID()
 
-            val seriesId: UUID? = if (request.recurring != null) createSeries(request.recurring, creatorId, now) else null
+            val recurringPattern = request.recurring
+            val seriesId: UUID? = recurringPattern?.let { createSeries(it, creatorId, now) }
 
             EventsTable.insert {
                 it[id] = eventId
@@ -186,11 +188,11 @@ class EventRepositoryImpl : EventRepository {
             teamUUIDs.forEach { tid -> EventTeamsTable.insertIgnore { it[EventTeamsTable.eventId] = eventId; it[EventTeamsTable.teamId] = tid } }
             subgroupUUIDs.forEach { sid -> EventSubgroupsTable.insertIgnore { it[EventSubgroupsTable.eventId] = eventId; it[EventSubgroupsTable.subgroupId] = sid } }
 
-            if (seriesId != null) {
-                val horizon = request.recurring!!.seriesStartDate.plus(DatePeriod(months = 12))
+            if (seriesId != null && recurringPattern != null) {
+                val horizon = recurringPattern.seriesStartDate.plus(DatePeriod(months = 12))
                 materializeSeries(
                     seriesId = seriesId,
-                    fromDate = request.recurring.seriesStartDate,
+                    fromDate = recurringPattern.seriesStartDate,
                     toDate = horizon,
                     teamIds = teamUUIDs,
                     subgroupIds = subgroupUUIDs,
@@ -201,14 +203,17 @@ class EventRepositoryImpl : EventRepository {
             // ES-020: TODO emit event.created domain event for notifications module
             val teams = fetchTeamsByEvents(listOf(eventId))[eventId] ?: emptyList()
             val subgroups = fetchSubgroupsByEvents(listOf(eventId))[eventId] ?: emptyList()
-            EventsTable.select { EventsTable.id eq eventId }.single().toEvent(teams = teams, subgroups = subgroups)
+            val event = EventsTable.selectAll().where { EventsTable.id eq eventId }.single().toEvent(teams = teams, subgroups = subgroups)
+            // T-019: trigger abwesenheit backfill for the newly created event
+            launchBackfillForNewEvent(eventId, request.teamIds.map { UUID.fromString(it) })
+            event
         }
 
     // ES-013
     override suspend fun update(eventId: String, request: UpdateEventRequest): Event =
         newSuspendedTransaction {
             val eid = UUID.fromString(eventId)
-            val event = EventsTable.select { EventsTable.id eq eid }.single()
+            val event = EventsTable.selectAll().where { EventsTable.id eq eid }.single()
             val seriesId = event[EventsTable.seriesId]
             when (request.scope) {
                 RecurringScope.THIS_ONLY -> updateThisOnly(eid, request)
@@ -221,7 +226,7 @@ class EventRepositoryImpl : EventRepository {
     override suspend fun cancel(eventId: String, request: CancelEventRequest): Event =
         newSuspendedTransaction {
             val eid = UUID.fromString(eventId)
-            val event = EventsTable.select { EventsTable.id eq eid }.single()
+            val event = EventsTable.selectAll().where { EventsTable.id eq eid }.single()
             val seriesId = event[EventsTable.seriesId]
             val now = OffsetDateTime.now(ZoneOffset.UTC)
 
@@ -249,16 +254,16 @@ class EventRepositoryImpl : EventRepository {
 
             // ES-020: TODO emit event.cancelled domain event for notifications module
             val teams = fetchTeamsByEvents(listOf(eid))[eid] ?: emptyList()
-            EventsTable.select { EventsTable.id eq eid }.single().toEvent(teams = teams)
+            EventsTable.selectAll().where { EventsTable.id eq eid }.single().toEvent(teams = teams)
         }
 
     // ES-015
     override suspend fun duplicate(eventId: String): CreateEventRequest =
         newSuspendedTransaction {
             val eid = UUID.fromString(eventId)
-            val event = EventsTable.select { EventsTable.id eq eid }.single()
-            val teamIds = EventTeamsTable.select { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId].toString() }
-            val subgroupIds = EventSubgroupsTable.select { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId].toString() }
+            val event = EventsTable.selectAll().where { EventsTable.id eq eid }.single()
+            val teamIds = EventTeamsTable.selectAll().where { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId].toString() }
+            val subgroupIds = EventSubgroupsTable.selectAll().where { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId].toString() }
             CreateEventRequest(
                 title = event[EventsTable.title],
                 type = event[EventsTable.type].toEventType(),
@@ -278,18 +283,18 @@ class EventRepositoryImpl : EventRepository {
     override suspend fun resolveTargetedUsers(eventId: String): List<String> =
         newSuspendedTransaction {
             val eid = UUID.fromString(eventId)
-            val subgroupIds = EventSubgroupsTable.select { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId] }
+            val subgroupIds = EventSubgroupsTable.selectAll().where { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId] }
 
             if (subgroupIds.isEmpty()) {
-                val teamIds = EventTeamsTable.select { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId] }
-                TeamMembershipsTable.select { TeamMembershipsTable.teamId inList teamIds }
+                val teamIds = EventTeamsTable.selectAll().where { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId] }
+                TeamMembershipsTable.selectAll().where { TeamMembershipsTable.teamId inList teamIds }
                     .map { it[TeamMembershipsTable.userId].toString() }.distinct()
             } else {
-                val teamIds = EventTeamsTable.select { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId] }.toSet()
-                SubgroupMembersTable.select { SubgroupMembersTable.subgroupId inList subgroupIds }
+                val teamIds = EventTeamsTable.selectAll().where { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId] }.toSet()
+                SubgroupMembersTable.selectAll().where { SubgroupMembersTable.subgroupId inList subgroupIds }
                     .map { it[SubgroupMembersTable.userId] }
                     .filter { userId ->
-                        TeamMembershipsTable.select { (TeamMembershipsTable.userId eq userId) and (TeamMembershipsTable.teamId inList teamIds) }.count() > 0
+                        TeamMembershipsTable.selectAll().where { (TeamMembershipsTable.userId eq userId) and (TeamMembershipsTable.teamId inList teamIds) }.count() > 0
                     }
                     .map { it.toString() }.distinct()
             }
@@ -300,9 +305,10 @@ class EventRepositoryImpl : EventRepository {
     private suspend fun updateThisOnly(eid: UUID, request: UpdateEventRequest): Event {
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         // Fetch current meetupAt only if not being updated
-        val currentMeetupAt = if (request.meetupAt == null)
-            EventsTable.select { EventsTable.id eq eid }.single()[EventsTable.meetupAt]
-        else request.meetupAt.toJavaInstant().atOffset(ZoneOffset.UTC)
+        val requestedMeetupAt = request.meetupAt
+        val currentMeetupAt = if (requestedMeetupAt == null)
+            EventsTable.selectAll().where { EventsTable.id eq eid }.single()[EventsTable.meetupAt]
+        else requestedMeetupAt.toJavaInstant().atOffset(ZoneOffset.UTC)
 
         EventsTable.update({ EventsTable.id eq eid }) {
             request.title?.let { v -> it[title] = v }
@@ -338,7 +344,7 @@ class EventRepositoryImpl : EventRepository {
             it[seriesEndDate] = currentDate.minus(DatePeriod(days = 1))
         }
 
-        val originalSeries = EventSeriesTable.select { EventSeriesTable.id eq seriesId }.single()
+        val originalSeries = EventSeriesTable.selectAll().where { EventSeriesTable.id eq seriesId }.single()
         val newSeriesId = UUID.randomUUID()
         val newStartTime = request.startAt?.let { toLocalTime(it) } ?: originalSeries[EventSeriesTable.templateStartTime]
         val newEndTime = request.endAt?.let { toLocalTime(it) } ?: originalSeries[EventSeriesTable.templateEndTime]
@@ -357,8 +363,8 @@ class EventRepositoryImpl : EventRepository {
             it[createdAt] = now
         }
 
-        val teamIds = (request.teamIds ?: EventTeamsTable.select { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId].toString() }).map { UUID.fromString(it) }
-        val subgroupIds = (request.subgroupIds ?: EventSubgroupsTable.select { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId].toString() }).map { UUID.fromString(it) }
+        val teamIds = (request.teamIds ?: EventTeamsTable.selectAll().where { EventTeamsTable.eventId eq eid }.map { it[EventTeamsTable.teamId].toString() }).map { UUID.fromString(it) }
+        val subgroupIds = (request.subgroupIds ?: EventSubgroupsTable.selectAll().where { EventSubgroupsTable.eventId eq eid }.map { it[EventSubgroupsTable.subgroupId].toString() }).map { UUID.fromString(it) }
         val newTitle = request.title ?: event[EventsTable.title]
         val newType = request.type?.name?.lowercase() ?: event[EventsTable.type]
 
@@ -400,7 +406,7 @@ class EventRepositoryImpl : EventRepository {
     private suspend fun updateAll(eid: UUID, seriesId: UUID, request: UpdateEventRequest, event: ResultRow): Event {
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val currentStartAt = event[EventsTable.startAt]
-        val originalSeries = EventSeriesTable.select { EventSeriesTable.id eq seriesId }.single()
+        val originalSeries = EventSeriesTable.selectAll().where { EventSeriesTable.id eq seriesId }.single()
         val newStartTime = request.startAt?.let { toLocalTime(it) } ?: originalSeries[EventSeriesTable.templateStartTime]
         val newEndTime = request.endAt?.let { toLocalTime(it) } ?: originalSeries[EventSeriesTable.templateEndTime]
 
@@ -423,7 +429,7 @@ class EventRepositoryImpl : EventRepository {
         }
 
         if (request.teamIds != null || request.subgroupIds != null) {
-            val futureEventIds = EventsTable.select {
+            val futureEventIds = EventsTable.selectAll().where {
                 (EventsTable.seriesId eq seriesId) and
                 (EventsTable.startAt greaterEq currentStartAt) and
                 (EventsTable.seriesOverride eq false)
@@ -458,7 +464,7 @@ class EventRepositoryImpl : EventRepository {
     }
 
     private fun fetchEventDetail(eid: UUID): Event {
-        val row = EventsTable.select { EventsTable.id eq eid }.single()
+        val row = EventsTable.selectAll().where { EventsTable.id eq eid }.single()
         val teams = fetchTeamsByEvents(listOf(eid))[eid] ?: emptyList()
         val subgroups = fetchSubgroupsByEvents(listOf(eid))[eid] ?: emptyList()
         return row.toEvent(teams = teams, subgroups = subgroups)
@@ -468,7 +474,7 @@ class EventRepositoryImpl : EventRepository {
         if (eventIds.isEmpty()) return emptyMap()
         return EventTeamsTable
             .join(TeamsTable, JoinType.INNER, EventTeamsTable.teamId, TeamsTable.id)
-            .select { EventTeamsTable.eventId inList eventIds }
+            .selectAll().where { EventTeamsTable.eventId inList eventIds }
             .groupBy { it[EventTeamsTable.eventId] }
             .mapValues { (_, rows) -> rows.map { TeamRef(it[EventTeamsTable.teamId].toString(), it[TeamsTable.name]) } }
     }
@@ -477,7 +483,7 @@ class EventRepositoryImpl : EventRepository {
         if (eventIds.isEmpty()) return emptyMap()
         return EventSubgroupsTable
             .join(SubgroupsTable, JoinType.INNER, EventSubgroupsTable.subgroupId, SubgroupsTable.id)
-            .select { EventSubgroupsTable.eventId inList eventIds }
+            .selectAll().where { EventSubgroupsTable.eventId inList eventIds }
             .groupBy { it[EventSubgroupsTable.eventId] }
             .mapValues { (_, rows) -> rows.map { SubgroupRef(it[EventSubgroupsTable.subgroupId].toString(), it[SubgroupsTable.name]) } }
     }
@@ -537,9 +543,6 @@ class EventRepositoryImpl : EventRepository {
         else -> EventType.TRAINING
     }
 }
-
-private fun java.time.LocalDate.toKotlinLocalDate(): LocalDate =
-    LocalDate(year, monthValue, dayOfMonth)
 
 private fun kotlinx.datetime.LocalDate.minus(period: DatePeriod): kotlinx.datetime.LocalDate =
     this.plus(DatePeriod(days = -period.days, months = -period.months, years = -period.years))

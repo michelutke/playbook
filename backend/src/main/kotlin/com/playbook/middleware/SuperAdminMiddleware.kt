@@ -8,7 +8,8 @@ import com.playbook.plugins.userId
 import io.ktor.server.application.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.routing.*
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.time.Instant
 import java.util.Date
@@ -18,7 +19,7 @@ import java.util.UUID
 suspend fun RoutingContext.requireSuperAdmin(): String {
     val uid = call.userId
     val isSa = newSuspendedTransaction {
-        UsersTable.select { UsersTable.id eq UUID.fromString(uid) }
+        UsersTable.selectAll().where { UsersTable.id eq UUID.fromString(uid) }
             .singleOrNull()?.get(UsersTable.superAdmin) ?: false
     }
     if (!isSa) throw ForbiddenException("Super-admin access required")

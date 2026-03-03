@@ -6,6 +6,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import com.playbook.android.ui.absences.MyAbsencesScreen
+import com.playbook.android.ui.attendance.AttendanceListScreen
 import com.playbook.android.ui.clubdashboard.ClubDashboardScreen
 import com.playbook.android.ui.clubedit.ClubEditScreen
 import com.playbook.android.ui.clubsetup.ClubSetupScreen
@@ -15,6 +17,8 @@ import com.playbook.android.ui.eventform.EventFormScreen
 import com.playbook.android.ui.eventlist.EventListScreen
 import com.playbook.android.ui.inviteaccept.InviteAcceptScreen
 import com.playbook.android.ui.playerprofile.PlayerProfileScreen
+import com.playbook.android.ui.stats.PlayerStatsScreen
+import com.playbook.android.ui.stats.TeamStatsScreen
 import com.playbook.android.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.android.ui.teamdetail.TeamDetailScreen
 import com.playbook.android.ui.teamsetup.TeamSetupScreen
@@ -172,6 +176,40 @@ fun PlaybookNavGraph() {
             SubgroupMgmtScreen(
                 teamId = screen.teamId,
                 onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.AttendanceList> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.AttendanceList>()
+            AttendanceListScreen(
+                eventId = screen.eventId,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.MyAbsences> {
+            MyAbsencesScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.PlayerStats> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.PlayerStats>()
+            PlayerStatsScreen(
+                userId = screen.userId,
+                teamId = screen.teamId,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.TeamStats> { backStackEntry ->
+            val screen = backStackEntry.toRoute<Screen.TeamStats>()
+            TeamStatsScreen(
+                teamId = screen.teamId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayerStats = { userId ->
+                    navController.navigate(Screen.PlayerStats(userId = userId, teamId = screen.teamId))
+                },
             )
         }
     }

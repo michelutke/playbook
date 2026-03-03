@@ -23,7 +23,7 @@ class MembershipRepositoryImpl : MembershipRepository {
         newSuspendedTransaction {
             val tid = UUID.fromString(teamId)
             (TeamMembershipsTable innerJoin UsersTable)
-                .select { TeamMembershipsTable.teamId eq tid }
+                .selectAll().where { TeamMembershipsTable.teamId eq tid }
                 .groupBy { it[TeamMembershipsTable.userId] }
                 .map { (userId, rows) ->
                     val first = rows.first()
@@ -42,7 +42,7 @@ class MembershipRepositoryImpl : MembershipRepository {
             val tid = UUID.fromString(teamId)
             val uid = UUID.fromString(userId)
             val roleStr = role.name.lowercase()
-            val exists = TeamMembershipsTable.select {
+            val exists = TeamMembershipsTable.selectAll().where {
                 (TeamMembershipsTable.teamId eq tid) and
                 (TeamMembershipsTable.userId eq uid) and
                 (TeamMembershipsTable.role eq roleStr)
@@ -64,22 +64,23 @@ class MembershipRepositoryImpl : MembershipRepository {
             val roleStr = role.name.lowercase()
             // Last-coach guard
             if (role == MemberRole.COACH) {
-                val coachCount = TeamMembershipsTable.select {
+                val coachCount = TeamMembershipsTable.selectAll().where {
                     (TeamMembershipsTable.teamId eq tid) and
                     (TeamMembershipsTable.role eq "coach")
                 }.count()
                 if (coachCount <= 1) throw ConflictException("Cannot remove the last coach from a team")
             }
             TeamMembershipsTable.deleteWhere {
-                (teamId eq tid) and (this.userId eq uid) and (this.role eq roleStr)
+                (TeamMembershipsTable.teamId eq tid) and (TeamMembershipsTable.userId eq uid) and (TeamMembershipsTable.role eq roleStr)
             }
         }.let {}
 
     override suspend fun removeMember(teamId: String, userId: String) =
         newSuspendedTransaction {
+            val tid = UUID.fromString(teamId)
+            val uid = UUID.fromString(userId)
             TeamMembershipsTable.deleteWhere {
-                (teamId eq UUID.fromString(teamId)) and
-                (this.userId eq UUID.fromString(userId))
+                (TeamMembershipsTable.teamId eq tid) and (TeamMembershipsTable.userId eq uid)
             }
         }.let {}
 
@@ -87,7 +88,7 @@ class MembershipRepositoryImpl : MembershipRepository {
 
     override suspend fun getProfile(teamId: String, userId: String): PlayerProfile? =
         newSuspendedTransaction {
-            PlayerProfilesTable.select {
+            PlayerProfilesTable.selectAll().where {
                 (PlayerProfilesTable.teamId eq UUID.fromString(teamId)) and
                 (PlayerProfilesTable.userId eq UUID.fromString(userId))
             }.singleOrNull()?.toProfile()
@@ -103,14 +104,14 @@ class MembershipRepositoryImpl : MembershipRepository {
                 request.jerseyNumber?.let { v -> it[jerseyNumber] = v }
                 request.position?.let { v -> it[position] = v }
             }
-            PlayerProfilesTable.select {
+            PlayerProfilesTable.selectAll().where {
                 (PlayerProfilesTable.teamId eq tid) and (PlayerProfilesTable.userId eq uid)
             }.single().toProfile()
         }
 
     override suspend fun hasRole(teamId: String, userId: String, role: MemberRole): Boolean =
         newSuspendedTransaction {
-            TeamMembershipsTable.select {
+            TeamMembershipsTable.selectAll().where {
                 (TeamMembershipsTable.teamId eq UUID.fromString(teamId)) and
                 (TeamMembershipsTable.userId eq UUID.fromString(userId)) and
                 (TeamMembershipsTable.role eq role.name.lowercase())

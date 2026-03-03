@@ -44,4 +44,16 @@ sealed interface Screen {
 
     @Serializable
     data class SubgroupMgmt(val teamId: String) : Screen
+
+    @Serializable
+    data class AttendanceList(val eventId: String) : Screen
+
+    @Serializable
+    data object MyAbsences : Screen
+
+    @Serializable
+    data class PlayerStats(val userId: String, val teamId: String? = null) : Screen
+
+    @Serializable
+    data class TeamStats(val teamId: String) : Screen
 }

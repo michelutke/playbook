@@ -256,9 +256,10 @@ private fun SettingsTab(state: TeamDetailScreenState, onAction: (TeamDetailActio
                     Text("Team", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
                     Text(state.team?.name ?: "", style = MaterialTheme.typography.bodyLarge)
-                    if (state.team?.description != null) {
+                    val teamDesc = state.team?.description
+                    if (teamDesc != null) {
                         Spacer(Modifier.height(4.dp))
-                        Text(state.team.description, style = MaterialTheme.typography.bodyMedium,
+                        Text(teamDesc, style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

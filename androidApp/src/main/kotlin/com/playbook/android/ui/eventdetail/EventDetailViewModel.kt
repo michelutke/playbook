@@ -2,8 +2,12 @@ package com.playbook.android.ui.eventdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.playbook.attendance.isDeadlinePassed
+import com.playbook.domain.AttendanceResponseStatus
 import com.playbook.domain.CancelEventRequest
 import com.playbook.domain.RecurringScope
+import com.playbook.domain.UpdateAttendanceRequest
+import com.playbook.repository.AttendanceRepository
 import com.playbook.repository.EventRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,10 +26,14 @@ sealed class EventDetailNavEvent {
 class EventDetailViewModel(
     private val eventId: String,
     private val eventRepository: EventRepository,
+    private val attendanceRepository: AttendanceRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EventDetailScreenState())
     val state: StateFlow<EventDetailScreenState> = _state.asStateFlow()
+
+    private val _attendanceState = MutableStateFlow(AttendanceCardState())
+    val attendanceState: StateFlow<AttendanceCardState> = _attendanceState.asStateFlow()
 
     private val _navEvents = Channel<EventDetailNavEvent>()
     val navEvents = _navEvents.receiveAsFlow()
@@ -68,6 +76,13 @@ class EventDetailViewModel(
                 _state.update { it.copy(showScopeSheet = false, pendingAction = null) }
             EventDetailAction.ConfirmCancel -> cancelEvent(_state.value.pendingCancelScope)
             EventDetailAction.DismissCancelDialog -> _state.update { it.copy(showCancelDialog = false) }
+            is EventDetailAction.AttendanceResponseTapped -> handleAttendanceTap(action.status)
+            is EventDetailAction.BegrundungSubmitted -> submitAttendance(
+                status = _attendanceState.value.pendingStatus ?: return,
+                reason = action.reason,
+            )
+            EventDetailAction.BegrundungDismissed ->
+                _attendanceState.update { it.copy(showBegrundungSheet = false, pendingStatus = null) }
         }
     }
 
@@ -77,8 +92,47 @@ class EventDetailViewModel(
             try {
                 val event = eventRepository.getById(eventId)
                 _state.update { it.copy(event = event, isLoading = false) }
+                _attendanceState.update { it.copy(isDeadlinePassed = isDeadlinePassed(event)) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = "Failed to load event.") }
+            }
+        }
+        loadAttendance()
+    }
+
+    private fun loadAttendance() {
+        _attendanceState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            try {
+                val response = attendanceRepository.getMyAttendance(eventId, "")
+                _attendanceState.update { it.copy(myResponse = response, isLoading = false) }
+            } catch (e: Exception) {
+                _attendanceState.update { it.copy(isLoading = false, error = "Failed to load attendance.") }
+            }
+        }
+    }
+
+    private fun handleAttendanceTap(status: AttendanceResponseStatus) {
+        when (status) {
+            AttendanceResponseStatus.CONFIRMED -> submitAttendance(status, null)
+            AttendanceResponseStatus.DECLINED, AttendanceResponseStatus.UNSURE ->
+                _attendanceState.update { it.copy(showBegrundungSheet = true, pendingStatus = status) }
+            else -> submitAttendance(status, null)
+        }
+    }
+
+    private fun submitAttendance(status: AttendanceResponseStatus, reason: String?) {
+        _attendanceState.update { it.copy(isLoading = true, showBegrundungSheet = false, pendingStatus = null) }
+        viewModelScope.launch {
+            try {
+                val response = attendanceRepository.upsertAttendance(
+                    eventId,
+                    "",
+                    UpdateAttendanceRequest(status, reason),
+                )
+                _attendanceState.update { it.copy(myResponse = response, isLoading = false) }
+            } catch (e: Exception) {
+                _attendanceState.update { it.copy(isLoading = false, error = "Failed to update attendance.") }
             }
         }
     }

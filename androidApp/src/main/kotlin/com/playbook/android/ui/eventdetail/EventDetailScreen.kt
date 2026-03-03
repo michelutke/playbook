@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -51,7 +52,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.playbook.android.ui.attendance.BegrundungSheet
 import com.playbook.android.ui.components.EventTypeChip
+import com.playbook.domain.AttendanceResponseStatus
 import com.playbook.domain.Event
 import com.playbook.domain.EventStatus
 import com.playbook.domain.RecurringScope
@@ -69,6 +72,7 @@ fun EventDetailScreen(
     viewModel: EventDetailViewModel = koinViewModel { parametersOf(eventId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val attendanceState by viewModel.attendanceState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.navEvents.collect { event ->
             when (event) {
@@ -78,13 +82,19 @@ fun EventDetailScreen(
             }
         }
     }
-    EventDetailContent(state = state, onAction = viewModel::submitAction, onNavigateBack = onNavigateBack)
+    EventDetailContent(
+        state = state,
+        attendanceState = attendanceState,
+        onAction = viewModel::submitAction,
+        onNavigateBack = onNavigateBack,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventDetailContent(
     state: EventDetailScreenState,
+    attendanceState: AttendanceCardState,
     onAction: (EventDetailAction) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
@@ -132,7 +142,12 @@ private fun EventDetailContent(
             state.error != null -> Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                 Text(state.error, color = MaterialTheme.colorScheme.error)
             }
-            state.event != null -> EventDetailBody(event = state.event, modifier = Modifier.padding(padding))
+            state.event != null -> EventDetailBody(
+                event = state.event,
+                attendanceState = attendanceState,
+                onAction = onAction,
+                modifier = Modifier.padding(padding),
+            )
         }
     }
 
@@ -147,6 +162,14 @@ private fun EventDetailContent(
                 }
             },
             onDismiss = { onAction(EventDetailAction.DismissScopeSheet) },
+        )
+    }
+
+    if (attendanceState.showBegrundungSheet && attendanceState.pendingStatus != null) {
+        BegrundungSheet(
+            status = attendanceState.pendingStatus,
+            onSubmit = { reason -> onAction(EventDetailAction.BegrundungSubmitted(reason)) },
+            onDismiss = { onAction(EventDetailAction.BegrundungDismissed) },
         )
     }
 
@@ -167,7 +190,12 @@ private fun EventDetailContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EventDetailBody(event: Event, modifier: Modifier = Modifier) {
+private fun EventDetailBody(
+    event: Event,
+    attendanceState: AttendanceCardState,
+    onAction: (EventDetailAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val tz = TimeZone.currentSystemDefault()
     val startLocal = event.startAt.toLocalDateTime(tz)
     val endLocal = event.endAt.toLocalDateTime(tz)
@@ -225,7 +253,8 @@ private fun EventDetailBody(event: Event, modifier: Modifier = Modifier) {
             Spacer(Modifier.height(8.dp))
 
             // Location
-            if (!event.location.isNullOrBlank()) {
+            val location = event.location
+            if (!location.isNullOrBlank()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 4.dp),
@@ -233,10 +262,10 @@ private fun EventDetailBody(event: Event, modifier: Modifier = Modifier) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(4.dp))
                     Column {
-                        Text(event.location, style = MaterialTheme.typography.bodyMedium)
+                        Text(location, style = MaterialTheme.typography.bodyMedium)
                         TextButton(
                             onClick = {
-                                val uri = Uri.parse("geo:0,0?q=${Uri.encode(event.location)}")
+                                val uri = Uri.parse("geo:0,0?q=${Uri.encode(location)}")
                                 context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                             },
                             contentPadding = PaddingValues(0.dp),
@@ -298,28 +327,72 @@ private fun EventDetailBody(event: Event, modifier: Modifier = Modifier) {
             }
 
             // Description
-            if (!event.description.isNullOrBlank()) {
+            val description = event.description
+            if (!description.isNullOrBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Text("Description", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(4.dp))
-                Text(event.description, style = MaterialTheme.typography.bodyMedium)
+                Text(description, style = MaterialTheme.typography.bodyMedium)
             }
 
-            // Attendance placeholder
+            // Attendance card
             Spacer(Modifier.height(16.dp))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
+            MyAttendanceCard(attendanceState = attendanceState, onAction = onAction)
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun MyAttendanceCard(
+    attendanceState: AttendanceCardState,
+    onAction: (EventDetailAction) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Your attendance", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.height(8.dp))
+            if (attendanceState.isDeadlinePassed) {
                 Text(
-                    "Attendance tracking coming soon",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Deadline reached",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            } else {
+                val currentStatus = attendanceState.myResponse?.status
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AttendanceResponseStatus.entries
+                        .filter { it in listOf(AttendanceResponseStatus.CONFIRMED, AttendanceResponseStatus.DECLINED, AttendanceResponseStatus.UNSURE) }
+                        .forEach { status ->
+                            val isCurrent = currentStatus == status
+                            val label = when (status) {
+                                AttendanceResponseStatus.CONFIRMED -> "Confirmed"
+                                AttendanceResponseStatus.DECLINED -> "Declined"
+                                AttendanceResponseStatus.UNSURE -> "Unsure"
+                                else -> ""
+                            }
+                            if (isCurrent) {
+                                Button(
+                                    onClick = { onAction(EventDetailAction.AttendanceResponseTapped(status)) },
+                                    enabled = !attendanceState.isLoading,
+                                ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+                            } else {
+                                OutlinedButton(
+                                    onClick = { onAction(EventDetailAction.AttendanceResponseTapped(status)) },
+                                    enabled = !attendanceState.isLoading,
+                                ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+                            }
+                        }
+                }
             }
-            Spacer(Modifier.height(16.dp))
+            if (attendanceState.error != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(attendanceState.error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }

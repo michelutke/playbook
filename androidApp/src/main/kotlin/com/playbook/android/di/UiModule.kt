@@ -1,5 +1,8 @@
 package com.playbook.android.di
 
+import com.playbook.android.ui.absences.AbsenceSheetViewModel
+import com.playbook.android.ui.absences.MyAbsencesViewModel
+import com.playbook.android.ui.attendance.AttendanceListViewModel
 import com.playbook.android.ui.clubcoachinvite.ClubCoachInviteViewModel
 import com.playbook.android.ui.clubdashboard.ClubDashboardViewModel
 import com.playbook.android.ui.clubedit.ClubEditViewModel
@@ -10,6 +13,8 @@ import com.playbook.android.ui.eventform.EventFormViewModel
 import com.playbook.android.ui.eventlist.EventListViewModel
 import com.playbook.android.ui.inviteaccept.InviteAcceptViewModel
 import com.playbook.android.ui.playerprofile.PlayerProfileViewModel
+import com.playbook.android.ui.stats.PlayerStatsViewModel
+import com.playbook.android.ui.stats.TeamStatsViewModel
 import com.playbook.android.ui.subgroupmgmt.SubgroupMgmtViewModel
 import com.playbook.android.ui.teamdetail.TeamDetailViewModel
 import com.playbook.android.ui.teamedit.TeamEditViewModel
@@ -33,9 +38,15 @@ val uiModule = module {
     // Event scheduling
     factory { (teamId: String?) -> EventListViewModel(teamId, get()) }
     factory { (teamId: String?) -> EventCalendarViewModel(teamId, get()) }
-    factory { (eventId: String) -> EventDetailViewModel(eventId, get()) }
+    factory { (eventId: String) -> EventDetailViewModel(eventId, get(), get()) }
     factory { (clubId: String, eventId: String?, preselectedTeamId: String?, editScope: RecurringScope) ->
         EventFormViewModel(clubId, eventId, preselectedTeamId, editScope, get(), get(), get())
     }
     factory { (teamId: String) -> SubgroupMgmtViewModel(teamId, get()) }
+    // Attendance tracking
+    factory { (eventId: String) -> AttendanceListViewModel(eventId, get()) }
+    factory { MyAbsencesViewModel(get()) }
+    factory { AbsenceSheetViewModel(get()) }
+    factory { (userId: String, teamId: String?) -> PlayerStatsViewModel(userId, teamId, get()) }
+    factory { (teamId: String) -> TeamStatsViewModel(teamId, get()) }
 }

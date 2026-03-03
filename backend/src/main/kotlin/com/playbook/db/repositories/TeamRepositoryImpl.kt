@@ -16,7 +16,7 @@ class TeamRepositoryImpl : TeamRepository {
     override suspend fun listByClub(clubId: String, statuses: List<TeamStatus>): List<Team> =
         newSuspendedTransaction {
             val statusStrings = statuses.map { it.name.lowercase() }
-            TeamsTable.select {
+            TeamsTable.selectAll().where {
                 (TeamsTable.clubId eq UUID.fromString(clubId)) and
                 (TeamsTable.status inList statusStrings)
             }.map { it.toTeam() }
@@ -24,7 +24,7 @@ class TeamRepositoryImpl : TeamRepository {
 
     override suspend fun getById(teamId: String): Team? =
         newSuspendedTransaction {
-            TeamsTable.select { TeamsTable.id eq UUID.fromString(teamId) }.singleOrNull()?.toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq UUID.fromString(teamId) }.singleOrNull()?.toTeam()
         }
 
     override suspend fun create(clubId: String, request: CreateTeamRequest): Team =
@@ -40,7 +40,7 @@ class TeamRepositoryImpl : TeamRepository {
                 it[createdAt] = now
                 it[updatedAt] = now
             }
-            TeamsTable.select { TeamsTable.id eq id }.single().toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq id }.single().toTeam()
         }
 
     override suspend fun submitRequest(clubId: String, request: CreateTeamRequest, requestedByUserId: String): Team =
@@ -57,7 +57,7 @@ class TeamRepositoryImpl : TeamRepository {
                 it[createdAt] = now
                 it[updatedAt] = now
             }
-            TeamsTable.select { TeamsTable.id eq id }.single().toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq id }.single().toTeam()
         }
 
     override suspend fun update(teamId: String, request: UpdateTeamRequest): Team =
@@ -68,7 +68,7 @@ class TeamRepositoryImpl : TeamRepository {
                 request.description?.let { v -> it[description] = v }
                 it[updatedAt] = now
             }
-            TeamsTable.select { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
         }
 
     override suspend fun setStatus(teamId: String, status: TeamStatus): Team =
@@ -78,7 +78,7 @@ class TeamRepositoryImpl : TeamRepository {
                 it[TeamsTable.status] = status.name.lowercase()
                 it[updatedAt] = now
             }
-            TeamsTable.select { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
         }
 
     override suspend fun approve(teamId: String): Team = setStatus(teamId, TeamStatus.ACTIVE)
@@ -91,7 +91,7 @@ class TeamRepositoryImpl : TeamRepository {
                 it[rejectionReason] = request.reason
                 it[updatedAt] = now
             }
-            TeamsTable.select { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
+            TeamsTable.selectAll().where { TeamsTable.id eq UUID.fromString(teamId) }.single().toTeam()
         }
 
     override suspend fun delete(teamId: String) =

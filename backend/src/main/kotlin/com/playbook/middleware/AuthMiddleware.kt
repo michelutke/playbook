@@ -9,6 +9,7 @@ import com.playbook.plugins.userId
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -76,4 +77,45 @@ suspend fun RoutingContext.requireCoachOnSubgroupTeam(subgroupId: String): Strin
             .singleOrNull()?.get(SubgroupsTable.teamId)
     } ?: throw ForbiddenException("Subgroup not found")
     return requireCoachOnTeam(teamId.toString())
+}
+
+/**
+ * C-1: Verify the authenticated user is a member (any role) of any team that owns this event.
+ */
+suspend fun RoutingContext.requireMemberOnEventTeam(eventId: String): String {
+    val uid = call.userId
+    val isMember = newSuspendedTransaction {
+        EventTeamsTable
+            .join(TeamMembershipsTable, JoinType.INNER, EventTeamsTable.teamId, TeamMembershipsTable.teamId)
+            .selectAll().where {
+                (EventTeamsTable.eventId eq UUID.fromString(eventId)) and
+                (TeamMembershipsTable.userId eq UUID.fromString(uid))
+            }.count() > 0
+    }
+    if (!isMember) throw ForbiddenException("Team membership required for this event")
+    return uid
+}
+
+/**
+ * C-2: Verify the caller is either the target user, or a coach on at least one team shared with the target.
+ */
+suspend fun RoutingContext.requireSelfOrSharedCoach(targetUserId: String): String {
+    val uid = call.userId
+    if (uid == targetUserId) return uid
+    val isCoach = newSuspendedTransaction {
+        val targetUid = UUID.fromString(targetUserId)
+        val callerTeams = TeamMembershipsTable.selectAll()
+            .where {
+                (TeamMembershipsTable.userId eq UUID.fromString(uid)) and
+                (TeamMembershipsTable.role eq "coach")
+            }.map { it[TeamMembershipsTable.teamId] }
+        if (callerTeams.isEmpty()) return@newSuspendedTransaction false
+        TeamMembershipsTable.selectAll()
+            .where {
+                (TeamMembershipsTable.userId eq targetUid) and
+                (TeamMembershipsTable.teamId inList callerTeams)
+            }.count() > 0
+    }
+    if (!isCoach) throw ForbiddenException("Access denied")
+    return uid
 }

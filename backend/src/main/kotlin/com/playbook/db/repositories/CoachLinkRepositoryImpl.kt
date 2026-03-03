@@ -25,7 +25,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
     override suspend fun getActive(clubId: String): CoachLink? =
         newSuspendedTransaction {
             val now = OffsetDateTime.now(ZoneOffset.UTC)
-            ClubCoachLinksTable.select {
+            ClubCoachLinksTable.selectAll().where {
                 (ClubCoachLinksTable.clubId eq UUID.fromString(clubId)) and
                 ClubCoachLinksTable.revokedAt.isNull() and
                 (ClubCoachLinksTable.expiresAt greater now)
@@ -53,7 +53,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
                 it[createdBy] = UUID.fromString(createdByUserId)
                 it[createdAt] = now
             }
-            ClubCoachLinksTable.select { ClubCoachLinksTable.id eq id }.single().toLink()
+            ClubCoachLinksTable.selectAll().where { ClubCoachLinksTable.id eq id }.single().toLink()
         }
 
     override suspend fun revoke(clubId: String) =
@@ -71,7 +71,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
         newSuspendedTransaction {
             val now = OffsetDateTime.now(ZoneOffset.UTC)
             val row = (ClubCoachLinksTable innerJoin ClubsTable)
-                .select { ClubCoachLinksTable.token eq token }
+                .selectAll().where { ClubCoachLinksTable.token eq token }
                 .singleOrNull() ?: return@newSuspendedTransaction null
             val link = row.toLink()
             if (link.revokedAt != null || row[ClubCoachLinksTable.expiresAt].isBefore(now)) {
@@ -87,7 +87,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
     override suspend fun join(token: String, userId: String) =
         newSuspendedTransaction {
             val now = OffsetDateTime.now(ZoneOffset.UTC)
-            val row = ClubCoachLinksTable.select { ClubCoachLinksTable.token eq token }.singleOrNull()
+            val row = ClubCoachLinksTable.selectAll().where { ClubCoachLinksTable.token eq token }.singleOrNull()
                 ?: throw GoneException("Coach link not found")
             if (row[ClubCoachLinksTable.revokedAt] != null || row[ClubCoachLinksTable.expiresAt].isBefore(now)) {
                 throw GoneException("Coach link is no longer valid")
@@ -96,7 +96,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
             // uq_pending_team_per_coach (V10 migration) enforces at most one pending team
             // per coach per club at the DB level, making concurrent joins idempotent.
             val clubId = row[ClubCoachLinksTable.clubId]
-            val pendingTeam = TeamsTable.select {
+            val pendingTeam = TeamsTable.selectAll().where {
                 (TeamsTable.clubId eq clubId) and
                 (TeamsTable.status eq "pending") and
                 (TeamsTable.requestedBy eq UUID.fromString(userId))
@@ -115,7 +115,7 @@ class CoachLinkRepositoryImpl : CoachLinkRepository {
                         it[updatedAt] = now
                     }
                     TeamMembershipsTable.insert {
-                        it[teamId] = teamId
+                        it[TeamMembershipsTable.teamId] = teamId
                         it[TeamMembershipsTable.userId] = UUID.fromString(userId)
                         it[role] = "coach"
                         it[joinedAt] = now

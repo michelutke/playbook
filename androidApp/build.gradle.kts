@@ -2,11 +2,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
 }
 
 android {
@@ -41,6 +48,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
     implementation(libs.koin.compose.viewmodel)
+    implementation(libs.koin.androidx.compose)
     // Navigation
     implementation(libs.navigation.compose)
     // Lifecycle
@@ -50,9 +58,13 @@ dependencies {
     implementation(libs.activity.compose)
     // Image loading
     implementation(libs.coil.compose)
+    // Material icons extended
+    implementation(libs.compose.material.icons.extended)
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     // DateTime
     implementation(libs.kotlinx.datetime)
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 }

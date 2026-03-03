@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 /**
  * SA-010/SA-011: Immutable audit trail for all super-admin mutations.
  *
- * Every non-GET request under /sa/* is recorded by [AuditPlugin].
+ * Every non-GET request under /sa/{route} is recorded by [AuditPlugin].
  * When a super-admin impersonates a manager, [actorId] holds the SA's user ID and
  * [impersonatedAs] holds the manager's user ID — making the real actor always traceable.
  *

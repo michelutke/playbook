@@ -12,6 +12,7 @@ object TeamsTable : Table("teams") {
     val status = text("status").default("pending")
     val requestedBy = uuid("requested_by").references(UsersTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val rejectionReason = text("rejection_reason").nullable()
+    val checkInEnabled = bool("check_in_enabled").default(false)
     val createdAt = timestampWithTimeZone("created_at")
     val updatedAt = timestampWithTimeZone("updated_at")
     override val primaryKey = PrimaryKey(id)

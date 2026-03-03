@@ -10,10 +10,11 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.toJavaInstant
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.time.ZoneOffset
 import java.util.UUID
@@ -42,7 +43,7 @@ suspend fun materializeSeries(
     subgroupIds: List<UUID>,
     content: EventContent,
 ) = newSuspendedTransaction {
-    val series = EventSeriesTable.select { EventSeriesTable.id eq seriesId }.singleOrNull()
+    val series = EventSeriesTable.selectAll().where { EventSeriesTable.id eq seriesId }.singleOrNull()
         ?: return@newSuspendedTransaction
 
     val seriesStart = series[EventSeriesTable.seriesStartDate]
@@ -62,12 +63,12 @@ suspend fun materializeSeries(
 
     // Existing non-override occurrence dates — skip these to stay idempotent
     val existingDates = EventsTable
-        .select { (EventsTable.seriesId eq seriesId) and (EventsTable.seriesOverride eq false) }
+        .selectAll().where { (EventsTable.seriesId eq seriesId) and (EventsTable.seriesOverride eq false) }
         .map { it[EventsTable.startAt].toLocalDate().toKotlinLocalDate() }
         .toSet()
 
     val maxSeq = EventsTable
-        .select { EventsTable.seriesId eq seriesId }
+        .selectAll().where { EventsTable.seriesId eq seriesId }
         .mapNotNull { it[EventsTable.seriesSequence] }
         .maxOrNull() ?: 0
 

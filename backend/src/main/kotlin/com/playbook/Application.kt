@@ -1,5 +1,6 @@
 package com.playbook
 
+import com.playbook.infra.startAutoPresentJob
 import com.playbook.infra.startExportJobRunner
 import com.playbook.infra.startMaterializationJob
 import com.playbook.plugins.configureAuth
@@ -22,4 +23,5 @@ fun Application.module() {
     configureRouting()
     startMaterializationJob()
     startExportJobRunner()
+    startAutoPresentJob()
 }

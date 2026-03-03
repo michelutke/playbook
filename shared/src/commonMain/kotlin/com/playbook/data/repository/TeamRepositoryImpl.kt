@@ -50,6 +50,7 @@ class TeamRepositoryImpl(
             TeamStatus.ARCHIVED -> "archive"
             TeamStatus.ACTIVE -> "unarchive"
             TeamStatus.PENDING -> throw IllegalArgumentException("Cannot set status to PENDING directly")
+            TeamStatus.REJECTED -> throw IllegalArgumentException("Cannot set status to REJECTED directly")
         }
         return client.post("${config.baseUrl}/teams/$teamId/$path") {
             bearerAuth(config.authTokenProvider() ?: "")

@@ -79,9 +79,10 @@ fun TeamEditSheet(
                     maxLines = 3,
                 )
 
-                if (state.error != null) {
+                val editError = state.error
+                if (editError != null) {
                     Text(
-                        text = state.error,
+                        text = editError,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )

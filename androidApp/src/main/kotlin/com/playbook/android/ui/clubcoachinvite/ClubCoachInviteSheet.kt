@@ -58,7 +58,8 @@ fun ClubCoachInviteSheet(
                 style = MaterialTheme.typography.titleLarge,
             )
 
-            if (state.coachLink != null) {
+            val coachLink = state.coachLink
+            if (coachLink != null) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("Coach Signup Link", style = MaterialTheme.typography.labelMedium,
@@ -69,7 +70,7 @@ fun ClubCoachInviteSheet(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Text(
-                                "playbook://coach/${state.coachLink.token.take(20)}...",
+                                "playbook://coach/${coachLink.token.take(20)}...",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.weight(1f),
                             )
@@ -128,9 +129,10 @@ fun ClubCoachInviteSheet(
                 }
             }
 
-            if (state.error != null) {
+            val error = state.error
+            if (error != null) {
                 Text(
-                    text = state.error,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )

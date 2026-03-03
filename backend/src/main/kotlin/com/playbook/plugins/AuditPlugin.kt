@@ -2,6 +2,7 @@ package com.playbook.plugins
 
 import com.playbook.db.tables.AuditLogTable
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -14,7 +15,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 /**
- * SA-010/SA-011: Audit logging plugin for /sa/* routes.
+ * SA-010/SA-011: Audit logging plugin for /sa/{route} routes.
  * Writes an audit_log row after each mutating SA request.
  * Detects impersonation JWT claims and records impersonated_as.
  */
@@ -34,7 +35,7 @@ val AuditPlugin = createRouteScopedPlugin("AuditPlugin") {
         val action = buildAuditAction(method, path)
         val targetType = extractTargetType(path)
         val targetId = extractTargetId(path)
-        val requestIp = call.request.origin.remoteHost
+        val requestIp = call.request.local.remoteHost
         val userAgent = call.request.headers["User-Agent"] ?: ""
 
         val payloadJson = Json.encodeToString(
@@ -56,10 +57,10 @@ val AuditPlugin = createRouteScopedPlugin("AuditPlugin") {
                     it[AuditLogTable.actorId] = UUID.fromString(realActorId)
                     it[AuditLogTable.action] = action
                     it[AuditLogTable.targetType] = targetType
-                    it[AuditLogTable.targetId] = targetId?.let { id -> UUID.fromString(id) }
+                    it[AuditLogTable.targetId] = targetId?.let { tid -> UUID.fromString(tid) }
                     it[AuditLogTable.payload] = payloadJson
-                    it[AuditLogTable.impersonatedAs] = impersonatedAsId?.let { id -> UUID.fromString(id) }
-                    it[AuditLogTable.impersonationSessionId] = sessionId?.let { id -> UUID.fromString(id) }
+                    it[AuditLogTable.impersonatedAs] = impersonatedAsId?.let { aid -> UUID.fromString(aid) }
+                    it[AuditLogTable.impersonationSessionId] = sessionId?.let { sid -> UUID.fromString(sid) }
                     it[AuditLogTable.createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
                 }
             }

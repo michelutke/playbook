@@ -183,12 +183,13 @@ private fun PlayerProfileContent(
                                         style = MaterialTheme.typography.bodyLarge)
                                 }
                             }
-                            if (state.profile?.position != null) {
+                            val profilePosition = state.profile?.position
+                            if (profilePosition != null) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("Position", style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Spacer(Modifier.width(8.dp))
-                                    Text(state.profile.position,
+                                    Text(profilePosition,
                                         style = MaterialTheme.typography.bodyLarge)
                                 }
                             }
