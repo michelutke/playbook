@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Screen {
     @Serializable
+    data object Login : Screen
+
+    @Serializable
     data object ClubSetup : Screen
 
     @Serializable
@@ -56,4 +59,13 @@ sealed interface Screen {
 
     @Serializable
     data class TeamStats(val teamId: String) : Screen
+
+    @Serializable
+    data object NotificationInbox : Screen
+
+    @Serializable
+    data object NotificationSettings : Screen
+
+    @Serializable
+    data object PushPermission : Screen
 }

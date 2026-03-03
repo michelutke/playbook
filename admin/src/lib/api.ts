@@ -10,8 +10,10 @@ import type {
   UserSearchResult
 } from './types.js';
 
+import { PUBLIC_API_URL } from '$env/static/public';
+
 /** Backend base URL. Override via PUBLIC_API_URL env var (e.g. in production docker-compose). */
-const API_URL = process.env.PUBLIC_API_URL ?? 'http://localhost:8080';
+const API_URL = PUBLIC_API_URL || 'http://localhost:8080';
 
 export class ApiError extends Error {
   constructor(

@@ -2,27 +2,44 @@ package com.playbook.android
 
 import android.app.Application
 import com.playbook.android.di.uiModule
+import com.playbook.android.preferences.UserPreferences
+import com.playbook.android.push.OneSignalInitializer
+import com.playbook.android.push.PushTokenManager
 import com.playbook.data.network.ApiConfig
 import com.playbook.di.androidPlatformModule
 import com.playbook.di.sharedModule
+import com.playbook.repository.PushTokenRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.dsl.module
 
-class PlaybookApp : Application() {
+class PlaybookApp : Application(), KoinComponent {
+    private lateinit var userPreferences: UserPreferences
+
     override fun onCreate() {
         super.onCreate()
+        userPreferences = UserPreferences(this)
+        OneSignalInitializer.init(this, BuildConfig.ONESIGNAL_APP_ID)
         startKoin {
             androidContext(this@PlaybookApp)
             modules(
+                module { single { userPreferences } },
                 androidPlatformModule(this@PlaybookApp),
                 sharedModule(
                     ApiConfig(
-                        baseUrl = "http://10.0.2.2:8080", // TODO: inject via BuildConfig
-                        authTokenProvider = { null },      // TODO: inject from auth module
+                        baseUrl = BuildConfig.BACKEND_BASE_URL,
+                        authTokenProvider = { runBlocking { userPreferences.getToken() } },
                     )
                 ),
                 uiModule,
             )
         }
+        val tokenRepo: PushTokenRepository by inject()
+        @Suppress("OPT_IN_USAGE")
+        PushTokenManager.observe(GlobalScope, tokenRepo)
     }
 }

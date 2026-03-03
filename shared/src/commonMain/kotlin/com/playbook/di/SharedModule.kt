@@ -13,6 +13,7 @@ fun sharedModule(apiConfig: ApiConfig) = module {
     single { apiConfig }
     single { PlaybookDatabase(get()) }
     single { get<PlaybookDatabase>().attendanceQueries }
+    single { get<PlaybookDatabase>().notificationsQueries }
     single { MutationQueue(get()) }
     single<ClubRepository> { ClubRepositoryImpl(get(), get()) }
     single<TeamRepository> { TeamRepositoryImpl(get(), get()) }
@@ -23,4 +24,8 @@ fun sharedModule(apiConfig: ApiConfig) = module {
     single<SubgroupRepository> { SubgroupRepositoryImpl(get(), get()) }
     single<AttendanceRepository> { AttendanceRepositoryImpl(get(), get(), get(), get()) }
     single<AbwesenheitRepository> { AbwesenheitRepositoryImpl(get(), get()) }
+    single<NotificationRepository> { NotificationRepositoryImpl(get(), get(), get()) }
+    single<NotificationSettingsRepository> { NotificationSettingsRepositoryImpl(get(), get()) }
+    single<PushTokenRepository> { PushTokenRepositoryImpl(get(), get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
 }

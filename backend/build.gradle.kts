@@ -20,6 +20,11 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.serialization.kotlinx.json)
 
+    // Ktor client (OneSignal push)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+
     // Koin
     implementation(libs.koin.ktor)
     implementation(libs.koin.logger.slf4j)
@@ -40,6 +45,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.coroutines.core)
+
+    // Password hashing
+    implementation("org.mindrot:jbcrypt:0.4")
 
     // Logging
     implementation(libs.logback.classic)

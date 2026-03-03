@@ -19,12 +19,17 @@ kotlin {
 android {
     namespace = "com.playbook.android"
     compileSdk = 35
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "com.playbook.android"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${project.findProperty("ONESIGNAL_APP_ID") ?: ""}\"")
+        buildConfigField("String", "BACKEND_BASE_URL", "\"${project.findProperty("BACKEND_BASE_URL") ?: "http://10.0.2.2:8080"}\"")
     }
     buildTypes {
         release {
@@ -67,4 +72,8 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // OneSignal
+    implementation("com.onesignal:OneSignal:[5.6.1, 5.99.99]")
 }

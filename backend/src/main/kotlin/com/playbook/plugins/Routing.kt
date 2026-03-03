@@ -1,6 +1,8 @@
 package com.playbook.plugins
 
 import com.playbook.plugins.AuditPlugin
+import com.playbook.routes.registerAuthRoutes
+import com.playbook.routes.registerUsersMeRoute
 import com.playbook.routes.registerAbwesenheitRoutes
 import com.playbook.routes.registerAttendanceRoutes
 import com.playbook.routes.registerCheckInRoutes
@@ -10,6 +12,7 @@ import com.playbook.routes.registerCoachLinkRoutes
 import com.playbook.routes.registerEventRoutes
 import com.playbook.routes.registerInviteRoutes
 import com.playbook.routes.registerMemberRoutes
+import com.playbook.routes.registerNotificationRoutes
 import com.playbook.routes.registerSubgroupRoutes
 import com.playbook.routes.registerSuperAdminRoutes
 import com.playbook.routes.registerTeamRoutes
@@ -53,12 +56,14 @@ fun Application.configureRouting() {
 
     routing {
         // Public routes (no auth)
+        registerAuthRoutes()
         registerInviteRoutes(authenticated = false)
         registerCoachLinkRoutes(authenticated = false)
         registerSaAuthRoutes()
 
         // Protected routes
         authenticate("auth-jwt") {
+            registerUsersMeRoute()
             registerClubRoutes()
             registerTeamRoutes()
             registerMemberRoutes()
@@ -69,6 +74,7 @@ fun Application.configureRouting() {
             registerAttendanceRoutes()
             registerAbwesenheitRoutes()
             registerCheckInRoutes()
+            registerNotificationRoutes()
         }
 
         // Super-admin routes (SA-006, SA-010)
