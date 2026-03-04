@@ -54,6 +54,8 @@
     { "id": "CMP-050", "title": "Complete NT-016: Background Modes in Xcode + Info.plist", "phase": 6, "type": "ios", "status": "todo", "deps": ["CMP-049"] },
     { "id": "CMP-051", "title": "Final: XCFramework build + Xcode build green + full smoke test", "phase": 6, "type": "verify", "status": "todo", "deps": ["CMP-048", "CMP-050"] },
     { "id": "CMP-052", "title": "Phase 0 fixes: Screen.Register + build.gradle cleanup", "phase": 0, "type": "build", "status": "done", "deps": ["CMP-009"] },
-    { "id": "CMP-053", "title": "Wire iosApp ContentView.swift to MainViewController (Phase 0 iOS gate)", "phase": 0, "type": "ios", "status": "done", "deps": ["CMP-009"] }
+    { "id": "CMP-053", "title": "Wire iosApp ContentView.swift to MainViewController (Phase 0 iOS gate)", "phase": 0, "type": "ios", "status": "done", "deps": ["CMP-009"] },
+    { "id": "CMP-054", "title": "Stack upgrade: Kotlin 2.3.10, CMP 1.10.1, AGP 8.13.2, Gradle 8.13, compileSdk 36; fix kotlinOptions/compose.* deprecations", "phase": "stack-upgrade", "type": "build", "status": "done", "deps": ["CMP-018"] },
+    { "id": "CMP-055", "title": "Restore Navigation3 1.0.0-alpha06 + Coil3 3.4.0; replace manual backstack with NavDisplay/NavEntry", "phase": "stack-upgrade", "type": "kmp", "status": "done", "deps": ["CMP-054"] }
   ]
 }

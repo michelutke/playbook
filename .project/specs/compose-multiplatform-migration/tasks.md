@@ -49,6 +49,15 @@ gate: READY GO
 > **Phase 1 build gate PASSED.** Android + iOS compile clean. CMP-019 (runtime verification) pending.
 > Navigation 3 dropped: all alphas (01–05) transitively require CMP 1.10.x + Kotlin 2.2+. Replaced with manual backstack (`mutableStateListOf<Screen>`). Coil3 3.4.0 also dropped (compiled with Kotlin 2.3.10; no image loading needed in Phase 1).
 
+## Stack Upgrade ✅ (committed 44bc672)
+
+Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + Coil3.
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-054 ✅ | Bump Kotlin 2.1.10→2.3.10, CMP 1.7.1→1.10.1, AGP 8.5.0→8.13.2, Gradle 8.9→8.13, kotlinx-serialization 1.7.2→1.8.0, kotlinx-coroutines 1.9.0→1.10.2, compileSdk 35→36; migrate `kotlinOptions{}` → `compilerOptions{}` across all modules; fix `compose.*` accessor deprecations in `androidApp` | CMP-018 |
+| CMP-055 ✅ | Restore Navigation3 `1.0.0-alpha06` + Coil3 `3.4.0` to `composeApp/commonMain`; replace manual `when(currentScreen)` workaround with `NavDisplay`/`NavEntry` in `PlaybookApp.kt` | CMP-054 |
+
 ## Phase 2 — Team Management
 
 | ID | Task | Deps |
