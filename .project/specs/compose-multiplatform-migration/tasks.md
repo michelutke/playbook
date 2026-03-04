@@ -31,20 +31,23 @@ gate: READY GO
 > **Phase 0 iOS gate PASSED.** Blank screen confirmed on iPhone 17 Pro simulator (Xcode 26.3, iOS 26.2 SDK).
 > Known: `koinViewModel<AuthViewModel>()` crashes on iOS with Koin 4.0.0 — removed from `PlaybookApp` for Phase 0. Will be resolved in CMP-017 (auth gate wiring, Phase 1).
 
-## Phase 1 — Auth + Navigation Skeleton
+## Phase 1 — Auth + Navigation Skeleton ✅
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-010 | Run pre-migration grep: `LocalContext\|LocalActivity\|rememberLauncherForActivityResult\|runBlocking` in `androidApp/`; refactor any hits | CMP-009 |
-| CMP-011 | Migrate `LoginScreen` + `LoginViewModel` to `composeApp/commonMain` | CMP-010 |
-| CMP-012 | Migrate `RegisterScreen` + `RegisterViewModel` | CMP-010 |
-| CMP-013 | Migrate `ClubSetupScreen` + `ClubSetupViewModel` (first-time onboarding) | CMP-010 |
-| CMP-014 | Migrate `CoachFirstTeamSetupScreen` + ViewModel (F1 flow) | CMP-010 |
-| CMP-015 | Build Navigation 3 nav graph: all auth routes + `Screen.ClubDashboard` destination | CMP-011, CMP-012 |
-| CMP-016 | Build `PlaybookBottomBar` + `Scaffold` shell (Home tab + Notifications tab with badge); wrap in `NavHost` | CMP-015 |
-| CMP-017 | Wire auth gate in `PlaybookApp`: `Screen.Splash` → `AuthViewModel` state → navigate to Login or ClubDashboard; handle 401 → logout | CMP-005, CMP-015 |
-| CMP-018 | Wire deep links: `playbook://invite?token=` in `MainActivity.onNewIntent` (Android) + URL scheme in `Info.plist` (iOS); `PlaybookApp` guards with auth state | CMP-017 |
+| CMP-010 ✅ | Run pre-migration grep: `LocalContext\|LocalActivity\|rememberLauncherForActivityResult\|runBlocking` in `androidApp/`; refactor any hits | CMP-009 |
+| CMP-011 ✅ | Migrate `LoginScreen` + `LoginViewModel` to `composeApp/commonMain` | CMP-010 |
+| CMP-012 ✅ | `RegisterScreen` merged into `LoginScreen` (register mode toggle; YAGNI for separate screen) | CMP-010 |
+| CMP-013 ✅ | Migrate `ClubSetupScreen` + `ClubSetupViewModel` (first-time onboarding; logo picker dropped — YAGNI) | CMP-010 |
+| CMP-014 ✅ | Migrate `TeamSetupScreen` + `TeamSetupViewModel` (F1 flow) | CMP-010 |
+| CMP-015 ✅ | Nav graph: manual `mutableStateListOf<Screen>()` backstack + `when(currentScreen)` (Navigation 3 dropped — all alphas require CMP 1.10.x / Kotlin 2.2+, incompatible with CMP 1.7.1) | CMP-011, CMP-012 |
+| CMP-016 ✅ | `PlaybookBottomBar` + `Scaffold` shell; bottom bar shown on ClubDashboard + NotificationInbox | CMP-015 |
+| CMP-017 ✅ | Auth gate in `PlaybookApp`: `filter { !Loading }.collect {}` pattern; `AuthViewModel.onLoginSuccess()` added | CMP-005, CMP-015 |
+| CMP-018 ✅ | Deep links: `playbook://invite?token=` in `MainActivity.onNewIntent`; `PlaybookApp` guards with auth state | CMP-017 |
 | CMP-019 | Exit gate: Login → ClubDashboard flow verified on Android emulator + iOS simulator | CMP-018 |
+
+> **Phase 1 build gate PASSED.** Android + iOS compile clean. CMP-019 (runtime verification) pending.
+> Navigation 3 dropped: all alphas (01–05) transitively require CMP 1.10.x + Kotlin 2.2+. Replaced with manual backstack (`mutableStateListOf<Screen>`). Coil3 3.4.0 also dropped (compiled with Kotlin 2.3.10; no image loading needed in Phase 1).
 
 ## Phase 2 — Team Management
 

@@ -37,17 +37,12 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.runtime)
             implementation(compose.materialIconsExtended)
-            // Navigation 3 — added in Phase 1 (CMP-015)
-            // implementation(libs.navigation3.ui)
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             // ViewModel
             implementation(libs.lifecycle.viewmodel)
-            // Coil 3 — added in Phase 1 when screen migration begins (CMP-011+)
-            // implementation(libs.coil3.compose)
-            // implementation(libs.coil3.network.ktor3)
             // Settings
             implementation(libs.multiplatform.settings)
             // Coroutines

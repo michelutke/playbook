@@ -35,4 +35,8 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
             _authState.value = AuthState.Unauthenticated
         }
     }
+
+    fun onLoginSuccess(clubId: String?) {
+        _authState.value = AuthState.Authenticated(clubId)
+    }
 }
