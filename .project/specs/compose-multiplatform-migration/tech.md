@@ -31,14 +31,22 @@ iosApp (Xcode) → composeApp.xcframework (local SPM / embedded) → shared.xcfr
 
 ### iOS Framework Integration
 
-**Approach: XCFramework + SPM (manual)**
+**Approach: XCFramework embedded via XcodeGen**
 - `composeApp` Gradle config declares `framework {}` block (no `cocoapods {}`)
 - Build XCFramework via `./gradlew :composeApp:assembleXCFramework`
-- Output: `composeApp/build/XCFrameworks/release/composeApp.xcframework`
-- Add to Xcode as a local package: File → Add Package Dependencies → Add Local → point to the `.xcframework`; or embed directly via Xcode → Frameworks, Libraries, and Embedded Content
-- All other SPM dependencies (OneSignal, etc.) added manually in Xcode by developer
-- `iosApp/ContentView.swift` calls `MainViewControllerKt.MainViewController()`
+- Output: `composeApp/build/XCFrameworks/debug/composeApp.xcframework` (debug) / `release/`
+- **Xcode project is generated from `iosApp/project.yml`** via `xcodegen generate` — never edit `.xcodeproj` directly
+- `project.yml` embeds `debug/composeApp.xcframework` + links `libsqlite3.tbd` (required by SQLDelight's `NativeSqliteDriver`)
+- `iosApp/iosApp/ContentView.swift` wraps `MainViewControllerKt.MainViewController()`
+- `iosApp/iosApp/iOSApp.swift` — SwiftUI `@main` struct
 - No `Podfile`, no `pod install` — zero CocoaPods involvement
+
+**Workflow after any Kotlin change:**
+```bash
+./gradlew :composeApp:assembleXCFramework   # rebuild framework
+xcodegen generate                           # regenerate .xcodeproj (if project.yml changed)
+# then build in Xcode
+```
 
 **Minimum iOS target:** 16.0 (CMP minimum; aligns with NT-011/NT-016 requirements)
 
@@ -52,6 +60,8 @@ iosApp/ (Swift) → iOSPlatformModule (NSUserDefaults, OneSignal iOS SDK)
 ```
 
 `startKoin {}` called at each platform entry point with the full module list.
+
+**iOS startup sequence** (actual implementation): `startKoin` is called inside `MainViewController()` (Kotlin, `iosMain`) before returning the `ComposeUIViewController`. Guarded by a `private var koinInitialized` flag to prevent double-init. Modules: `iosPlatformModule()` + `sharedModule(ApiConfig(...))` + `uiModule` + `iosComposeModule`. The `authTokenProvider` lambda reads `NSUserDefaults` synchronously (no suspend needed).
 
 ### `androidApp/` Thin Shell (post-migration contents)
 - `MainActivity.kt` — `setContent { /* composeApp root composable */ }`
@@ -68,7 +78,7 @@ iosApp/ (Swift) → iOSPlatformModule (NSUserDefaults, OneSignal iOS SDK)
 |---------|---------|---------|--------|
 | `androidx.navigation:navigation-compose` | 2.8.4 | ✗ Android-only | **Migrate to Navigation 3** (see Decisions) |
 | `io.coil-kt:coil-compose` | 2.7.0 | ✗ | **Upgrade to Coil 3.4.0** (`io.coil-kt.coil3`) |
-| `androidx.datastore:datastore-preferences` | 1.1.1 | ✗ | **Replace with `multiplatform-settings 1.3.0`** |
+| `androidx.datastore:datastore-preferences` | 1.1.1 | ✗ | **Stays in `androidMain` actual of `UserPreferences`** (see D3) |
 | `com.onesignal:OneSignal` (Android SDK) | 5.6.1 | ✗ | Stays in `androidApp/`; iOS SDK via SPM (NT-011) |
 | `io.insert-koin:koin-compose` | 4.0.0 → **4.2.0** | ✓ | Move to `commonMain` via Koin BOM 4.2.0 |
 | `io.insert-koin:koin-compose-viewmodel` | 4.0.0 → **4.2.0** | ✓ | Move to `commonMain` |
@@ -228,13 +238,24 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 **iOS note:** `collectAsStateWithLifecycle` is Android-only. All `StateFlow` collection in `commonMain` uses `collectAsState()`. Lifecycle-aware collection on Android achieved via `lifecycle-runtime-compose` in `androidMain` only where strictly needed (currently: none in existing screens).
 
-### D5: iOS Xcode Project — XCFramework + SPM (manual)
+**Known issue (Phase 0):** `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 — `LocalViewModelStoreOwner` is not found in the `ComposeUIViewController` context, causing an uncaught `IllegalStateException` on a background coroutine thread → SIGABRT. Workaround for Phase 0: `koinViewModel` call removed from `PlaybookApp`; the ViewModel module DSL import updated to `org.koin.core.module.dsl.viewModel`. **Must be resolved before CMP-017** — options: upgrade to Koin 4.2.0 (improved KMP ViewModel support) or provide `LocalViewModelStoreOwner` explicitly in `MainViewController`.
 
-**Chosen:** XCFramework built by Gradle + manually embedded in Xcode. All SPM dependencies added manually by the developer in Xcode.
+### D5: iOS Xcode Project — XcodeGen + XCFramework
 
-**Rejected:** CocoaPods — adds toolchain dependency, `pod install` friction, and M1/M2 simulator build issues. Not worth the overhead given the small number of iOS dependencies.
+**Chosen:** Xcode project generated from `iosApp/project.yml` via `xcodegen generate`. XCFramework built by Gradle and referenced via relative path in `project.yml`. `libsqlite3.tbd` linked as SDK dependency (required by SQLDelight NativeSqliteDriver).
 
-**Gradle config:** `framework {}` block in `composeApp/build.gradle.kts`, no `cocoapods {}`.
+**Rejected:** CocoaPods — adds toolchain dependency, `pod install` friction, and M1/M2 simulator build issues. Manual `.xcodeproj` editing — brittle, not reproducible.
+
+**Key files:**
+- `iosApp/project.yml` — source of truth for the Xcode project; commit this, not the generated `.xcodeproj` contents
+- `iosApp/iosApp/iOSApp.swift` — `@main` SwiftUI App struct
+- `iosApp/iosApp/ContentView.swift` — `UIViewControllerRepresentable` wrapping CMP
+
+**Xcode project setup notes (Phase 0 learnings):**
+- Required `sudo xcodebuild -license accept` before first framework build (Xcode license)
+- Required `sudo xcodebuild -runFirstLaunch` to fix `DVTDownloads` framework version mismatch (macOS 26 beta)
+- `codeSign: false` on the embedded XCFramework — simulator builds must not codesign frameworks
+- Tested on: Xcode 26.3, iOS Simulator 26.2 SDK, iPhone 17 Pro simulator
 
 **Build command:** `./gradlew :composeApp:assembleXCFramework` (run after any KMP change before building in Xcode).
 
@@ -273,7 +294,7 @@ Recommended order to reduce risk and enable incremental testing:
 
 | Phase | Scope | Gate |
 |-------|-------|------|
-| 0 — Scaffold | Create `composeApp/` module, Gradle config, CocoaPods, KMP wizard, empty `PlaybookApp` composable, `AuthViewModel`, `Screen.Splash`. Android + iOS simulator both launch to blank screen. | Simulator builds green |
+| 0 — Scaffold ✅ | Create `composeApp/` module, Gradle config, XcodeGen project, empty `PlaybookApp` composable, `AuthViewModel`, `Screen.Splash`. Android + iOS simulator both launch to blank screen. | Simulator builds green |
 | 1 — Auth + Nav skeleton | Migrate `Screen.Login`, `PlaybookNavGraph`, `Screens.kt`, bottom nav, `AuthState` flow. Deep link wiring. | Login flow works on both platforms |
 | 2 — Team Management | Migrate club/team/member/invite/player screens + VMs (7 screens) | All team features work on iOS sim |
 | 3 — Events | Migrate eventlist, calendar, form, subgroupmgmt, eventdetail + VMs (5 screens) | All event features work on iOS sim |
@@ -292,9 +313,11 @@ Recommended order to reduce risk and enable incremental testing:
 | Navigation 3 deep link handling not automatic (manual Intent → BackStack) | Medium | Implementation pattern documented in API / Interfaces section |
 | `LocalContext` usages in composables block commonMain compilation | Medium | Run pre-migration grep checklist; refactor each hit before moving screen |
 | Coil 3 migration has wider breaking changes than documented | Medium | Migrate Coil in an isolated branch; verify all image usages compile |
-| Xcode project setup incorrect (missing framework embed, wrong target) | High | Follow XCFramework embed steps; test on simulator immediately after Phase 0 scaffold |
+| Xcode project setup incorrect (missing framework embed, wrong target) | High | Use `xcodegen generate` from `iosApp/project.yml`; test on simulator immediately after Phase 0 scaffold ✅ resolved |
 | XCFramework not rebuilt after KMP changes → stale iOS build | Medium | Always run `./gradlew :composeApp:assembleXCFramework` before Xcode builds after any Kotlin change |
 | DataStore → multiplatform-settings: Android users lose persisted tokens on first launch after upgrade | Medium | Silent one-time migration on first launch (see D3); no re-login required |
 | CMP iOS rendering performance vs native SwiftUI | Low | Acceptable for MVP; benchmark after first simulator run |
+| `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 | High | Removed from `PlaybookApp` for Phase 0. Must fix before CMP-017: upgrade Koin to 4.2.0 or provide `LocalViewModelStoreOwner` in `MainViewController` |
+| macOS/Xcode beta SDK incompatibilities | Medium | `xcodebuild -runFirstLaunch` resolves framework mismatches; `xcodebuild -license accept` required after Xcode install |
 | OneSignal iOS SDK manual steps (NT-011, NT-016) still required post-migration | Known | Documented; no change to status |
 | Deep link URL scheme not registered on iOS | Medium | Add `playbook` URL scheme to `Info.plist` during Phase 0 iosApp setup |
