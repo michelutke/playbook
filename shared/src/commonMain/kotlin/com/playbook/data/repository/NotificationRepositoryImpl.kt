@@ -52,7 +52,7 @@ class NotificationRepositoryImpl(
     }
 
     override fun getUnreadCount(): Flow<Int> =
-        queries.getUnreadCount().asFlow().mapToOne(Dispatchers.IO).map { it.toInt() }
+        queries.getUnreadCount().asFlow().mapToOne(Dispatchers.Default).map { it.toInt() }
 
     override suspend fun syncFromServer() {
         val paged: PagedNotifications = client.get("${config.baseUrl}/notifications") {

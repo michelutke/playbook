@@ -44,6 +44,7 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":composeApp"))
     // Compose
     implementation(compose.ui)
     implementation(compose.foundation)

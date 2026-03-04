@@ -6,8 +6,10 @@ import com.playbook.android.preferences.UserPreferences
 import com.playbook.android.push.OneSignalInitializer
 import com.playbook.android.push.PushTokenManager
 import com.playbook.data.network.ApiConfig
+import com.playbook.di.androidComposeModule
 import com.playbook.di.androidPlatformModule
 import com.playbook.di.sharedModule
+import com.playbook.di.uiModule as composeUiModule
 import com.playbook.repository.PushTokenRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
@@ -36,6 +38,8 @@ class PlaybookApp : Application(), KoinComponent {
                     )
                 ),
                 uiModule,
+                androidComposeModule,
+                composeUiModule,
             )
         }
         val tokenRepo: PushTokenRepository by inject()
