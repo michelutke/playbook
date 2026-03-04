@@ -15,6 +15,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
+import com.playbook.ui.clubdashboard.ClubDashboardScreen
 import com.playbook.ui.clubsetup.ClubSetupScreen
 import com.playbook.ui.components.PlaybookBottomBar
 import com.playbook.ui.inviteaccept.InviteAcceptScreen
@@ -111,6 +112,15 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                     backStack.add(Screen.ClubDashboard(clubId))
                                 },
                                 onDeclined = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.ClubDashboard -> ClubDashboardScreen(
+                                clubId = screen.clubId,
+                                onNavigateToTeam = { teamId ->
+                                    backStack.add(Screen.TeamDetail(teamId = teamId, clubId = screen.clubId))
+                                },
+                                onNavigateToEdit = { backStack.add(Screen.ClubProfileEdit(screen.clubId)) },
+                                onNavigateToInviteCoaches = { /* Phase 2: ClubCoachInviteSheet */ },
                             )
 
                             // Phase 2+ screens — placeholder until migrated

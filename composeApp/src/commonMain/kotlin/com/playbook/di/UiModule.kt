@@ -1,6 +1,7 @@
 package com.playbook.di
 
 import com.playbook.auth.AuthViewModel
+import com.playbook.ui.clubdashboard.ClubDashboardViewModel
 import com.playbook.ui.clubsetup.ClubSetupViewModel
 import com.playbook.ui.inviteaccept.InviteAcceptViewModel
 import com.playbook.ui.login.LoginViewModel
@@ -14,4 +15,5 @@ val uiModule = module {
     viewModel { ClubSetupViewModel(get(), get()) }
     viewModel { (clubId: String) -> TeamSetupViewModel(clubId, get()) }
     viewModel { (token: String) -> InviteAcceptViewModel(token, get()) }
+    viewModel { (clubId: String) -> ClubDashboardViewModel(clubId, get(), get(), get()) }
 }
