@@ -7,19 +7,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
+import com.playbook.ui.clubcoachinvite.ClubCoachInviteSheet
 import com.playbook.ui.clubdashboard.ClubDashboardScreen
+import com.playbook.ui.clubedit.ClubEditScreen
 import com.playbook.ui.clubsetup.ClubSetupScreen
 import com.playbook.ui.components.PlaybookBottomBar
 import com.playbook.ui.inviteaccept.InviteAcceptScreen
 import com.playbook.ui.login.LoginScreen
+import com.playbook.ui.teamdetail.TeamDetailScreen
 import com.playbook.ui.teamsetup.TeamSetupScreen
 import kotlinx.coroutines.flow.filter
 import org.koin.compose.koinInject
@@ -29,6 +35,7 @@ fun PlaybookApp(deepLinkToken: String? = null) {
     val authViewModel: AuthViewModel = koinInject()
     val backStack = remember { mutableStateListOf<Screen>(Screen.Splash) }
     val currentScreen = backStack.lastOrNull()
+    var coachInviteClubId by remember { mutableStateOf<String?>(null) }
 
     // Auth-driven routing: initial cold start + logout
     LaunchedEffect(Unit) {
@@ -120,14 +127,40 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                     backStack.add(Screen.TeamDetail(teamId = teamId, clubId = screen.clubId))
                                 },
                                 onNavigateToEdit = { backStack.add(Screen.ClubProfileEdit(screen.clubId)) },
-                                onNavigateToInviteCoaches = { /* Phase 2: ClubCoachInviteSheet */ },
+                                onNavigateToInviteCoaches = { coachInviteClubId = screen.clubId },
                             )
 
-                            // Phase 2+ screens — placeholder until migrated
+                            is Screen.TeamDetail -> TeamDetailScreen(
+                                teamId = screen.teamId,
+                                clubId = screen.clubId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                                onNavigateToEvents = {
+                                    backStack.add(Screen.EventList(teamId = screen.teamId))
+                                },
+                                onNavigateToSubgroups = {
+                                    backStack.add(Screen.SubgroupMgmt(screen.teamId))
+                                },
+                            )
+
+                            is Screen.ClubProfileEdit -> ClubEditScreen(
+                                clubId = screen.clubId,
+                                onSaved = { backStack.removeLastOrNull() },
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            // Phase 3+ screens — placeholder until migrated
                             else -> Box(modifier = Modifier.fillMaxSize())
                         }
                     }
                 },
+            )
+        }
+
+        val clubId = coachInviteClubId
+        if (clubId != null) {
+            ClubCoachInviteSheet(
+                clubId = clubId,
+                onDismiss = { coachInviteClubId = null },
             )
         }
     }
