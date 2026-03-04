@@ -3,6 +3,7 @@ package com.playbook.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.playbook.preferences.UserPreferences
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,11 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            println("AuthViewModel coroutine error: ${throwable::class.simpleName}: ${throwable.message}")
+            _authState.value = AuthState.Unauthenticated
+        }
+        viewModelScope.launch(handler) {
             val token = userPreferences.getToken()
             _authState.value = if (token == null) {
                 AuthState.Unauthenticated

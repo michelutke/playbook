@@ -1,0 +1,104 @@
+---
+template: tasks
+version: 0.1.0
+gate: READY GO
+---
+# Tasks: Compose Multiplatform Migration
+
+## Phase 0 — Scaffold ✅ (committed c2c97ee)
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-001 | Create `composeApp/` KMP module in `settings.gradle.kts`; add `build.gradle.kts` with Android + `iosSimulatorArm64` + `iosArm64` targets | — |
+| CMP-002 | Add dependencies: Navigation 3 `1.0.0-alpha05`, Coil `3.4.0` + `coil-network-ktor3`, multiplatform-settings `1.3.0`, Koin `4.2.0`, `lifecycle-viewmodel`, `kotlinx-coroutines` | CMP-001 |
+| CMP-003 | Create `Screen.kt` sealed class with `@Serializable` routes; add `Screen.Splash` entry point | CMP-001 |
+| CMP-004 | Create empty `PlaybookApp` composable (skeleton NavHost + auth state placeholder) | CMP-003 |
+| CMP-005 | Implement `AuthViewModel` reading `UserPreferences` via coroutine; emit `AuthState.Loading / Authenticated / Unauthenticated` — no `runBlocking` | CMP-002 |
+| CMP-006 | expect/actual `UserPreferences` — DataStore (androidMain) / NSUserDefaults (iosMain); silent one-time migration on Android first launch | CMP-002 |
+| CMP-007 | expect/actual `PushPermissionRequester` — `POST_NOTIFICATIONS` (Android) / `UNUserNotificationCenter` (iOS) | CMP-002 |
+| CMP-008 | expect/actual `HapticFeedback` — `LocalHapticFeedback` (Android) / `UIImpactFeedbackGenerator` (iOS) | CMP-002 |
+| CMP-009 | Wire Koin modules in `composeApp` (commonMain + androidMain + iosMain); both platforms build and launch to blank screen | CMP-004, CMP-005, CMP-006 |
+
+> CMP-001–009 complete. Committed `c2c97ee`. See fixes below.
+
+## Phase 0 — Fixes
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-052 ✅ | Add `Screen.Register`; remove `multiplatform-settings-datastore` dep; pin OneSignal to `5.6.1` | CMP-009 |
+| CMP-053 ✅ | Create `iosApp/iosApp/ContentView.swift`; XcodeGen project; `assembleXCFramework`; verify iOS sim blank screen | CMP-009 |
+
+> **Phase 0 iOS gate PASSED.** Blank screen confirmed on iPhone 17 Pro simulator (Xcode 26.3, iOS 26.2 SDK).
+> Known: `koinViewModel<AuthViewModel>()` crashes on iOS with Koin 4.0.0 — removed from `PlaybookApp` for Phase 0. Will be resolved in CMP-017 (auth gate wiring, Phase 1).
+
+## Phase 1 — Auth + Navigation Skeleton
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-010 | Run pre-migration grep: `LocalContext\|LocalActivity\|rememberLauncherForActivityResult\|runBlocking` in `androidApp/`; refactor any hits | CMP-009 |
+| CMP-011 | Migrate `LoginScreen` + `LoginViewModel` to `composeApp/commonMain` | CMP-010 |
+| CMP-012 | Migrate `RegisterScreen` + `RegisterViewModel` | CMP-010 |
+| CMP-013 | Migrate `ClubSetupScreen` + `ClubSetupViewModel` (first-time onboarding) | CMP-010 |
+| CMP-014 | Migrate `CoachFirstTeamSetupScreen` + ViewModel (F1 flow) | CMP-010 |
+| CMP-015 | Build Navigation 3 nav graph: all auth routes + `Screen.ClubDashboard` destination | CMP-011, CMP-012 |
+| CMP-016 | Build `PlaybookBottomBar` + `Scaffold` shell (Home tab + Notifications tab with badge); wrap in `NavHost` | CMP-015 |
+| CMP-017 | Wire auth gate in `PlaybookApp`: `Screen.Splash` → `AuthViewModel` state → navigate to Login or ClubDashboard; handle 401 → logout | CMP-005, CMP-015 |
+| CMP-018 | Wire deep links: `playbook://invite?token=` in `MainActivity.onNewIntent` (Android) + URL scheme in `Info.plist` (iOS); `PlaybookApp` guards with auth state | CMP-017 |
+| CMP-019 | Exit gate: Login → ClubDashboard flow verified on Android emulator + iOS simulator | CMP-018 |
+
+## Phase 2 — Team Management
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-020 | Migrate `ClubDashboardScreen` + `ClubDashboardViewModel` | CMP-016 |
+| CMP-021 | Migrate `TeamDetailScreen` + `TeamDetailViewModel` (roster tab) | CMP-020 |
+| CMP-022 | Migrate `TeamEditSheet` (Modal bottom sheet) | CMP-021 |
+| CMP-023 | Migrate `TeamInviteSheet` | CMP-021 |
+| CMP-024 | Migrate `ClubEditScreen` | CMP-020 |
+| CMP-025 | Migrate `PlayerProfileScreen` | CMP-021 |
+| CMP-026 | Migrate `PlayerStatsScreen` | CMP-021 |
+| CMP-027 | Migrate `TeamStatsScreen` | CMP-021 |
+| CMP-028 | Migrate `SubgroupMgmtScreen` | CMP-021 |
+| CMP-029 | Migrate `ClubCoachInviteSheet` | CMP-020 |
+| CMP-030 | Exit gate: all team management screens verified on both platforms | CMP-022, CMP-023, CMP-024, CMP-025, CMP-026, CMP-027, CMP-028, CMP-029 |
+
+## Phase 3 — Event Scheduling
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-031 | Migrate `EventListScreen` + `EventListViewModel` | CMP-016 |
+| CMP-032 | Migrate `EventCalendarScreen` + `EventCalendarViewModel` | CMP-031 |
+| CMP-033 | Migrate `EventDetailScreen` + `EventDetailViewModel` | CMP-031 |
+| CMP-034 | Migrate `EventFormScreen` + `EventFormViewModel` | CMP-031 |
+| CMP-035 | Migrate `EventSubgroupMgmt` screen | CMP-028 |
+| CMP-036 | Migrate `EventTypeIndicator` shared component | CMP-031 |
+| CMP-037 | Exit gate: all event scheduling screens verified on both platforms | CMP-032, CMP-033, CMP-034, CMP-035, CMP-036 |
+
+## Phase 4 — Attendance + Stats
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-038 | Migrate `AttendanceListScreen` + `AttendanceListViewModel` | CMP-016 |
+| CMP-039 | Migrate `BegrundungSheet` (absence reason bottom sheet) | CMP-038 |
+| CMP-040 | Migrate `MyAbsencesScreen` + `MyAbsencesViewModel` | CMP-038 |
+| CMP-041 | Migrate `OfflineIndicator` component; observe `NetworkMonitor` state | CMP-016 |
+| CMP-042 | Exit gate: attendance screens + offline banner verified on both platforms | CMP-039, CMP-040, CMP-041 |
+
+## Phase 5 — Notifications
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-043 | Migrate `NotificationInboxScreen` + `NotificationInboxViewModel` | CMP-016 |
+| CMP-044 | Migrate `NotificationSettingsScreen` + `NotificationSettingsViewModel` | CMP-016 |
+| CMP-045 | Migrate `PushPermissionScreen` | CMP-007 |
+| CMP-046 | Wire notification badge in `PlaybookBottomBar` (observe unread count from `NotificationInboxViewModel`) | CMP-016, CMP-043 |
+| CMP-047 | Exit gate: notification screens + badge verified on both platforms | CMP-043, CMP-044, CMP-045, CMP-046 |
+
+## Phase 6 — Cleanup
+
+| ID | Task | Deps |
+|---|---|---|
+| CMP-048 | Delete all migrated UI from `androidApp/`; reduce to thin shell: `MainActivity` + `PlaybookApp` (Koin init) + `AndroidManifest.xml` only | CMP-030, CMP-037, CMP-042, CMP-047 |
+| CMP-049 | Complete NT-011: OneSignal iOS SDK integration in Xcode project | CMP-047 |
+| CMP-050 | Complete NT-016: Background Modes capability in Xcode + `Info.plist` | CMP-049 |
+| CMP-051 | Final: `./gradlew :composeApp:assembleXCFramework` + Xcode build green; full smoke test both platforms; verify `androidApp/` is thin shell | CMP-048, CMP-050 |

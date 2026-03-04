@@ -63,9 +63,8 @@ kotlin {
             implementation(libs.activity.compose)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.multiplatform.settings.datastore)
             implementation("androidx.datastore:datastore-preferences:1.1.1")
-            implementation("com.onesignal:OneSignal:[5.6.1, 5.99.99]")
+            implementation("com.onesignal:OneSignal:5.6.1")
         }
     }
 }
