@@ -25,7 +25,13 @@ import com.playbook.ui.clubsetup.ClubSetupScreen
 import com.playbook.ui.components.PlaybookBottomBar
 import com.playbook.ui.inviteaccept.InviteAcceptScreen
 import com.playbook.ui.login.LoginScreen
+import com.playbook.ui.playerprofile.PlayerProfileScreen
+import com.playbook.ui.stats.PlayerStatsScreen
+import com.playbook.ui.stats.TeamStatsScreen
+import com.playbook.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.ui.teamdetail.TeamDetailScreen
+import com.playbook.ui.teamedit.TeamEditSheet
+import com.playbook.ui.teaminvite.TeamInviteSheet
 import com.playbook.ui.teamsetup.TeamSetupScreen
 import kotlinx.coroutines.flow.filter
 import org.koin.compose.koinInject
@@ -36,6 +42,8 @@ fun PlaybookApp(deepLinkToken: String? = null) {
     val backStack = remember { mutableStateListOf<Screen>(Screen.Splash) }
     val currentScreen = backStack.lastOrNull()
     var coachInviteClubId by remember { mutableStateOf<String?>(null) }
+    var teamEditTeamId by remember { mutableStateOf<String?>(null) }
+    var teamInviteTeamId by remember { mutableStateOf<String?>(null) }
 
     // Auth-driven routing: initial cold start + logout
     LaunchedEffect(Unit) {
@@ -140,11 +148,44 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                 onNavigateToSubgroups = {
                                     backStack.add(Screen.SubgroupMgmt(screen.teamId))
                                 },
+                                onNavigateToEditTeam = { teamEditTeamId = screen.teamId },
+                                onNavigateToInvite = { teamInviteTeamId = screen.teamId },
+                                onNavigateToPlayerProfile = { userId ->
+                                    backStack.add(Screen.PlayerProfile(screen.teamId, userId))
+                                },
+                                onNavigateToTeamStats = {
+                                    backStack.add(Screen.TeamStats(screen.teamId))
+                                },
                             )
 
                             is Screen.ClubProfileEdit -> ClubEditScreen(
                                 clubId = screen.clubId,
                                 onSaved = { backStack.removeLastOrNull() },
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.PlayerProfile -> PlayerProfileScreen(
+                                teamId = screen.teamId,
+                                userId = screen.userId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.PlayerStats -> PlayerStatsScreen(
+                                userId = screen.userId,
+                                teamId = screen.teamId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.TeamStats -> TeamStatsScreen(
+                                teamId = screen.teamId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                                onNavigateToPlayerStats = { userId ->
+                                    backStack.add(Screen.PlayerStats(userId = userId, teamId = screen.teamId))
+                                },
+                            )
+
+                            is Screen.SubgroupMgmt -> SubgroupMgmtScreen(
+                                teamId = screen.teamId,
                                 onNavigateBack = { backStack.removeLastOrNull() },
                             )
 
@@ -161,6 +202,23 @@ fun PlaybookApp(deepLinkToken: String? = null) {
             ClubCoachInviteSheet(
                 clubId = clubId,
                 onDismiss = { coachInviteClubId = null },
+            )
+        }
+
+        val editTeamId = teamEditTeamId
+        if (editTeamId != null) {
+            TeamEditSheet(
+                teamId = editTeamId,
+                onSaved = { teamEditTeamId = null },
+                onDismiss = { teamEditTeamId = null },
+            )
+        }
+
+        val inviteTeamId = teamInviteTeamId
+        if (inviteTeamId != null) {
+            TeamInviteSheet(
+                teamId = inviteTeamId,
+                onDismiss = { teamInviteTeamId = null },
             )
         }
     }

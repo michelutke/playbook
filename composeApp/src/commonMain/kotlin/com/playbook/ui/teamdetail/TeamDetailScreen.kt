@@ -1,5 +1,6 @@
 package com.playbook.ui.teamdetail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,6 +60,10 @@ fun TeamDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEvents: () -> Unit = {},
     onNavigateToSubgroups: () -> Unit = {},
+    onNavigateToEditTeam: () -> Unit = {},
+    onNavigateToInvite: () -> Unit = {},
+    onNavigateToPlayerProfile: (String) -> Unit = {},
+    onNavigateToTeamStats: () -> Unit = {},
     viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId, clubId) },
 ) {
     val state by viewModel.state.collectAsState()
@@ -75,6 +80,10 @@ fun TeamDetailScreen(
         onNavigateBack = onNavigateBack,
         onNavigateToEvents = onNavigateToEvents,
         onNavigateToSubgroups = onNavigateToSubgroups,
+        onNavigateToEditTeam = onNavigateToEditTeam,
+        onNavigateToInvite = onNavigateToInvite,
+        onNavigateToPlayerProfile = onNavigateToPlayerProfile,
+        onNavigateToTeamStats = onNavigateToTeamStats,
     )
 }
 
@@ -86,6 +95,10 @@ private fun TeamDetailContent(
     onNavigateBack: () -> Unit,
     onNavigateToEvents: () -> Unit,
     onNavigateToSubgroups: () -> Unit,
+    onNavigateToEditTeam: () -> Unit,
+    onNavigateToInvite: () -> Unit,
+    onNavigateToPlayerProfile: (String) -> Unit,
+    onNavigateToTeamStats: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -127,9 +140,15 @@ private fun TeamDetailContent(
                     Text(state.error, color = MaterialTheme.colorScheme.error)
                 }
                 else -> when (state.selectedTab) {
-                    TeamDetailTab.ROSTER -> RosterTab(state, onAction)
+                    TeamDetailTab.ROSTER -> RosterTab(state, onAction, onNavigateToPlayerProfile)
                     TeamDetailTab.SUB_GROUPS -> SubGroupsTab(onNavigateToSubgroups, onNavigateToEvents)
-                    TeamDetailTab.SETTINGS -> SettingsTab(state, onAction)
+                    TeamDetailTab.SETTINGS -> SettingsTab(
+                        state = state,
+                        onAction = onAction,
+                        onNavigateToEditTeam = onNavigateToEditTeam,
+                        onNavigateToInvite = onNavigateToInvite,
+                        onNavigateToTeamStats = onNavigateToTeamStats,
+                    )
                 }
             }
         }
@@ -138,7 +157,11 @@ private fun TeamDetailContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RosterTab(state: TeamDetailScreenState, onAction: (TeamDetailAction) -> Unit) {
+private fun RosterTab(
+    state: TeamDetailScreenState,
+    onAction: (TeamDetailAction) -> Unit,
+    onNavigateToPlayerProfile: (String) -> Unit,
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             OutlinedTextField(
@@ -159,9 +182,11 @@ private fun RosterTab(state: TeamDetailScreenState, onAction: (TeamDetailAction)
                 )
             }
             items(state.coaches, key = { "coach_${it.userId}" }) { member ->
-                SwipeToDismissRosterItem(member = member, onDismiss = {
-                    onAction(TeamDetailAction.RemoveMember(member.userId))
-                })
+                SwipeToDismissRosterItem(
+                    member = member,
+                    onDismiss = { onAction(TeamDetailAction.RemoveMember(member.userId)) },
+                    onClick = { onNavigateToPlayerProfile(member.userId) },
+                )
             }
         }
 
@@ -175,9 +200,11 @@ private fun RosterTab(state: TeamDetailScreenState, onAction: (TeamDetailAction)
                 )
             }
             items(state.players, key = { "player_${it.userId}" }) { member ->
-                SwipeToDismissRosterItem(member = member, onDismiss = {
-                    onAction(TeamDetailAction.RemoveMember(member.userId))
-                })
+                SwipeToDismissRosterItem(
+                    member = member,
+                    onDismiss = { onAction(TeamDetailAction.RemoveMember(member.userId)) },
+                    onClick = { onNavigateToPlayerProfile(member.userId) },
+                )
             }
         }
     }
@@ -185,7 +212,7 @@ private fun RosterTab(state: TeamDetailScreenState, onAction: (TeamDetailAction)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDismissRosterItem(member: RosterMember, onDismiss: () -> Unit) {
+private fun SwipeToDismissRosterItem(member: RosterMember, onDismiss: () -> Unit, onClick: () -> Unit = {}) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -206,6 +233,7 @@ private fun SwipeToDismissRosterItem(member: RosterMember, onDismiss: () -> Unit
         },
     ) {
         ListItem(
+            modifier = Modifier.clickable(onClick = onClick),
             headlineContent = { Text(member.displayName ?: member.userId) },
             supportingContent = {
                 Row {
@@ -246,7 +274,13 @@ private fun SubGroupsTab(onNavigateToSubgroups: () -> Unit, onNavigateToEvents: 
 }
 
 @Composable
-private fun SettingsTab(state: TeamDetailScreenState, onAction: (TeamDetailAction) -> Unit) {
+private fun SettingsTab(
+    state: TeamDetailScreenState,
+    onAction: (TeamDetailAction) -> Unit,
+    onNavigateToEditTeam: () -> Unit,
+    onNavigateToInvite: () -> Unit,
+    onNavigateToTeamStats: () -> Unit,
+) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -263,7 +297,22 @@ private fun SettingsTab(state: TeamDetailScreenState, onAction: (TeamDetailActio
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = onNavigateToEditTeam,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Edit Team")
+                    }
                 }
+            }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onNavigateToInvite, modifier = Modifier.fillMaxWidth()) {
+                Text("Invite Members")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onNavigateToTeamStats, modifier = Modifier.fillMaxWidth()) {
+                Text("Team Statistics")
             }
             Spacer(Modifier.height(16.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
