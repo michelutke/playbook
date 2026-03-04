@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
@@ -10,10 +11,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -37,6 +36,11 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.runtime)
             implementation(compose.materialIconsExtended)
+            // Navigation 3
+            implementation(libs.navigation3.ui)
+            // Coil 3
+            implementation(libs.coil3.compose)
+            implementation(libs.coil3.network.ktor3)
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
@@ -66,7 +70,7 @@ kotlin {
 
 android {
     namespace = "com.playbook.composeapp"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
     }

@@ -8,10 +8,8 @@ plugins {
 kotlin {
     jvm()
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
     iosX64()
@@ -53,7 +51,7 @@ kotlin {
 
 android {
     namespace = "com.playbook.shared"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
     }

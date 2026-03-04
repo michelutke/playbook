@@ -74,22 +74,27 @@ iosApp/ (Swift) → iOSPlatformModule (NSUserDefaults, OneSignal iOS SDK)
 
 ## Library Compatibility Matrix
 
-| Library | Current | CMP iOS | Action |
+**Stack versions (post-upgrade):** Kotlin 2.3.10 · CMP 1.10.1 · AGP 8.13.2 · Gradle 8.13
+
+| Library | Version | CMP iOS | Action |
 |---------|---------|---------|--------|
 | `androidx.navigation:navigation-compose` | 2.8.4 | ✗ Android-only | **Migrate to Navigation 3** (see Decisions) |
-| `io.coil-kt:coil-compose` | 2.7.0 | ✗ | **Upgrade to Coil 3.4.0** (`io.coil-kt.coil3`) |
+| `org.jetbrains.androidx.navigation3:navigation3-ui` | **1.0.0-alpha06** | ✓ | Restored in stack upgrade; requires compileSdk 36 |
+| `io.coil-kt:coil-compose` (Coil 2) | 2.7.0 | ✗ | Legacy; stays in `androidApp/` until full migration |
+| `io.coil-kt.coil3:coil-compose` | **3.4.0** | ✓ | In `composeApp/commonMain`; requires Kotlin 2.3.x |
+| `io.coil-kt.coil3:coil-network-ktor3` | **3.4.0** | ✓ | Network image loading via Ktor |
 | `androidx.datastore:datastore-preferences` | 1.1.1 | ✗ | **Stays in `androidMain` actual of `UserPreferences`** (see D3) |
 | `com.onesignal:OneSignal` (Android SDK) | 5.6.1 | ✗ | Stays in `androidApp/`; iOS SDK via SPM (NT-011) |
-| `io.insert-koin:koin-compose` | 4.0.0 → **4.2.0** | ✓ | Move to `commonMain` via Koin BOM 4.2.0 |
-| `io.insert-koin:koin-compose-viewmodel` | 4.0.0 → **4.2.0** | ✓ | Move to `commonMain` |
-| `io.insert-koin:koin-androidx-compose` | 4.0.0 | ✗ (Android-only name) | Drop; `koin-compose` covers it |
-| `io.insert-koin:koin-android` | 4.0.0 → **4.2.0** | n/a | Stays in `androidApp/` |
-| `androidx.lifecycle:lifecycle-viewmodel-ktx` | 2.8.7 | ✓ (core) | Move `lifecycle-viewmodel` to `commonMain` |
-| `androidx.lifecycle:lifecycle-runtime-compose` | 2.8.7 | ✗ | Replace with `collectAsStateWithLifecycle` from `lifecycle-runtime-compose` for Android; plain `collectAsState` in `commonMain` |
-| `androidx.activity:activity-compose` | 1.9.3 | ✗ | Stays in `androidApp/` thin shell |
-| Material Icons Extended | 1.7.6 | ✓ | Move to `commonMain` |
-| `kotlinx-coroutines` | 1.9.0 | ✓ | Already in `shared/`; add to `composeApp/commonMain` |
-| `kotlinx-datetime` | 0.6.0 | ✓ | Already in `shared/`; expose via shared module |
+| `io.insert-koin:koin-compose` | 4.0.0 | ✓ | In `commonMain` |
+| `io.insert-koin:koin-compose-viewmodel` | 4.0.0 | ✓ | In `commonMain` |
+| `io.insert-koin:koin-android` | 4.0.0 | n/a | Stays in `androidApp/` + `androidMain` |
+| `androidx.lifecycle:lifecycle-viewmodel` | 2.8.7 | ✓ | In `composeApp/commonMain` |
+| `androidx.lifecycle:lifecycle-runtime-compose` | 2.8.7 | ✗ | `androidMain` only; plain `collectAsState()` in `commonMain` |
+| `androidx.activity:activity-compose` | 1.9.3 | ✗ | Stays in `androidApp/` + `composeApp/androidMain` |
+| Material Icons Extended | CMP-managed | ✓ | In `composeApp/commonMain` via `compose.materialIconsExtended` |
+| `kotlinx-coroutines` | **1.10.2** | ✓ | Pinned explicitly; was 1.9.0 |
+| `kotlinx-datetime` | 0.6.0 | ✓ | In `shared/commonMain` |
+| `kotlinx-serialization` | **1.8.0** | ✓ | Was 1.7.2; tracks Kotlin 2.3.x |
 
 ### expect/actual Surface
 
@@ -198,9 +203,13 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 ### D1: Navigation — JetBrains Navigation 3 (alpha)
 
-**Chosen:** `org.jetbrains.androidx.navigation3:navigation3-ui:1.0.0-alpha05`
+**Chosen:** `org.jetbrains.androidx.navigation3:navigation3-ui:1.0.0-alpha06`
 
 **Rationale:** Official CMP successor to AndroidX Navigation. Preserves type-safe serializable routes (same pattern as current `Screens.kt`). Migration surface is contained to `PlaybookNavGraph.kt` + `Screens.kt` (2 files).
+
+**Version history:**
+- Phase 1 (CMP-010–018): All available Nav3 alphas required CMP 1.10.0-beta02 + Kotlin 2.2.20+, which exceeded the Phase 1 stack (Kotlin 2.1.10, CMP 1.7.1). Nav3 was dropped and replaced with a manual `mutableStateListOf<Screen>` + `when(currentScreen)` backstack workaround (committed in Phase 1 completion commit).
+- Stack upgrade (this PR): Kotlin bumped to 2.3.10, CMP to 1.10.1, AGP to 8.13.2 — all compatibility requirements satisfied. Nav3 `1.0.0-alpha06` (latest 1.0.x) restored. `NavDisplay` + `NavEntry` replaces the manual workaround in `PlaybookApp.kt`. Note: Nav3 1.0.1 stable does NOT exist as of the upgrade date; 1.1.x alphas require CMP 1.11.0-alpha (unstable) so were excluded.
 
 **Rejected alternatives:**
 - *Voyager*: stable but different paradigm; large API delta; locks to third-party
@@ -214,6 +223,8 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 **Chosen:** `io.coil-kt.coil3:coil-compose:3.4.0` + `io.coil-kt.coil3:coil-network-ktor3`
 
 **Rationale:** Only mature CMP-compatible image loading library. Required for iOS.
+
+**Version history:** Coil3 3.4.0 is compiled with Kotlin 2.3.10 and was incompatible with the Phase 1 stack (Kotlin 2.1.10). It was dropped during Phase 1 and re-added as part of the stack upgrade alongside Nav3 restoration. No version change — 3.4.0 is the target and is now compatible with the upgraded stack (Kotlin 2.3.10 / CMP 1.10.1).
 
 **Breaking changes to handle:**
 - Group/package rename: `coil` → `coil3`

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.multiplatform)
@@ -8,17 +10,15 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 }
 
 android {
     namespace = "com.playbook.android"
-    compileSdk = 35
+    compileSdk = 36
     buildFeatures {
         buildConfig = true
     }
@@ -45,11 +45,12 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation(project(":composeApp"))
-    // Compose
-    implementation(compose.ui)
-    implementation(compose.foundation)
-    implementation(compose.material3)
-    implementation(compose.runtime)
+    // Compose — explicit coords; version managed by compose.multiplatform plugin
+    implementation("org.jetbrains.compose.ui:ui")
+    implementation("org.jetbrains.compose.foundation:foundation")
+    implementation("org.jetbrains.compose.material3:material3")
+    implementation("org.jetbrains.compose.runtime:runtime")
+    implementation("org.jetbrains.compose.material:material-icons-extended")
     // Koin
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
@@ -62,10 +63,8 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     // Activity
     implementation(libs.activity.compose)
-    // Image loading
+    // Image loading (Coil 2 for legacy androidApp screens)
     implementation(libs.coil.compose)
-    // Material icons extended
-    implementation(libs.compose.material.icons.extended)
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

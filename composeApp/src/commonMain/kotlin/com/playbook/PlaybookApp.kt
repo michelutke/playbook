@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.ui.NavDisplay
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
 import com.playbook.ui.clubsetup.ClubSetupScreen
@@ -77,39 +79,46 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-                when (val screen = currentScreen) {
-                    Screen.Splash -> Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) { /* Splash — awaiting auth state */ }
+            NavDisplay(
+                backStack = backStack,
+                modifier = Modifier.padding(padding).fillMaxSize(),
+                onBack = { if (backStack.size > 1) backStack.removeLastOrNull() },
+                entryProvider = { key ->
+                    NavEntry(key) {
+                        when (val screen = key) {
+                            Screen.Splash -> Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) { /* Splash — awaiting auth state */ }
 
-                    Screen.Login, Screen.Register -> LoginScreen()
+                            Screen.Login, Screen.Register -> LoginScreen()
 
-                    Screen.ClubSetup -> ClubSetupScreen(
-                        onClubCreated = { clubId ->
-                            authViewModel.onLoginSuccess(clubId)
+                            Screen.ClubSetup -> ClubSetupScreen(
+                                onClubCreated = { clubId ->
+                                    authViewModel.onLoginSuccess(clubId)
+                                }
+                            )
+
+                            is Screen.CoachFirstTeamSetup -> TeamSetupScreen(
+                                clubId = screen.clubId,
+                                onSubmitted = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.InviteAccept -> InviteAcceptScreen(
+                                token = screen.token,
+                                onAccepted = { clubId ->
+                                    backStack.clear()
+                                    backStack.add(Screen.ClubDashboard(clubId))
+                                },
+                                onDeclined = { backStack.removeLastOrNull() },
+                            )
+
+                            // Phase 2+ screens — placeholder until migrated
+                            else -> Box(modifier = Modifier.fillMaxSize())
                         }
-                    )
-
-                    is Screen.CoachFirstTeamSetup -> TeamSetupScreen(
-                        clubId = screen.clubId,
-                        onSubmitted = { backStack.removeLastOrNull() },
-                    )
-
-                    is Screen.InviteAccept -> InviteAcceptScreen(
-                        token = screen.token,
-                        onAccepted = { clubId ->
-                            backStack.clear()
-                            backStack.add(Screen.ClubDashboard(clubId))
-                        },
-                        onDeclined = { backStack.removeLastOrNull() },
-                    )
-
-                    // Phase 2+ screens — placeholder until migrated
-                    else -> Box(modifier = Modifier.fillMaxSize())
-                }
-            }
+                    }
+                },
+            )
         }
     }
 }
