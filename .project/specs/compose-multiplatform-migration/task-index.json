@@ -21,7 +21,7 @@
     { "id": "CMP-017", "title": "Wire auth gate: Splash → AuthState → Login or ClubDashboard", "phase": 1, "type": "kmp", "status": "done", "deps": ["CMP-005", "CMP-015"] },
     { "id": "CMP-018", "title": "Wire deep links (Android onNewIntent + iOS URL scheme)", "phase": 1, "type": "kmp", "status": "done", "deps": ["CMP-017"] },
     { "id": "CMP-019", "title": "Exit gate: Login → ClubDashboard on Android + iOS", "phase": 1, "type": "verify", "status": "todo", "deps": ["CMP-018"] },
-    { "id": "CMP-020", "title": "Migrate ClubDashboardScreen + ClubDashboardViewModel", "phase": 2, "type": "ui", "status": "todo", "deps": ["CMP-016"] },
+    { "id": "CMP-020", "title": "Migrate ClubDashboardScreen + ClubDashboardViewModel", "phase": 2, "type": "ui", "status": "done", "deps": ["CMP-016"] },
     { "id": "CMP-021", "title": "Migrate TeamDetailScreen + TeamDetailViewModel", "phase": 2, "type": "ui", "status": "todo", "deps": ["CMP-020"] },
     { "id": "CMP-022", "title": "Migrate TeamEditSheet", "phase": 2, "type": "ui", "status": "todo", "deps": ["CMP-021"] },
     { "id": "CMP-023", "title": "Migrate TeamInviteSheet", "phase": 2, "type": "ui", "status": "todo", "deps": ["CMP-021"] },
