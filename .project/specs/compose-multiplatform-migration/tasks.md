@@ -63,15 +63,15 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 | ID | Task | Deps |
 |---|---|---|
 | CMP-020 ✅ | Migrate `ClubDashboardScreen` + `ClubDashboardViewModel` | CMP-016 |
-| CMP-021 | Migrate `TeamDetailScreen` + `TeamDetailViewModel` (roster tab) | CMP-020 |
+| CMP-021 ✅ | Migrate `TeamDetailScreen` + `TeamDetailViewModel` (roster tab) | CMP-020 |
 | CMP-022 | Migrate `TeamEditSheet` (Modal bottom sheet) | CMP-021 |
 | CMP-023 | Migrate `TeamInviteSheet` | CMP-021 |
-| CMP-024 | Migrate `ClubEditScreen` | CMP-020 |
+| CMP-024 ✅ | Migrate `ClubEditScreen` | CMP-020 |
 | CMP-025 | Migrate `PlayerProfileScreen` | CMP-021 |
 | CMP-026 | Migrate `PlayerStatsScreen` | CMP-021 |
 | CMP-027 | Migrate `TeamStatsScreen` | CMP-021 |
 | CMP-028 | Migrate `SubgroupMgmtScreen` | CMP-021 |
-| CMP-029 | Migrate `ClubCoachInviteSheet` | CMP-020 |
+| CMP-029 ✅ | Migrate `ClubCoachInviteSheet` | CMP-020 |
 | CMP-030 | Exit gate: all team management screens verified on both platforms | CMP-022, CMP-023, CMP-024, CMP-025, CMP-026, CMP-027, CMP-028, CMP-029 |
 
 ## Phase 3 — Event Scheduling
