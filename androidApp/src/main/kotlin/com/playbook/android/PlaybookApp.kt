@@ -1,7 +1,6 @@
 package com.playbook.android
 
 import android.app.Application
-import com.playbook.android.di.uiModule
 import com.playbook.android.preferences.UserPreferences
 import com.playbook.android.push.OneSignalInitializer
 import com.playbook.android.push.PushTokenManager
@@ -37,7 +36,6 @@ class PlaybookApp : Application(), KoinComponent {
                         authTokenProvider = { runBlocking { userPreferences.getToken() } },
                     )
                 ),
-                uiModule,
                 androidComposeModule,
                 composeUiModule,
             )

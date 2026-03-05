@@ -110,7 +110,7 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-048 | Delete all migrated UI from `androidApp/`; reduce to thin shell: `MainActivity` + `PlaybookApp` (Koin init) + `AndroidManifest.xml` only | CMP-030, CMP-037, CMP-042, CMP-047 |
+| CMP-048 ✅ | Delete all migrated UI from `androidApp/`; reduce to thin shell: `MainActivity` + `PlaybookApp` (Koin init) + `AndroidManifest.xml` only | CMP-030, CMP-037, CMP-042, CMP-047 |
 | CMP-049 | Complete NT-011: OneSignal iOS SDK integration in Xcode project | CMP-047 |
 | CMP-050 | Complete NT-016: Background Modes capability in Xcode + `Info.plist` | CMP-049 |
 | CMP-051 | Final: `./gradlew :composeApp:assembleXCFramework` + Xcode build green; full smoke test both platforms; verify `androidApp/` is thin shell | CMP-048, CMP-050 |
