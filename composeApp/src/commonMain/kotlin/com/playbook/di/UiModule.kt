@@ -12,6 +12,9 @@ import com.playbook.ui.stats.PlayerStatsViewModel
 import com.playbook.ui.stats.TeamStatsViewModel
 import com.playbook.ui.subgroupmgmt.SubgroupMgmtViewModel
 import com.playbook.domain.RecurringScope
+import com.playbook.ui.absences.AbsenceSheetViewModel
+import com.playbook.ui.absences.MyAbsencesViewModel
+import com.playbook.ui.attendancelist.AttendanceListViewModel
 import com.playbook.ui.eventcalendar.EventCalendarViewModel
 import com.playbook.ui.eventdetail.EventDetailViewModel
 import com.playbook.ui.eventform.EventFormViewModel
@@ -45,4 +48,8 @@ val uiModule = module {
     viewModel { (clubId: String, eventId: String?, preselectedTeamId: String?, editScope: RecurringScope) ->
         EventFormViewModel(clubId, eventId, preselectedTeamId, editScope, get(), get(), get())
     }
+    viewModel { (eventId: String) -> AttendanceListViewModel(eventId, get()) }
+    viewModel { MyAbsencesViewModel(get()) }
+    viewModel { AbsenceSheetViewModel(get()) }
+
 }

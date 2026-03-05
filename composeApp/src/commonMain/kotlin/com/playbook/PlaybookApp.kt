@@ -29,6 +29,8 @@ import com.playbook.ui.playerprofile.PlayerProfileScreen
 import com.playbook.ui.stats.PlayerStatsScreen
 import com.playbook.ui.stats.TeamStatsScreen
 import com.playbook.domain.RecurringScope
+import com.playbook.ui.absences.MyAbsencesScreen
+import com.playbook.ui.attendancelist.AttendanceListScreen
 import com.playbook.ui.eventcalendar.EventCalendarScreen
 import com.playbook.ui.eventdetail.EventDetailScreen
 import com.playbook.ui.eventform.EventFormScreen
@@ -233,7 +235,16 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                 onNavigateBack = { backStack.removeLastOrNull() },
                             )
 
-                            // Phase 4+ screens — placeholder until migrated
+                            is Screen.AttendanceList -> AttendanceListScreen(
+                                eventId = screen.eventId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            Screen.MyAbsences -> MyAbsencesScreen(
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            // Phase 5+ screens — placeholder until migrated
                             else -> Box(modifier = Modifier.fillMaxSize())
                         }
                     }

@@ -90,10 +90,10 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-038 | Migrate `AttendanceListScreen` + `AttendanceListViewModel` | CMP-016 |
-| CMP-039 | Migrate `BegrundungSheet` (absence reason bottom sheet) | CMP-038 |
-| CMP-040 | Migrate `MyAbsencesScreen` + `MyAbsencesViewModel` | CMP-038 |
-| CMP-041 | Migrate `OfflineIndicator` component; observe `NetworkMonitor` state | CMP-016 |
+| CMP-038 ✅ | Migrate `AttendanceListScreen` + `AttendanceListViewModel` | CMP-016 |
+| CMP-039 ✅ | Migrate `BegrundungSheet` (absence reason bottom sheet) — created in Phase 3 as prerequisite for EventDetail | CMP-038 |
+| CMP-040 ✅ | Migrate `MyAbsencesScreen` + `MyAbsencesViewModel` (+ `AbsenceSheet` + `AbsenceSheetViewModel`) | CMP-038 |
+| CMP-041 ✅ | Migrate `OfflineIndicator` component (`OfflineQueueBadge` + `SyncingSnackbar`); NetworkMonitor N/A — no implementation exists in shared module | CMP-016 |
 | CMP-042 | Exit gate: attendance screens + offline banner verified on both platforms | CMP-039, CMP-040, CMP-041 |
 
 ## Phase 5 — Notifications
