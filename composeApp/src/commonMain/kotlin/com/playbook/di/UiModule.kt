@@ -15,6 +15,8 @@ import com.playbook.domain.RecurringScope
 import com.playbook.ui.absences.AbsenceSheetViewModel
 import com.playbook.ui.absences.MyAbsencesViewModel
 import com.playbook.ui.attendancelist.AttendanceListViewModel
+import com.playbook.ui.notifications.NotificationInboxViewModel
+import com.playbook.ui.notifications.NotificationSettingsViewModel
 import com.playbook.ui.eventcalendar.EventCalendarViewModel
 import com.playbook.ui.eventdetail.EventDetailViewModel
 import com.playbook.ui.eventform.EventFormViewModel
@@ -51,5 +53,6 @@ val uiModule = module {
     viewModel { (eventId: String) -> AttendanceListViewModel(eventId, get()) }
     viewModel { MyAbsencesViewModel(get()) }
     viewModel { AbsenceSheetViewModel(get()) }
-
+    viewModel { NotificationInboxViewModel(get()) }
+    viewModel { NotificationSettingsViewModel(get()) }
 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,7 @@ import com.playbook.ui.login.LoginScreen
 import com.playbook.ui.playerprofile.PlayerProfileScreen
 import com.playbook.ui.stats.PlayerStatsScreen
 import com.playbook.ui.stats.TeamStatsScreen
+import com.playbook.domain.DeepLinkDestination
 import com.playbook.domain.RecurringScope
 import com.playbook.ui.absences.MyAbsencesScreen
 import com.playbook.ui.attendancelist.AttendanceListScreen
@@ -39,18 +41,24 @@ import com.playbook.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.ui.teamdetail.TeamDetailScreen
 import com.playbook.ui.teamedit.TeamEditSheet
 import com.playbook.ui.teaminvite.TeamInviteSheet
+import com.playbook.ui.notifications.NotificationInboxScreen
+import com.playbook.ui.notifications.NotificationSettingsScreen
+import com.playbook.ui.notifications.PushPermissionScreen
 import com.playbook.ui.teamsetup.TeamSetupScreen
 import kotlinx.coroutines.flow.filter
 import org.koin.compose.koinInject
+import com.playbook.repository.NotificationRepository
 
 @Composable
 fun PlaybookApp(deepLinkToken: String? = null) {
     val authViewModel: AuthViewModel = koinInject()
+    val notificationRepository: NotificationRepository = koinInject()
     val backStack = remember { mutableStateListOf<Screen>(Screen.Splash) }
     val currentScreen = backStack.lastOrNull()
     var coachInviteClubId by remember { mutableStateOf<String?>(null) }
     var teamEditTeamId by remember { mutableStateOf<String?>(null) }
     var teamInviteTeamId by remember { mutableStateOf<String?>(null) }
+    val unreadCount by notificationRepository.getUnreadCount().collectAsState(initial = 0)
 
     // Auth-driven routing: initial cold start + logout
     LaunchedEffect(Unit) {
@@ -88,7 +96,7 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                     PlaybookBottomBar(
                         isHomeSelected = currentScreen is Screen.ClubDashboard,
                         isNotificationsSelected = currentScreen is Screen.NotificationInbox,
-                        unreadCount = 0,
+                        unreadCount = unreadCount,
                         onHomeClick = {
                             val idx = backStack.indexOfFirst { it is Screen.ClubDashboard }
                             if (idx >= 0) while (backStack.size > idx + 1) backStack.removeLastOrNull()
@@ -244,7 +252,32 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                 onNavigateBack = { backStack.removeLastOrNull() },
                             )
 
-                            // Phase 5+ screens — placeholder until migrated
+                            Screen.NotificationInbox -> NotificationInboxScreen(
+                                onNavigate = { destination ->
+                                    when (destination) {
+                                        is DeepLinkDestination.EventDetail ->
+                                            backStack.add(Screen.EventDetail(destination.eventId))
+                                        is DeepLinkDestination.EventAttendance ->
+                                            backStack.add(Screen.AttendanceList(destination.eventId))
+                                        is DeepLinkDestination.TeamDetail ->
+                                            backStack.add(Screen.TeamDetail(destination.teamId, ""))
+                                        is DeepLinkDestination.PlayerProfile ->
+                                            backStack.add(Screen.PlayerProfile(destination.playerId, ""))
+                                        is DeepLinkDestination.NotificationInbox -> { /* already here */ }
+                                        is DeepLinkDestination.Unknown -> { /* stay */ }
+                                    }
+                                },
+                                onNavigateToSettings = { backStack.add(Screen.NotificationSettings) },
+                            )
+
+                            Screen.NotificationSettings -> NotificationSettingsScreen(
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            Screen.PushPermission -> PushPermissionScreen(
+                                onDismiss = { backStack.removeLastOrNull() },
+                            )
+
                             else -> Box(modifier = Modifier.fillMaxSize())
                         }
                     }

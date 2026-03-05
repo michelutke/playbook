@@ -100,10 +100,10 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-043 | Migrate `NotificationInboxScreen` + `NotificationInboxViewModel` | CMP-016 |
-| CMP-044 | Migrate `NotificationSettingsScreen` + `NotificationSettingsViewModel` | CMP-016 |
-| CMP-045 | Migrate `PushPermissionScreen` | CMP-007 |
-| CMP-046 | Wire notification badge in `PlaybookBottomBar` (observe unread count from `NotificationInboxViewModel`) | CMP-016, CMP-043 |
+| CMP-043 ✅ | Migrate `NotificationInboxScreen` + `NotificationInboxViewModel` | CMP-016 |
+| CMP-044 ✅ | Migrate `NotificationSettingsScreen` + `NotificationSettingsViewModel` (PushPermissionBanner "Open Settings" dropped — no platform way to open device settings in commonMain) | CMP-016 |
+| CMP-045 ✅ | Migrate `PushPermissionScreen` (uses `PushPermissionRequester` via `koinInject`) | CMP-007 |
+| CMP-046 ✅ | Wire notification badge: `NotificationRepository.getUnreadCount()` collected in `PlaybookApp`; passed to `PlaybookBottomBar` | CMP-016, CMP-043 |
 | CMP-047 | Exit gate: notification screens + badge verified on both platforms | CMP-043, CMP-044, CMP-045, CMP-046 |
 
 ## Phase 6 — Cleanup
