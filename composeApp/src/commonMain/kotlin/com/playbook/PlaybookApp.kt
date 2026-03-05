@@ -28,6 +28,10 @@ import com.playbook.ui.login.LoginScreen
 import com.playbook.ui.playerprofile.PlayerProfileScreen
 import com.playbook.ui.stats.PlayerStatsScreen
 import com.playbook.ui.stats.TeamStatsScreen
+import com.playbook.domain.RecurringScope
+import com.playbook.ui.eventcalendar.EventCalendarScreen
+import com.playbook.ui.eventdetail.EventDetailScreen
+import com.playbook.ui.eventform.EventFormScreen
 import com.playbook.ui.eventlist.EventListScreen
 import com.playbook.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.ui.teamdetail.TeamDetailScreen
@@ -201,7 +205,35 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                 onNavigateToCalendar = { teamId -> backStack.add(Screen.EventCalendar(teamId)) },
                             )
 
-                            // Phase 3+ screens (EventDetail, EventCalendar, EventForm) — placeholder until migrated
+                            is Screen.EventCalendar -> EventCalendarScreen(
+                                teamId = screen.teamId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                                onNavigateToDetail = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                                onNavigateToList = { backStack.removeLastOrNull() },
+                            )
+
+                            is Screen.EventDetail -> EventDetailScreen(
+                                eventId = screen.eventId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                                onNavigateToEdit = { eventId, scope ->
+                                    val dash = backStack.filterIsInstance<Screen.ClubDashboard>().lastOrNull()
+                                    if (dash != null) backStack.add(Screen.EventForm(clubId = dash.clubId, eventId = eventId, editScope = scope.name))
+                                },
+                                onNavigateToDuplicate = { eventId ->
+                                    val dash = backStack.filterIsInstance<Screen.ClubDashboard>().lastOrNull()
+                                    if (dash != null) backStack.add(Screen.EventForm(clubId = dash.clubId, eventId = eventId))
+                                },
+                            )
+
+                            is Screen.EventForm -> EventFormScreen(
+                                clubId = screen.clubId,
+                                eventId = screen.eventId,
+                                preselectedTeamId = screen.preselectedTeamId,
+                                editScope = RecurringScope.valueOf(screen.editScope),
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                            )
+
+                            // Phase 4+ screens — placeholder until migrated
                             else -> Box(modifier = Modifier.fillMaxSize())
                         }
                     }
