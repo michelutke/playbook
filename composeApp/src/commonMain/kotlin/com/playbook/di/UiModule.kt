@@ -11,6 +11,7 @@ import com.playbook.ui.playerprofile.PlayerProfileViewModel
 import com.playbook.ui.stats.PlayerStatsViewModel
 import com.playbook.ui.stats.TeamStatsViewModel
 import com.playbook.ui.subgroupmgmt.SubgroupMgmtViewModel
+import com.playbook.ui.eventlist.EventListViewModel
 import com.playbook.ui.teamdetail.TeamDetailViewModel
 import com.playbook.ui.teamedit.TeamEditViewModel
 import com.playbook.ui.teaminvite.TeamInviteViewModel
@@ -34,4 +35,5 @@ val uiModule = module {
     viewModel { (userId: String, teamId: String?) -> PlayerStatsViewModel(userId, teamId, get()) }
     viewModel { (teamId: String) -> TeamStatsViewModel(teamId, get()) }
     viewModel { (teamId: String) -> SubgroupMgmtViewModel(teamId, get()) }
+    viewModel { (teamId: String?) -> EventListViewModel(teamId, get()) }
 }

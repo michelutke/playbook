@@ -78,12 +78,12 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-031 | Migrate `EventListScreen` + `EventListViewModel` | CMP-016 |
+| CMP-031 ✅ | Migrate `EventListScreen` + `EventListViewModel` | CMP-016 |
 | CMP-032 | Migrate `EventCalendarScreen` + `EventCalendarViewModel` | CMP-031 |
 | CMP-033 | Migrate `EventDetailScreen` + `EventDetailViewModel` | CMP-031 |
 | CMP-034 | Migrate `EventFormScreen` + `EventFormViewModel` | CMP-031 |
 | CMP-035 | Migrate `EventSubgroupMgmt` screen | CMP-028 |
-| CMP-036 | Migrate `EventTypeIndicator` shared component | CMP-031 |
+| CMP-036 ✅ | Migrate `EventTypeIndicator` shared component | CMP-031 |
 | CMP-037 | Exit gate: all event scheduling screens verified on both platforms | CMP-032, CMP-033, CMP-034, CMP-035, CMP-036 |
 
 ## Phase 4 — Attendance + Stats

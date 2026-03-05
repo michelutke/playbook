@@ -28,6 +28,7 @@ import com.playbook.ui.login.LoginScreen
 import com.playbook.ui.playerprofile.PlayerProfileScreen
 import com.playbook.ui.stats.PlayerStatsScreen
 import com.playbook.ui.stats.TeamStatsScreen
+import com.playbook.ui.eventlist.EventListScreen
 import com.playbook.ui.subgroupmgmt.SubgroupMgmtScreen
 import com.playbook.ui.teamdetail.TeamDetailScreen
 import com.playbook.ui.teamedit.TeamEditSheet
@@ -189,7 +190,18 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                 onNavigateBack = { backStack.removeLastOrNull() },
                             )
 
-                            // Phase 3+ screens — placeholder until migrated
+                            is Screen.EventList -> EventListScreen(
+                                teamId = screen.teamId,
+                                onNavigateBack = { backStack.removeLastOrNull() },
+                                onNavigateToDetail = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                                onNavigateToCreate = { teamId ->
+                                    val dash = backStack.filterIsInstance<Screen.ClubDashboard>().lastOrNull()
+                                    if (dash != null) backStack.add(Screen.EventForm(clubId = dash.clubId, preselectedTeamId = teamId))
+                                },
+                                onNavigateToCalendar = { teamId -> backStack.add(Screen.EventCalendar(teamId)) },
+                            )
+
+                            // Phase 3+ screens (EventDetail, EventCalendar, EventForm) — placeholder until migrated
                             else -> Box(modifier = Modifier.fillMaxSize())
                         }
                     }
