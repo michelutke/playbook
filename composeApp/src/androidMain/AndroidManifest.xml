@@ -20,5 +20,9 @@
                 <data android:scheme="playbook" android:host="join" />
             </intent-filter>
         </activity>
+        <!-- Required for Compose UI tests via createComposeRule() in Robolectric -->
+        <activity
+            android:name="androidx.activity.ComponentActivity"
+            android:exported="false" />
     </application>
 </manifest>

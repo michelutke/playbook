@@ -66,6 +66,17 @@ kotlin {
             implementation("androidx.datastore:datastore-preferences:1.1.1")
             implementation("com.onesignal:OneSignal:5.6.1")
         }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation("org.robolectric:robolectric:4.12.1")
+                implementation("androidx.compose.ui:ui-test-junit4:1.7.1")
+                implementation("androidx.compose.ui:ui-test-manifest:1.7.1")
+                implementation("androidx.test.ext:junit:1.1.5")
+                implementation("io.insert-koin:koin-test:4.1.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            }
+        }
     }
 }
 
@@ -99,5 +110,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
