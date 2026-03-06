@@ -45,6 +45,7 @@ import com.playbook.ui.notifications.NotificationInboxScreen
 import com.playbook.ui.notifications.NotificationSettingsScreen
 import com.playbook.ui.notifications.PushPermissionScreen
 import com.playbook.ui.teamsetup.TeamSetupScreen
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import org.koin.compose.koinInject
 import com.playbook.repository.NotificationRepository
@@ -58,7 +59,7 @@ fun PlaybookApp(deepLinkToken: String? = null) {
     var coachInviteClubId by remember { mutableStateOf<String?>(null) }
     var teamEditTeamId by remember { mutableStateOf<String?>(null) }
     var teamInviteTeamId by remember { mutableStateOf<String?>(null) }
-    val unreadCount by notificationRepository.getUnreadCount().collectAsState(initial = 0)
+    val unreadCount by notificationRepository.getUnreadCount().catch { emit(0) }.collectAsState(initial = 0)
 
     // Auth-driven routing: initial cold start + logout
     LaunchedEffect(Unit) {

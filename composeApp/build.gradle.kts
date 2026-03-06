@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.application)
 }
 
 kotlin {
@@ -44,7 +44,6 @@ kotlin {
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
             // ViewModel
             implementation(libs.lifecycle.viewmodel)
             // Settings
@@ -59,6 +58,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.koin.android)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.activity.compose)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.kotlinx.coroutines.android)
@@ -76,10 +77,24 @@ configurations.all {
 }
 
 android {
-    namespace = "com.playbook.composeapp"
+    namespace = "com.playbook.android"
     compileSdk = 36
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
+        applicationId = "com.playbook.android"
         minSdk = 26
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0.0"
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${project.findProperty("ONESIGNAL_APP_ID") ?: ""}\"")
+        buildConfigField("String", "BACKEND_BASE_URL", "\"${project.findProperty("BACKEND_BASE_URL") ?: "http://10.0.2.2:8080"}\"")
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

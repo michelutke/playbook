@@ -51,7 +51,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -61,7 +61,7 @@ import kotlin.time.Duration.Companion.minutes
 fun NotificationInboxScreen(
     onNavigate: (DeepLinkDestination) -> Unit,
     onNavigateToSettings: () -> Unit,
-    viewModel: NotificationInboxViewModel = koinViewModel(),
+    viewModel: NotificationInboxViewModel = kmpViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     viewModel.onNavigate = onNavigate

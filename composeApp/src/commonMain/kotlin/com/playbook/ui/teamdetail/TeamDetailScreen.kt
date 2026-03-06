@@ -50,7 +50,7 @@ import com.playbook.domain.MemberRole
 import com.playbook.domain.RosterMember
 import com.playbook.ui.components.RoleChip
 import com.playbook.ui.components.UiRole
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -64,7 +64,7 @@ fun TeamDetailScreen(
     onNavigateToInvite: () -> Unit = {},
     onNavigateToPlayerProfile: (String) -> Unit = {},
     onNavigateToTeamStats: () -> Unit = {},
-    viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId, clubId) },
+    viewModel: TeamDetailViewModel = kmpViewModel(key = teamId) { parametersOf(teamId, clubId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

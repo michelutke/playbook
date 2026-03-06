@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.playbook.domain.InviteStatus
 import com.playbook.domain.MemberRole
 import com.playbook.ui.components.InviteStatusBadge
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +43,7 @@ import org.koin.core.parameter.parametersOf
 fun TeamInviteSheet(
     teamId: String,
     onDismiss: () -> Unit,
-    viewModel: TeamInviteViewModel = koinViewModel { parametersOf(teamId) },
+    viewModel: TeamInviteViewModel = kmpViewModel(key = teamId) { parametersOf(teamId) },
 ) {
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

@@ -17,7 +17,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "playbook"
 
-include(":backend")
+include(":server")
 include(":shared")
-include(":androidApp")
 include(":composeApp")

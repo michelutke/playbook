@@ -29,7 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 
 private val SPORT_TYPES = listOf(
     "Football", "Basketball", "Volleyball", "Tennis", "Swimming",
@@ -40,7 +40,7 @@ private val SPORT_TYPES = listOf(
 @Composable
 fun ClubSetupScreen(
     onClubCreated: (clubId: String) -> Unit,
-    viewModel: ClubSetupViewModel = koinViewModel(),
+    viewModel: ClubSetupViewModel = kmpViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

@@ -51,7 +51,7 @@ import com.playbook.ui.components.icon
 import com.playbook.ui.components.label
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -61,7 +61,7 @@ fun EventListScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToCreate: (String?) -> Unit,
     onNavigateToCalendar: (String?) -> Unit,
-    viewModel: EventListViewModel = koinViewModel { parametersOf(teamId) },
+    viewModel: EventListViewModel = kmpViewModel(key = teamId ?: "all") { parametersOf(teamId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

@@ -47,14 +47,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.playbook.domain.Subgroup
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
 fun SubgroupMgmtScreen(
     teamId: String,
     onNavigateBack: () -> Unit,
-    viewModel: SubgroupMgmtViewModel = koinViewModel { parametersOf(teamId) },
+    viewModel: SubgroupMgmtViewModel = kmpViewModel(key = teamId) { parametersOf(teamId) },
 ) {
     val state by viewModel.state.collectAsState()
     SubgroupMgmtContent(state = state, onAction = viewModel::submitAction, onNavigateBack = onNavigateBack)

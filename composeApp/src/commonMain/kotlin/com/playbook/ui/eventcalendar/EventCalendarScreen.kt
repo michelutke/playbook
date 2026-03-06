@@ -53,7 +53,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 private val DAY_LABELS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -64,7 +64,7 @@ fun EventCalendarScreen(
     onNavigateBack: (() -> Unit)?,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToList: (String?) -> Unit,
-    viewModel: EventCalendarViewModel = koinViewModel { parametersOf(teamId) },
+    viewModel: EventCalendarViewModel = kmpViewModel(key = teamId ?: "all") { parametersOf(teamId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

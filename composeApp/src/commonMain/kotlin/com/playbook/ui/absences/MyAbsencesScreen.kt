@@ -43,13 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.playbook.domain.AbwesenheitRule
 import com.playbook.domain.AbwesenheitRuleType
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyAbsencesScreen(
     onNavigateBack: () -> Unit,
-    viewModel: MyAbsencesViewModel = koinViewModel(),
+    viewModel: MyAbsencesViewModel = kmpViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }

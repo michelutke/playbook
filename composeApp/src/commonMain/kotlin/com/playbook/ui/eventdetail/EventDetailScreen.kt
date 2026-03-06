@@ -55,7 +55,7 @@ import com.playbook.ui.attendance.BegrundungSheet
 import com.playbook.ui.components.EventTypeChip
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -64,7 +64,7 @@ fun EventDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String, RecurringScope) -> Unit,
     onNavigateToDuplicate: (String) -> Unit,
-    viewModel: EventDetailViewModel = koinViewModel { parametersOf(eventId) },
+    viewModel: EventDetailViewModel = kmpViewModel(key = eventId) { parametersOf(eventId) },
 ) {
     val state by viewModel.state.collectAsState()
     val attendanceState by viewModel.attendanceState.collectAsState()

@@ -42,7 +42,7 @@ import coil3.compose.AsyncImage
 import com.playbook.domain.MemberRole
 import com.playbook.ui.components.RoleChip
 import com.playbook.ui.components.UiRole
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -50,7 +50,7 @@ fun PlayerProfileScreen(
     teamId: String,
     userId: String,
     onNavigateBack: () -> Unit,
-    viewModel: PlayerProfileViewModel = koinViewModel { parametersOf(teamId, userId) },
+    viewModel: PlayerProfileViewModel = kmpViewModel(key = teamId) { parametersOf(teamId, userId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

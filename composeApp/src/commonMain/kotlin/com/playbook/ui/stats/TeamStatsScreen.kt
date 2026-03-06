@@ -34,7 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.playbook.domain.AttendanceStats
 import com.playbook.domain.EventType
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +43,7 @@ fun TeamStatsScreen(
     teamId: String,
     onNavigateBack: () -> Unit,
     onNavigateToPlayerStats: (String) -> Unit,
-    viewModel: TeamStatsViewModel = koinViewModel { parametersOf(teamId) },
+    viewModel: TeamStatsViewModel = kmpViewModel(key = teamId) { parametersOf(teamId) },
 ) {
     val state by viewModel.state.collectAsState()
 

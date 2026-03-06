@@ -17,6 +17,12 @@ targets:
       MARKETING_VERSION: 1.0
       SWIFT_VERSION: "5.9"
       ENABLE_BITCODE: NO
+    preBuildScripts:
+      - name: Build KMP Framework
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
     dependencies:
       - framework: ../composeApp/build/XCFrameworks/debug/composeApp.xcframework
         embed: true

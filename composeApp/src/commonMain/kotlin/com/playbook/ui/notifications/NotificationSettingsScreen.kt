@@ -35,13 +35,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: NotificationSettingsViewModel = koinViewModel(),
+    viewModel: NotificationSettingsViewModel = kmpViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 

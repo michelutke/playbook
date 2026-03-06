@@ -1,10 +1,9 @@
-package com.playbook.android
+package com.playbook
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.playbook.PlaybookApp
 
 class MainActivity : ComponentActivity() {
     private var deepLinkToken: String? = null

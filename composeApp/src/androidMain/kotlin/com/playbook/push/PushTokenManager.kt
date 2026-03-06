@@ -1,4 +1,4 @@
-package com.playbook.android.push
+package com.playbook.push
 
 import com.onesignal.OneSignal
 import com.onesignal.user.subscriptions.IPushSubscriptionObserver

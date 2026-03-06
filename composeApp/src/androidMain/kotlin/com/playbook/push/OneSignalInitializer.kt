@@ -1,4 +1,4 @@
-package com.playbook.android.push
+package com.playbook.push
 
 import android.content.Context
 import com.onesignal.OneSignal

@@ -6,6 +6,7 @@ import com.playbook.di.iosComposeModule
 import com.playbook.di.iosPlatformModule
 import com.playbook.di.sharedModule
 import com.playbook.di.uiModule
+import org.koin.compose.KoinContext
 import org.koin.core.context.startKoin
 import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIViewController
@@ -32,6 +33,8 @@ fun MainViewController(): UIViewController {
         koinInitialized = true
     }
     return ComposeUIViewController {
-        PlaybookApp()
+        KoinContext {
+            PlaybookApp()
+        }
     }
 }

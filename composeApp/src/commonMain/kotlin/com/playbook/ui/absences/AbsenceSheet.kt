@@ -39,7 +39,7 @@ import com.playbook.domain.AbwesenheitRuleType
 import com.playbook.domain.CreateAbwesenheitRuleRequest
 import com.playbook.domain.UpdateAbwesenheitRuleRequest
 import kotlinx.datetime.LocalDate
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 
 val AbwesenheitPresetType.icon: String
     get() = when (this) {
@@ -67,7 +67,7 @@ fun AbsenceSheet(
     existingRule: AbwesenheitRule? = null,
     onSaved: () -> Unit,
     onDismiss: () -> Unit,
-    viewModel: AbsenceSheetViewModel = koinViewModel(),
+    viewModel: AbsenceSheetViewModel = kmpViewModel(),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val saveState by viewModel.saveState.collectAsState()

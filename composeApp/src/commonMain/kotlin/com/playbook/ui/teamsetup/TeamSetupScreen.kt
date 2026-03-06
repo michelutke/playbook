@@ -24,14 +24,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
 fun TeamSetupScreen(
     clubId: String,
     onSubmitted: () -> Unit,
-    viewModel: TeamSetupViewModel = koinViewModel { parametersOf(clubId) },
+    viewModel: TeamSetupViewModel = kmpViewModel(key = clubId) { parametersOf(clubId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

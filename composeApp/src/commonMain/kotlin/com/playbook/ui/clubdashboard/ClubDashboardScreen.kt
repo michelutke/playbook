@@ -50,7 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -59,7 +59,7 @@ fun ClubDashboardScreen(
     onNavigateToTeam: (teamId: String) -> Unit,
     onNavigateToEdit: () -> Unit,
     onNavigateToInviteCoaches: () -> Unit,
-    viewModel: ClubDashboardViewModel = koinViewModel { parametersOf(clubId) },
+    viewModel: ClubDashboardViewModel = kmpViewModel(key = clubId) { parametersOf(clubId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

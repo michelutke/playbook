@@ -40,7 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 private val SPORT_TYPES = listOf(
@@ -54,7 +54,7 @@ fun ClubEditScreen(
     clubId: String,
     onSaved: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: ClubEditViewModel = koinViewModel { parametersOf(clubId) },
+    viewModel: ClubEditViewModel = kmpViewModel(key = clubId) { parametersOf(clubId) },
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

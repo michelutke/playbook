@@ -25,34 +25,33 @@ import com.playbook.ui.teamdetail.TeamDetailViewModel
 import com.playbook.ui.teamedit.TeamEditViewModel
 import com.playbook.ui.teaminvite.TeamInviteViewModel
 import com.playbook.ui.teamsetup.TeamSetupViewModel
-import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val uiModule = module {
     single { AuthViewModel(get()) }
-    viewModel { LoginViewModel(get(), get(), get()) }
-    viewModel { ClubSetupViewModel(get(), get()) }
-    viewModel { (clubId: String) -> TeamSetupViewModel(clubId, get()) }
-    viewModel { (token: String) -> InviteAcceptViewModel(token, get()) }
-    viewModel { (clubId: String) -> ClubDashboardViewModel(clubId, get(), get(), get()) }
-    viewModel { (teamId: String, clubId: String) -> TeamDetailViewModel(teamId, clubId, get(), get()) }
-    viewModel { (clubId: String) -> ClubEditViewModel(clubId, get()) }
-    viewModel { (clubId: String) -> ClubCoachInviteViewModel(clubId, get(), get(), get()) }
-    viewModel { (teamId: String) -> TeamEditViewModel(teamId, get()) }
-    viewModel { (teamId: String) -> TeamInviteViewModel(teamId, get(), get()) }
-    viewModel { (teamId: String, userId: String) -> PlayerProfileViewModel(teamId, userId, get()) }
-    viewModel { (userId: String, teamId: String?) -> PlayerStatsViewModel(userId, teamId, get()) }
-    viewModel { (teamId: String) -> TeamStatsViewModel(teamId, get()) }
-    viewModel { (teamId: String) -> SubgroupMgmtViewModel(teamId, get()) }
-    viewModel { (teamId: String?) -> EventListViewModel(teamId, get()) }
-    viewModel { (teamId: String?) -> EventCalendarViewModel(teamId, get()) }
-    viewModel { (eventId: String) -> EventDetailViewModel(eventId, get(), get()) }
-    viewModel { (clubId: String, eventId: String?, preselectedTeamId: String?, editScope: RecurringScope) ->
+    factory { LoginViewModel(get(), get(), get()) }
+    factory { ClubSetupViewModel(get(), get()) }
+    factory { (clubId: String) -> TeamSetupViewModel(clubId, get()) }
+    factory { (token: String) -> InviteAcceptViewModel(token, get()) }
+    factory { (clubId: String) -> ClubDashboardViewModel(clubId, get(), get(), get()) }
+    factory { (teamId: String, clubId: String) -> TeamDetailViewModel(teamId, clubId, get(), get()) }
+    factory { (clubId: String) -> ClubEditViewModel(clubId, get()) }
+    factory { (clubId: String) -> ClubCoachInviteViewModel(clubId, get(), get(), get()) }
+    factory { (teamId: String) -> TeamEditViewModel(teamId, get()) }
+    factory { (teamId: String) -> TeamInviteViewModel(teamId, get(), get()) }
+    factory { (teamId: String, userId: String) -> PlayerProfileViewModel(teamId, userId, get()) }
+    factory { (userId: String, teamId: String?) -> PlayerStatsViewModel(userId, teamId, get()) }
+    factory { (teamId: String) -> TeamStatsViewModel(teamId, get()) }
+    factory { (teamId: String) -> SubgroupMgmtViewModel(teamId, get()) }
+    factory { (teamId: String?) -> EventListViewModel(teamId, get()) }
+    factory { (teamId: String?) -> EventCalendarViewModel(teamId, get()) }
+    factory { (eventId: String) -> EventDetailViewModel(eventId, get(), get()) }
+    factory { (clubId: String, eventId: String?, preselectedTeamId: String?, editScope: RecurringScope) ->
         EventFormViewModel(clubId, eventId, preselectedTeamId, editScope, get(), get(), get())
     }
-    viewModel { (eventId: String) -> AttendanceListViewModel(eventId, get()) }
-    viewModel { MyAbsencesViewModel(get()) }
-    viewModel { AbsenceSheetViewModel(get()) }
-    viewModel { NotificationInboxViewModel(get()) }
-    viewModel { NotificationSettingsViewModel(get()) }
+    factory { (eventId: String) -> AttendanceListViewModel(eventId, get()) }
+    factory { MyAbsencesViewModel(get()) }
+    factory { AbsenceSheetViewModel(get()) }
+    factory { NotificationInboxViewModel(get()) }
+    factory { NotificationSettingsViewModel(get()) }
 }

@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.playbook.domain.AttendanceEntry
 import com.playbook.domain.AttendanceResponseStatus
 import com.playbook.ui.components.StatusBadge
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +44,7 @@ import org.koin.core.parameter.parametersOf
 fun AttendanceListScreen(
     eventId: String,
     onNavigateBack: () -> Unit,
-    viewModel: AttendanceListViewModel = koinViewModel { parametersOf(eventId) },
+    viewModel: AttendanceListViewModel = kmpViewModel(key = eventId) { parametersOf(eventId) },
 ) {
     val state by viewModel.state.collectAsState()
 
