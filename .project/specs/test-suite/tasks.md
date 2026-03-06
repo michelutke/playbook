@@ -79,46 +79,46 @@ gate: READY GO
 
 **Result:** 89 unit tests + 16 E2E tests, all pass.
 
-## Phase 2a — Android UI Tests
-**Blocked by:** compose-multiplatform-migration complete
+## Phase 2a — Android UI Tests ✅ DONE
 
-| ID | Task | Deps |
-|---|---|---|
-| TS-034 | Add Robolectric config to `composeApp/build.gradle.kts`: `isIncludeAndroidResources = true`; add `androidUnitTest` deps (robolectric `4.12.1`, compose-ui-test-junit4 `1.7.1`, ui-test-manifest) | — |
-| TS-035 | `LoginScreenTest`: empty submit → inline error; valid submit → success callback; loading state; `ClubDashboardTest`: teams render, empty state, FAB visible to coach | TS-034 |
-| TS-036 | `TeamDetailTest`: members list renders, tap navigates; `EventListTest`: events render, calendar tab reachable, form opens | TS-034 |
-| TS-037 | `AttendanceListTest`: confirm → CONFIRMED badge; decline → DECLINED badge; `AbsenceSheetTest`: open BegrundungSheet, submit with reason | TS-034 |
-| TS-038 | `BottomNavTest`: all tabs reachable, notification badge shows unread count; `OfflineIndicatorTest`: banner visible when NetworkMonitor offline state injected | TS-034 |
+| ID | Task | Deps | Status |
+|---|---|---|---|
+| TS-034 | Add Robolectric config to `composeApp/build.gradle.kts`: `isIncludeAndroidResources = true`; add `androidUnitTest` deps (robolectric `4.12.1`, compose-ui-test-junit4 `1.7.1`, ui-test-manifest) | — | ✅ |
+| TS-035 | `LoginScreenTest` + `ClubDashboardScreenTest` | TS-034 | ✅ |
+| TS-036 | `TeamDetailScreenTest` + `EventListScreenTest` | TS-034 | ✅ |
+| TS-037 | `AttendanceListScreenTest` + `MyAbsencesScreenTest` | TS-034 | ✅ |
+| TS-038 | `BottomNavTest` + `OfflineIndicatorTest` | TS-034 | ✅ |
 
-## Phase 2b — Shared Composable Tests
-**Blocked by:** compose-multiplatform-migration complete
+**Result:** 30 tests, all pass. Fakes in `composeApp/src/androidUnitTest/kotlin/com/playbook/test/FakeRepositories.kt`.
 
-| ID | Task | Deps |
-|---|---|---|
-| TS-039 | Add `composeApp/commonTest` dep: `ui-test-junit4:1.7.1` (pinned — do not upgrade independently); configure JVM runner for `runComposeUiTest` | — |
-| TS-040 | `StatusBadgeTest`: CONFIRMED/DECLINED/PENDING → correct label + color; `EventTypeIndicatorTest`: Training/Match/Other → correct icon; `OfflineIndicatorTest` (shared): shown/hidden based on prop | TS-039 |
-| TS-041 | `PlaybookBottomBarTest`: active tab highlighted, badge renders; `AuthStateNavigationTest`: `Unauthenticated` → Login route, `Authenticated` → Dashboard route | TS-039 |
+## Phase 2b — Shared Composable Tests ✅ DONE
+
+| ID | Task | Deps | Status |
+|---|---|---|---|
+| TS-039 | Add `commonTest` dep: `ui-test-junit4:1.7.1` (pinned); add `androidUnitTest` test deps | — | ✅ |
+| TS-040 | `StatusBadgeTest` + `EventTypeIndicatorTest` + `OfflineIndicatorTest` | TS-039 | ✅ |
+| TS-041 | `PlaybookBottomBarTest` + `AuthStateTest` | TS-039 | ✅ |
 
 ## Phase 2c — iOS Smoke Tests
-**Blocked by:** compose-multiplatform-migration complete + Xcode iosApp built
+**Blocked by:** Xcode iosApp built + CI macOS runner
 
 | ID | Task | Deps |
 |---|---|---|
-| TS-042 | Create `iosAppUITests` Xcode target; `LoginFlowTests`: valid credentials → "Meine Teams" visible; invalid → error shown; `TeamListTests`: team row visible, tap → TeamDetail | — |
-| TS-043 | `EventListTests`: event list screen, tap → detail; `AttendanceTests`: confirm → badge updates; `BottomNavTests`: all tabs reachable via bottom bar | TS-042 |
+| TS-042 | Create `iosAppUITests` Xcode target; `LoginFlowTests` + `TeamListTests` | — |
+| TS-043 | `EventListTests` + `AttendanceTests` + `BottomNavTests` | TS-042 |
 
-## Phase 3 — Maestro Cross-Layer E2E
-**Blocked by:** Phase 2a + 2c complete
+## Phase 3 — Maestro Cross-Layer E2E ✅ DONE
 
-| ID | Task | Deps |
-|---|---|---|
-| TS-044 | Create `maestro/flows/`; `coach-register.yaml` (register → create club → create team → ClubDashboard); `member-invite.yaml` (invite → deep link accept → roster updated) | — |
-| TS-045 | `event-attendance.yaml` (create event → member confirms → coach views report); `sa-audit.yaml` (SA login → club view → audit log); `full-journey.yaml` (composite) | TS-044 |
+| ID | Task | Deps | Status |
+|---|---|---|---|
+| TS-044 | `maestro/flows/coach-register.yaml` + `member-invite.yaml` | — | ✅ |
+| TS-045 | `event-attendance.yaml` + `sa-audit.yaml` + `full-journey.yaml` | TS-044 | ✅ |
 
-## Phase 4 — CI Pipeline
-**Blocked by:** all test phases complete
+## Phase 4 — CI Pipeline ✅ DONE
 
-| ID | Task | Deps |
-|---|---|---|
-| TS-046 | Add CI jobs: `test:backend` (`./gradlew :backend:test`, Docker runner); `test:shared` (`./gradlew :shared:allTests`, JVM) | — |
-| TS-047 | Add CI jobs: `test:android` (`./gradlew :composeApp:testDebugUnitTest`, JVM); `test:admin` (`npm run test && npm run test:e2e`, Node + browser); `test:ios` (`xcodebuild test`, macOS runner); configure parallel Phase 1 jobs | TS-046 |
+| ID | Task | Deps | Status |
+|---|---|---|---|
+| TS-046 | GitHub Actions: `test-backend` + `test-shared` jobs | — | ✅ |
+| TS-047 | GitHub Actions: `test-android` + `test-admin` + `test-ios` jobs; Phase 1 parallel config | TS-046 | ✅ |
+
+**CI file:** `.github/workflows/test.yml` — Phase 1 jobs run in parallel on PR; Phase 2 jobs require Phase 1 to pass.

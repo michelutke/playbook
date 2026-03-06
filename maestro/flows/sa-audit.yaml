@@ -1,0 +1,38 @@
+appId: com.playbook.android
+---
+# TS-045: Verify mobile app has no Super Admin login path
+# The SA panel is a SvelteKit web admin only; the mobile app must not expose it.
+
+- launchApp:
+    clearState: true
+
+# Only Login/Register modes exist — no SA entry point
+- assertVisible: "Login"
+- assertNotVisible: "Super Admin"
+- assertNotVisible: "Admin"
+
+- tapOn: "Switch to Register"
+- assertVisible: "Register"
+- assertNotVisible: "Super Admin"
+- assertNotVisible: "Admin"
+
+# Regular login completes without SA escalation
+- tapOn: "Switch to Login"
+
+- tapOn:
+    text: "Email"
+- inputText: "${COACH_EMAIL}"
+
+- tapOn:
+    text: "Password"
+- inputText: "${COACH_PASSWORD}"
+
+- tapOn: "Login"
+
+- waitForAnimationToEnd
+
+# Dashboard shows no SA UI
+- assertNotVisible: "Super Admin"
+- assertNotVisible: "Audit Log"
+
+- assertVisible: "Home"

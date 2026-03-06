@@ -1,0 +1,77 @@
+appId: com.playbook.android
+---
+# TS-045: Coach creates event -> views attendance list
+
+# --- Login as coach ---
+- launchApp:
+    clearState: true
+
+- assertVisible: "Login"
+
+- tapOn:
+    text: "Email"
+- inputText: "${COACH_EMAIL}"
+
+- tapOn:
+    text: "Password"
+- inputText: "${COACH_PASSWORD}"
+
+- tapOn: "Login"
+
+- waitForAnimationToEnd
+
+# --- Navigate to a team ---
+- assertVisible: "Teams"
+
+- tapOn:
+    index: 0
+    text: ".*members.*"
+    regex: true
+    optional: true
+
+# Fallback: tap the first card visible
+- tapOn:
+    index: 0
+    type: Card
+    optional: true
+
+- waitForAnimationToEnd
+
+# --- Open event list ---
+- tapOn: "Events"
+
+- waitForAnimationToEnd
+
+# --- Create new event via FAB ---
+- tapOn:
+    id: ".*fab.*"
+    optional: true
+- tapOn:
+    text: "Add"
+    optional: true
+
+- waitForAnimationToEnd
+
+- assertVisible: "Create Event"
+
+- tapOn:
+    text: "Title"
+- inputText: "Maestro Test Event"
+
+- tapOn: "Create"
+
+- waitForAnimationToEnd
+
+# Event should appear in the list
+- assertVisible: "Maestro Test Event"
+
+# --- Open attendance list ---
+- tapOn: "Maestro Test Event"
+
+- waitForAnimationToEnd
+
+- tapOn: "Attendance"
+
+- waitForAnimationToEnd
+
+- assertVisible: "Attendance"

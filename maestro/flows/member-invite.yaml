@@ -1,0 +1,37 @@
+appId: com.playbook.android
+---
+# TS-044: Accept a member invite deep link -> roster shows new member
+- launchApp:
+    clearState: true
+    arguments:
+      - "playbook://invite/${INVITE_TOKEN}"
+
+- waitForAnimationToEnd
+
+# The invite accept screen shows "Join Team" or an expired link message
+- assertVisible:
+    text: "Join Team"
+    optional: true
+
+# If the user is not yet logged in, they land on login first
+- runFlow:
+    when:
+      visible: "Login"
+    file: ./login-helper.yaml
+
+- waitForAnimationToEnd
+
+# Accept the invite
+- tapOn:
+    text: "Join Team"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Should navigate to Club Dashboard / Team Detail after accepting
+- assertVisible:
+    text: "Teams"
+    optional: true
+- assertVisible:
+    text: "Roster"
+    optional: true

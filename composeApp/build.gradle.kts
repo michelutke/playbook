@@ -77,6 +77,13 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            // CMP experimental UI test — PINNED, do not upgrade independently
+            implementation("androidx.compose.ui:ui-test-junit4:1.7.1")
+        }
     }
 }
 
