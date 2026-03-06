@@ -20,12 +20,12 @@ import java.util.UUID
  * Detects impersonation JWT claims and records impersonated_as.
  */
 val AuditPlugin = createRouteScopedPlugin("AuditPlugin") {
-    onCallRespond { call, _ ->
+    onCallRespond { call, body ->
         val method = call.request.httpMethod.value
-        if (method == "GET" || method == "OPTIONS") return@onCallRespond
+        if (method == "GET" || method == "OPTIONS") return@onCallRespond transformBody { body }
 
-        val principal = call.principal<JWTPrincipal>() ?: return@onCallRespond
-        val actorId = principal.payload.getClaim("sub").asString() ?: return@onCallRespond
+        val principal = call.principal<JWTPrincipal>() ?: return@onCallRespond transformBody { body }
+        val actorId = principal.payload.getClaim("sub").asString() ?: return@onCallRespond transformBody { body }
 
         // SA-011: detect impersonation claims
         val impersonatedBy = principal.payload.getClaim("impersonated_by")?.asString()
@@ -67,6 +67,8 @@ val AuditPlugin = createRouteScopedPlugin("AuditPlugin") {
         } catch (_: Exception) {
             // Audit failure must not break the request
         }
+
+        transformBody { body }
     }
 }
 

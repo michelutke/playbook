@@ -46,8 +46,26 @@ kotlin {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native.driver)
         }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            implementation("io.kotest:kotest-framework-engine:5.9.1")
+            implementation("io.kotest:kotest-assertions-core:5.9.1")
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
+                implementation("org.junit.jupiter:junit-jupiter:5.10.3")
+                implementation("io.kotest:kotest-runner-junit5:5.9.1")
+            }
+        }
     }
 }
+
+
+tasks.withType<Test> { useJUnitPlatform() }
 
 android {
     namespace = "com.playbook.shared"

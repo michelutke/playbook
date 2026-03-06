@@ -8,6 +8,7 @@ import com.playbook.db.tables.TeamsTable
 import io.ktor.server.application.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit
  */
 fun Application.startAutoPresentJob() {
     val scope = CoroutineScope(Dispatchers.IO)
+    monitor.subscribe(ApplicationStopping) { scope.cancel() }
     scope.launch {
         while (isActive) {
             runCatching { processAutoPresent() }

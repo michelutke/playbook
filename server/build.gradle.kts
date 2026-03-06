@@ -54,4 +54,19 @@ dependencies {
 
     // Shared module
     implementation(project(":shared"))
+
+    // Test
+    testImplementation("io.ktor:ktor-server-test-host:3.1.0")
+    testImplementation("io.ktor:ktor-client-content-negotiation:3.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testImplementation("org.testcontainers:testcontainers:1.20.2")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.2")
+    testImplementation("org.testcontainers:postgresql:1.20.2")
+    testImplementation("io.insert-koin:koin-test:4.1.0")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

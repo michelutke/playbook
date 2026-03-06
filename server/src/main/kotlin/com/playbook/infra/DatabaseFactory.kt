@@ -19,6 +19,7 @@ object DatabaseFactory {
             username = config.property("database.user").getString()
             password = config.property("database.password").getString()
             maximumPoolSize = config.propertyOrNull("database.maxPoolSize")?.getString()?.toInt() ?: 10
+            minimumIdle = 1
             driverClassName = "org.postgresql.Driver"
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"

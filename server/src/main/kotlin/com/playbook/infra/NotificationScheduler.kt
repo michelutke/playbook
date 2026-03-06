@@ -9,6 +9,7 @@ import com.playbook.push.NotificationService
 import io.ktor.server.application.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ private val log = LoggerFactory.getLogger("NotificationScheduler")
  */
 fun Application.startNotificationScheduler(notificationService: NotificationService) {
     val scope = CoroutineScope(Dispatchers.IO)
+    monitor.subscribe(ApplicationStopping) { scope.cancel() }
     scope.launch {
         while (isActive) {
             runCatching { processReminders(notificationService) }

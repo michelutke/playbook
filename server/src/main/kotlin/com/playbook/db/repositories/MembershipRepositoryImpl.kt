@@ -22,7 +22,7 @@ class MembershipRepositoryImpl : MembershipRepository {
     override suspend fun getRoster(teamId: String): List<RosterMember> =
         newSuspendedTransaction {
             val tid = UUID.fromString(teamId)
-            (TeamMembershipsTable innerJoin UsersTable)
+            TeamMembershipsTable.join(UsersTable, JoinType.INNER, TeamMembershipsTable.userId, UsersTable.id)
                 .selectAll().where { TeamMembershipsTable.teamId eq tid }
                 .groupBy { it[TeamMembershipsTable.userId] }
                 .map { (userId, rows) ->
