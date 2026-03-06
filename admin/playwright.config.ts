@@ -20,7 +20,7 @@ export default defineConfig({
         'SMTP_HOST=localhost',
         'SMTP_PORT=1025',
         'CORS_ALLOWED_HOST=localhost:5173',
-        '../gradlew :server:run',
+        './gradlew :server:run',
       ].join(' '),
       url: 'http://localhost:8080/health',
       timeout: 120_000,

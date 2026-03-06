@@ -55,6 +55,8 @@ fun Application.configureRouting() {
     }
 
     routing {
+        get("/health") { call.respond(HttpStatusCode.OK, mapOf("status" to "ok")) }
+
         // Public routes (no auth)
         registerAuthRoutes()
         registerInviteRoutes(authenticated = false)
