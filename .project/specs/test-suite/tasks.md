@@ -99,13 +99,18 @@ gate: READY GO
 | TS-040 | `StatusBadgeTest` + `EventTypeIndicatorTest` + `OfflineIndicatorTest` | TS-039 | ✅ |
 | TS-041 | `PlaybookBottomBarTest` + `AuthStateTest` | TS-039 | ✅ |
 
-## Phase 2c — iOS Smoke Tests
-**Blocked by:** Xcode iosApp built + CI macOS runner
+## Phase 2c — iOS Smoke Tests ✅ DONE
 
-| ID | Task | Deps |
-|---|---|---|
-| TS-042 | Create `iosAppUITests` Xcode target; `LoginFlowTests` + `TeamListTests` | — |
-| TS-043 | `EventListTests` + `AttendanceTests` + `BottomNavTests` | TS-042 |
+| ID | Task | Deps | Status |
+|---|---|---|---|
+| TS-042 | Create `iosAppUITests` Xcode target; `LoginFlowTests` + `TeamListTests` | — | ✅ |
+| TS-043 | `EventListTests` + `AttendanceTests` + `BottomNavTests` | TS-042 | ✅ |
+
+**Implementation notes:**
+- `iosApp/project.yml`: added `iosAppUITests` ui-testing target; run `xcodegen generate` to apply
+- `.testTag()` accessibilityIdentifiers added to: `LoginScreen`, `ClubDashboardScreen`, `TeamDetailScreen`, `EventListScreen`, `AttendanceListScreen`, `PlaybookBottomBar`
+- `PlaybookUITestCase` base class: shared `login()` helper + `XCTSkip` guard when backend unavailable
+- All post-login tests skip gracefully when backend is not running (CI without server)
 
 ## Phase 3 — Maestro Cross-Layer E2E ✅ DONE
 

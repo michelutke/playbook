@@ -44,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.playbook.domain.MemberRole
@@ -119,6 +121,13 @@ private fun TeamDetailContent(
                     Tab(
                         selected = state.selectedTab == tab,
                         onClick = { onAction(TeamDetailAction.TabSelected(tab)) },
+                        modifier = Modifier.semantics {
+                            testTag = when (tab) {
+                                TeamDetailTab.ROSTER -> "roster_tab"
+                                TeamDetailTab.SUB_GROUPS -> "sub_groups_tab"
+                                TeamDetailTab.SETTINGS -> "settings_tab"
+                            }
+                        },
                         text = {
                             Text(
                                 when (tab) {
@@ -168,7 +177,7 @@ private fun RosterTab(
                 value = state.searchQuery,
                 onValueChange = { onAction(TeamDetailAction.SearchQueryChanged(it)) },
                 label = { Text("Search members") },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).semantics { testTag = "search_field" },
                 singleLine = true,
             )
         }
@@ -233,7 +242,7 @@ private fun SwipeToDismissRosterItem(member: RosterMember, onDismiss: () -> Unit
         },
     ) {
         ListItem(
-            modifier = Modifier.clickable(onClick = onClick),
+            modifier = Modifier.clickable(onClick = onClick).semantics { testTag = "member_item" },
             headlineContent = { Text(member.displayName ?: member.userId) },
             supportingContent = {
                 Row {

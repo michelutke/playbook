@@ -19,6 +19,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.playbook.di.kmpViewModel
@@ -50,7 +52,7 @@ fun LoginScreen(
                     value = state.email,
                     onValueChange = viewModel::onEmailChange,
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().semantics { testTag = "email_field" },
                     singleLine = true,
                 )
 
@@ -58,7 +60,7 @@ fun LoginScreen(
                     value = state.password,
                     onValueChange = viewModel::onPasswordChange,
                     label = { Text("Password") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().semantics { testTag = "password_field" },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                 )
@@ -83,12 +85,15 @@ fun LoginScreen(
 
                 Button(
                     onClick = viewModel::submit,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().semantics { testTag = "login_button" },
                 ) {
                     Text(if (state.isRegisterMode) "Register" else "Login")
                 }
 
-                TextButton(onClick = viewModel::toggleMode) {
+                TextButton(
+                    onClick = viewModel::toggleMode,
+                    modifier = Modifier.semantics { testTag = "toggle_mode_button" },
+                ) {
                     Text(if (state.isRegisterMode) "Switch to Login" else "Switch to Register")
                 }
             }

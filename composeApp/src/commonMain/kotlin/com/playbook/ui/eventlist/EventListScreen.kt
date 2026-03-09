@@ -40,6 +40,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -102,7 +104,10 @@ private fun EventListContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAction(EventListAction.CreateEvent) }) {
+            FloatingActionButton(
+                onClick = { onAction(EventListAction.CreateEvent) },
+                modifier = Modifier.semantics { testTag = "create_event_fab" },
+            ) {
                 Icon(Icons.Outlined.Add, contentDescription = "Create event")
             }
         },
@@ -175,6 +180,7 @@ private fun EventListItem(event: Event, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier
             .clickable(onClick = onClick)
+            .semantics { testTag = "event_item" }
             .then(
                 if (cancelled) Modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                 else Modifier

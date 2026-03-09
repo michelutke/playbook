@@ -48,6 +48,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.playbook.di.kmpViewModel
@@ -108,7 +110,10 @@ private fun ClubDashboardContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAction(ClubDashboardAction.ShowCreateTeamSheet) }) {
+            FloatingActionButton(
+                onClick = { onAction(ClubDashboardAction.ShowCreateTeamSheet) },
+                modifier = Modifier.semantics { testTag = "create_team_fab" },
+            ) {
                 Icon(Icons.Outlined.Add, contentDescription = "Create team")
             }
         },
@@ -288,7 +293,7 @@ private fun PendingTeamCard(summary: TeamSummary, onAction: (ClubDashboardAction
 @Composable
 private fun ActiveTeamCard(summary: TeamSummary, onAction: (ClubDashboardAction) -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().semantics { testTag = "active_team_item" },
         onClick = { onAction(ClubDashboardAction.NavigateToTeam(summary.team.id)) },
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
