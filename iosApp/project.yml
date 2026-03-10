@@ -30,14 +30,25 @@ targets:
       - sdk: libsqlite3.tbd
 
   iosAppUITests:
-    type: ui-testing
+    type: com.apple.product-type.bundle.ui-testing
     platform: iOS
     deploymentTarget: "16.0"
     sources:
       - path: iosAppUITests
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.playbook.iosAppUITests
+      GENERATE_INFOPLIST_FILE: YES
       SWIFT_VERSION: "5.9"
       TEST_TARGET_NAME: iosApp
     dependencies:
       - target: iosApp
+
+schemes:
+  iosApp:
+    build:
+      targets:
+        iosApp: all
+        iosAppUITests: [test]
+    test:
+      targets:
+        - iosAppUITests
