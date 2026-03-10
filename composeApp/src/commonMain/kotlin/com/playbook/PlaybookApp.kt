@@ -234,6 +234,7 @@ fun PlaybookApp(deepLinkToken: String? = null) {
                                     val dash = backStack.filterIsInstance<Screen.ClubDashboard>().lastOrNull()
                                     if (dash != null) backStack.add(Screen.EventForm(clubId = dash.clubId, eventId = eventId))
                                 },
+                                onNavigateToAttendanceList = { backStack.add(Screen.AttendanceList(screen.eventId)) },
                             )
 
                             is Screen.EventForm -> EventFormScreen(

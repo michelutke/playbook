@@ -15,15 +15,15 @@ final class TeamListTests: PlaybookUITestCase {
 
     func testActiveTeamItemVisible() throws {
         // Dashboard may show 0 teams for a fresh account — FAB presence is sufficient smoke signal.
-        // If a team card exists, verify it is hittable.
-        let teamItem = app.otherElements["active_team_item"].firstMatch
+        // CMP Card(onClick=...) maps to a button on iOS.
+        let teamItem = app.buttons["active_team_item"].firstMatch
         if teamItem.exists {
             XCTAssertTrue(teamItem.isHittable, "Team item should be tappable")
         }
     }
 
     func testTapTeamNavigatesToDetail() throws {
-        let teamItem = app.otherElements["active_team_item"].firstMatch
+        let teamItem = app.buttons["active_team_item"].firstMatch
         guard teamItem.waitForExistence(timeout: 5) else {
             throw XCTSkip("No teams available — skipping team detail navigation test")
         }

@@ -7,8 +7,8 @@ final class EventListTests: PlaybookUITestCase {
         guard login() else {
             throw XCTSkip("Backend not available — skipping event list tests")
         }
-        // Navigate into a team to reach events
-        let teamItem = app.otherElements["active_team_item"].firstMatch
+        // Navigate into a team to reach events — CMP Card(onClick=...) maps to a button on iOS
+        let teamItem = app.buttons["active_team_item"].firstMatch
         guard teamItem.waitForExistence(timeout: 5) else {
             throw XCTSkip("No teams available — skipping event list tests")
         }
@@ -26,7 +26,8 @@ final class EventListTests: PlaybookUITestCase {
     }
 
     func testEventItemsVisibleWhenPresent() throws {
-        let eventItem = app.otherElements["event_item"].firstMatch
+        // CMP ListItem(.clickable) maps to a button on iOS
+        let eventItem = app.descendants(matching: .any)["event_item"].firstMatch
         if eventItem.waitForExistence(timeout: 3) {
             XCTAssertTrue(eventItem.isHittable, "Event item should be tappable")
         } else {

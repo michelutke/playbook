@@ -90,7 +90,7 @@ jobs:
         working-directory: admin
         run: npx playwright install chromium --with-deps
       - name: Build server for E2E
-        run: ./gradlew :server:shadowJar
+        run: ./gradlew :server:installDist
       - name: Run Playwright E2E tests
         working-directory: admin
         run: npm run test:e2e
@@ -131,8 +131,61 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+
+      - name: Start PostgreSQL
+        run: |
+          PG=$(brew list --formula | grep "^postgresql@" | tail -1)
+          brew services start "$PG"
+          sleep 4
+          createdb playbook_ios_test
+          psql playbook_ios_test -c "CREATE ROLE ios_test LOGIN PASSWORD 'ios_test';"
+          psql playbook_ios_test -c "GRANT ALL PRIVILEGES ON DATABASE playbook_ios_test TO ios_test;"
+          psql playbook_ios_test -c "ALTER DATABASE playbook_ios_test OWNER TO ios_test;"
+
+      - name: Build and start Ktor backend
+        run: |
+          ./gradlew :server:installDist
+          server/build/install/server/bin/server &
+          echo $! > ktor.pid
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/playbook_ios_test
+          DATABASE_USER: ios_test
+          DATABASE_PASSWORD: ios_test
+          JWT_SECRET: ios-ci-test-secret
+          PORT: 8080
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/health && echo "Backend ready" && break
+            echo "Waiting... ($i/30)"; sleep 3
+          done
+
+      - name: Seed test data
+        run: |
+          # Register test user — response: {"token":"...","userId":"..."}
+          RESPONSE=$(curl -sf -X POST http://localhost:8080/auth/register \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"test@playbook.test","password":"testpassword","displayName":"Test Coach"}')
+          USER_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['userId'])")
+
+          # Generate UUIDs for seeded entities
+          CLUB_ID=$(python3 -c "import uuid; print(uuid.uuid4())")
+          TEAM_ID=$(python3 -c "import uuid; print(uuid.uuid4())")
+          EVENT_ID=$(python3 -c "import uuid; print(uuid.uuid4())")
+
+          # Seed club, manager, team, coach membership, and event directly via SQL
+          PG="psql -U ios_test -h localhost -d playbook_ios_test"
+          $PG -c "INSERT INTO clubs (id, name, sport_type, status, created_at, updated_at) VALUES ('$CLUB_ID', 'Test Club', 'Football', 'active', now(), now());"
+          $PG -c "INSERT INTO club_managers (id, club_id, user_id, invited_email, status, added_by, added_at) VALUES (gen_random_uuid(), '$CLUB_ID', '$USER_ID', 'test@playbook.test', 'active', '$USER_ID', now());"
+          $PG -c "INSERT INTO teams (id, club_id, name, status, created_at, updated_at) VALUES ('$TEAM_ID', '$CLUB_ID', 'Test Team', 'active', now(), now());"
+          $PG -c "INSERT INTO team_memberships (id, team_id, user_id, role, added_by, joined_at) VALUES (gen_random_uuid(), '$TEAM_ID', '$USER_ID', 'coach', '$USER_ID', now());"
+          $PG -c "INSERT INTO events (id, title, type, start_at, end_at, created_by, status, created_at, updated_at) VALUES ('$EVENT_ID', 'Test Training', 'training', now() + interval '1 day', now() + interval '1 day' + interval '2 hours', '$USER_ID', 'active', now(), now());"
+          $PG -c "INSERT INTO event_teams (event_id, team_id) VALUES ('$EVENT_ID', '$TEAM_ID');"
+
       - name: Build KMP framework for iOS
         run: ./gradlew :composeApp:assembleXCFramework
+
       - name: Run iOS XCTest smoke tests
         run: |
           xcodebuild test \
@@ -142,3 +195,7 @@ jobs:
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty
+
+      - name: Stop backend
+        if: always()
+        run: kill $(cat ktor.pid) 2>/dev/null || true

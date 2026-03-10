@@ -17,8 +17,12 @@ class PlaybookUITestCase: XCTestCase {
 
     /// Attempts to log in with the given credentials.
     /// - Returns: `true` if the club dashboard was reached, `false` otherwise.
+    /// If the simulator already has a retained session, returns `true` immediately.
     @discardableResult
     func login(email: String = "test@playbook.test", password: String = "testpassword") -> Bool {
+        // Simulator may retain auth state from a previous run — detect and accept it.
+        if app.buttons["create_team_fab"].waitForExistence(timeout: 4) { return true }
+
         // CMP OutlinedTextField → custom UIView, NOT UITextField.
         // Find fields by label text; fallback to coordinates.
         guard app.buttons["login_button"].waitForExistence(timeout: 10) else { return false }

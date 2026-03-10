@@ -64,6 +64,7 @@ fun EventDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String, RecurringScope) -> Unit,
     onNavigateToDuplicate: (String) -> Unit,
+    onNavigateToAttendanceList: (() -> Unit)? = null,
     viewModel: EventDetailViewModel = kmpViewModel(key = eventId) { parametersOf(eventId) },
 ) {
     val state by viewModel.state.collectAsState()
@@ -82,6 +83,7 @@ fun EventDetailScreen(
         attendanceState = attendanceState,
         onAction = viewModel::submitAction,
         onNavigateBack = onNavigateBack,
+        onNavigateToAttendanceList = onNavigateToAttendanceList,
     )
 }
 
@@ -92,6 +94,7 @@ private fun EventDetailContent(
     attendanceState: AttendanceCardState,
     onAction: (EventDetailAction) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToAttendanceList: (() -> Unit)? = null,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -141,6 +144,7 @@ private fun EventDetailContent(
                 event = state.event,
                 attendanceState = attendanceState,
                 onAction = onAction,
+                onNavigateToAttendanceList = onNavigateToAttendanceList,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -189,6 +193,7 @@ private fun EventDetailBody(
     event: Event,
     attendanceState: AttendanceCardState,
     onAction: (EventDetailAction) -> Unit,
+    onNavigateToAttendanceList: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val tz = TimeZone.currentSystemDefault()
@@ -313,6 +318,15 @@ private fun EventDetailBody(
 
             Spacer(Modifier.height(16.dp))
             MyAttendanceCard(attendanceState = attendanceState, onAction = onAction)
+            if (onNavigateToAttendanceList != null) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onNavigateToAttendanceList,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Manage Attendance")
+                }
+            }
             Spacer(Modifier.height(16.dp))
         }
     }
