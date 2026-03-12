@@ -1,221 +1,189 @@
 # Playbook Design System — Pencil Reference
 
 ## File
-`pencil-new.pen` — active design file used for all work below.
+`playbook.pen` — active design file.
 
 ---
 
-## Source Documents
+## Design Tokens
 
-All design decisions were informed by the following project files:
-
-### Product
-| File | What it provided |
-|---|---|
-| `.project/product/overview.md` | App purpose, feature set, role hierarchy (ClubManager > Coach > Player), overall scope |
-| `.project/product/ux-patterns.md` | Global interaction patterns: Snackbar system (top-anchored, severity levels), Toast (bottom, info only), Persistent Banners |
-
-### Feature Specs (all from `.project/specs/_archive/`)
-| File | What it provided |
-|---|---|
-| `team-management/ux.md` | All user flows F1–F13; screens S1–S8 (Club Dashboard, Team Detail, Invite Sheet, etc.); role chip colors (Manager=Gold, Coach=Blue, Player=Grey); invite states (Pending/Accepted/Expired/Revoked) |
-| `team-management/req.md` | Role capabilities: ClubManager manages structure/approvals, Coach manages day-to-day, Player is a team member |
-| `event-scheduling/ux.md` | Event types (Training=blue, Match=green, Other=purple); Coach create/edit/cancel flows; Player list + calendar views; recurring events; cancelled state patterns |
-| `attendance-tracking/ux.md` | RSVP states (Confirmed/Declined/Unsure/No reply); post-event check-in flow; Abwesenheit (pre-declared absences); status badge colors |
-| `notifications/ux.md` | Notification inbox structure (grouped Today/Yesterday/Earlier); type icons per notification kind; unread dot; badge count; deep-link fallback pattern |
-
----
-
-## Canvas Layout
-
-| Layer | y offset | Description |
-|---|---|---|
-| Component Library | y=−1500 | Node `fJJQz` — 30 reusable components |
-| Reference Screens | y=0 | 8 mixed-role screens, x=0 to x=3150 |
-| ClubManager Flows | y=1100 | 4 screens, x=0 to x=1350 |
-| Coach Flows | y=2150 | 4 screens, x=0 to x=1350 |
-| Player Flows | y=3200 | 4 screens, x=0 to x=1350 |
-
-Row labels sit 60px above each role row (nodes `4WugO`, `c3IjT`, `BBR7Q`).
-
-Screen spacing: 450px between screens horizontally (390px frame + 60px gap).
-
----
-
-## Design Tokens (Variables)
-
-Set via `set_variables`. Key colors:
-
+### Dark Mode (default — defined in file variables)
 | Token | Value | Usage |
 |---|---|---|
-| `--primary` | `#3B82F6` | Primary blue — buttons, active nav, accents |
-| `--bg` | `#0A0A0F` | Screen background |
-| `--surface` | `#1C1C2E` | Cards, nav bar, inputs |
-| `--surface-alt` | `#141418` | Subtle card variant |
-| `--text` | `#F8FAFC` | Primary text |
-| `--text-muted` | `#9CA3AF` | Secondary text |
-| `--text-dim` | `#6B7280` | Tertiary / labels |
-| `--border` | `#374151` | Dividers, ghost borders |
-| `--success` | `#22C55E` | Confirmed / present |
-| `--warning` | `#F59E0B` | Unsure / pending / amber health |
-| `--error` | `#EF4444` | Declined / absent / destructive |
-| `--gold` | `#FCD34D` | ClubManager role chip text |
+| `--background` | `#090912` | Screen background |
+| `--surface` | `#13131F` | Slightly lighter surface (headers, tabs) |
+| `--card` | `#1C1C2E` | Cards, list rows |
+| `--foreground` | `#F0F0FF` | Primary text |
+| `--muted-foreground` | `#9090B0` | Secondary / label text |
+| `--border` | `#2A2A40` | Dividers, ghost borders, strokes |
+| `--primary` | `#4F8EF7` | Electric blue — buttons, active nav, links |
+| `--primary-foreground` | `#FFFFFF` | Text on primary |
+| `--accent` | `#F97316` | Orange accent |
+| `--destructive` | `#EF4444` | Destructive actions |
+| `--color-success` | `#22C55E` | Confirmed / present |
+| `--color-warning` | `#FACC15` | Unsure / pending |
+| `--color-error` | `#EF4444` | Declined / absent |
+| `--color-purple` | `#A855F7` | Other event type |
+| `--color-gold` | `#FACC15` | ClubManager chip |
+| `--color-grey` | `#6B7280` | Inactive icons / muted |
+
+### Light Mode (derived — applied via property overrides)
+| Dark token | Light value |
+|---|---|
+| `--background` `#090912` | `#FFFFFF` |
+| `--surface` `#13131F` | `#F4F4F9` |
+| `--card` `#1C1C2E` | `#FFFFFF` |
+| `--foreground` `#F0F0FF` | `#0A0A1A` |
+| `--muted-foreground` `#9090B0` | `#6B7280` |
+| `--border` `#2A2A40` | `#E2E2F0` |
+| Primary / accent / status colors | unchanged |
 
 ---
 
 ## Mobile Frame
-
 - Size: **390 × 844** (iPhone 15)
-- Status bar: 62px fixed height at top
-- Bottom nav: 62px pill, `cornerRadius: 36`, `fill: #1C1C2E`
+- Status bar: 62px
+- Bottom nav: 62px pill, `cornerRadius: 36`
 
 ---
 
-## Component Library (node `fJJQz`)
+## Component Library
 
-### Buttons
-| ID | Name |
-|---|---|
-| `QB89y` | Button/Primary |
-| `lNVAJ` | Button/Ghost |
-| `ORRL8` | Button/Destructive |
-| `t2TjJ` | FAB |
+### Dark — node `fJJQz` (🧩 Component Library)
 
-### Chips
-| ID | Name |
-|---|---|
-| `ZFhaz` | Chip/ClubManager (gold) |
-| `0tF7Z` | Chip/Coach (blue) |
-| `dmNwJ` | Chip/Player (grey) |
-| `yzjqZ` | Chip/Training (blue) |
-| `0XrEE` | Chip/Match (green) |
-| `Dizpn` | Chip/Other (purple) |
-| `HDc0Q` | Chip/Cancelled |
-
-### Avatars
-| ID | Name |
-|---|---|
-| `3Viyw` | Avatar/48 |
-| `e8oeo` | Avatar/40 |
-| `4Yd1W` | Avatar/32 |
-
-### Status Badges
-| ID | Name |
-|---|---|
-| `BLXtP` | Badge/Confirmed |
-| `edKuA` | Badge/Declined |
-| `V5O8v` | Badge/Unsure |
-| `BEYAy` | Badge/NoResponse |
-
-### Other Components
-| ID | Name |
-|---|---|
-| `ZaeKz` | EventCard |
-| `3bDrU` | MemberRow |
-| `h74Ra` | Input/Text |
-| `3g7Dw` | Toggle/Row |
-| `HuzeF` | SegmentedControl |
-| `NnOHj` | Snackbar/Success |
-| `lg5Be` | Snackbar/Error |
-| `DMLmP` | OfflineBanner |
-| `sVemC` | BottomSheet/Header |
-| `nhuyT` | SectionHeader |
-| `FTbAZ` | BottomNav |
-| `CR0YP` | StatsBar |
-
----
-
-## Reference Screens (y=0)
-
-| x | Node | Screen |
+| Category | ID | Name |
 |---|---|---|
-| 0 | `Ob8Dt` | S1 — Club Dashboard |
-| 450 | `lGivb` | S2 — Team Detail (Roster) |
-| 900 | `JGj64` | S3 — Invite Sheet (overlay) |
-| 1350 | `fqlxQ` | S4 — Event List |
-| 1800 | `2VTps` | S5 — Event Detail |
-| 2250 | `RUeXD` | S6 — Attendance List |
-| 2700 | `xgo5W` | S7 — Notification Inbox |
-| 3150 | `oiPvL` | S8 — My Absences |
+| Buttons | `QB89y` | Button/Primary |
+| | `lNVAJ` | Button/Ghost |
+| | `ORRL8` | Button/Destructive |
+| | `t2TjJ` | FAB |
+| Chips | `ZFhaz` | Chip/ClubManager |
+| | `0tF7Z` | Chip/Coach |
+| | `dmNwJ` | Chip/Player |
+| | `yzjqZ` | Chip/Training |
+| | `0XrEE` | Chip/Match |
+| | `Dizpn` | Chip/Other |
+| | `HDc0Q` | Chip/Cancelled |
+| Avatars | `3Viyw` | Avatar/48 |
+| | `e8oeo` | Avatar/40 |
+| | `4Yd1W` | Avatar/32 |
+| Badges | `BLXtP` | Badge/Confirmed |
+| | `edKuA` | Badge/Declined |
+| | `V5O8v` | Badge/Unsure |
+| | `BEYAy` | Badge/NoResponse |
+| Forms | `h74Ra` | Input/Text |
+| | `3g7Dw` | Toggle/Row |
+| | `HuzeF` | SegmentedControl |
+| | `QyMne` | AttendanceButtons/Small |
+| Misc | `NnOHj` | Snackbar/Success |
+| | `lg5Be` | Snackbar/Error |
+| | `DMLmP` | OfflineBanner |
+| | `sVemC` | BottomSheet/Header |
+| | `nhuyT` | SectionHeader |
+| | `FTbAZ` | BottomNav |
+| | `CR0YP` | StatsBar |
+
+### Light — node `yAPEw` (Component Library — Light)
+Same 29 components with light mode color overrides applied at instance level.
 
 ---
 
-## Role-Based Flows
+## V1 Screens
 
-### ClubManager (y=1100) — Bottom nav: Overview / Teams / Members / Settings
+All screens: **390 × 844**, dark mode originals + light mode duplicates.
 
-| x | Node | Screen | Key patterns |
-|---|---|---|---|
-| 0 | `qCp71` | CM-1 Command Center | Stats strip (4 KPIs), gold action banner, 2-col team health grid (green/amber/red dots), quick action buttons, pill nav |
-| 450 | `nj7W1` | CM-2 Pending Queue | Full-card per pending team with Approve (green) / Reject (red) buttons, collapsed "Recently Approved" |
-| 900 | `Kw5L6` | CM-3 Club Roster | Filter chips (All/Coaches/Players), member list with role chips + team color dots, FAB invite |
-| 1350 | `VH2ue` | CM-4 Team Detail | Coach avatar row + Add Coach ghost, attendance bar chart (last 5 events), 3 quick stat cards, danger zone (Archive/Delete) |
+### Dark Mode
 
-### Coach (y=2150) — Bottom nav: Today / Roster / Schedule / Stats
+| Node | Screen |
+|---|---|
+| `S5I1w` | V1-C — Event List |
+| `Lrlit` | V1-P — Event List |
+| `vyGwO` | V1-C — Event Calendar |
+| `tON9m` | V1-P — Event Calendar |
+| `1PUbR` | V1-C — Teams |
+| `LAA1H` | V1-P — Teams |
+| `uUJMZ` | V1-P — Teams (single) |
+| `CSLp4` | V1 — Inbox |
+| `5pAXJ` | V1 — Profile |
+| `gaD2C` | V1 - New Event |
+| `2uF5C` | V1 - Event Detail |
+| `21Qtq` | V1 - Event Edit |
+| `mNOVF` | V1 - NE-Date Picker |
+| `EBbYR` | V1 - NE-Time Picker |
+| `2Ub2q` | V1 - NE-Recurring Config |
+| `g2gXC` | V1 - NE-Sub-groups |
+| `raffO` | V1 - EE-Modal for recurring events |
+| `nGmTp` | V1-C — Invite Member |
+| `IV26M` | V1-C — Invite Member Sent |
+| `FcxGd` | V1 — Add absence |
+| `BPjIK` | V1-T - Player Detail |
+| `GbsY3` | V1-Team - Statistics |
 
-| x | Node | Screen | Key patterns |
-|---|---|---|---|
-| 0 | `8RJaO` | C-1 Today Dashboard | Hero card with event name + countdown chip + progress bar, avatar strip with colored RSVP rings, upcoming events list |
-| 450 | `hLbLM` | C-2 Roster + Availability | Toggle to show next-event RSVP status per player row (Confirmed/Declined/Unsure/No reply badges), FAB invite |
-| 900 | `cTzuE` | C-3 Quick Event Create | 3 large type tiles (Training/Match/Other), horizontal date strip, time pickers, title + location fields, recurring toggle, blue CTA |
-| 1350 | `QbLLO` | C-4 Post-Event Check-In | Progress indicator (14/18 marked), player rows with 3-way toggle (✓ Present / — Absent / ~ Excused), pre-filled from RSVP, Submit button |
+### Light Mode
 
-### Player (y=3200) — Bottom nav: My Week / Teams / Stats / Profile
-
-| x | Node | Screen | Key patterns |
-|---|---|---|---|
-| 0 | `JrTEy` | P-1 My Week | Event cards with colored left accent bars (blue=training, green=match, purple=other) + inline status button, Coming Up section |
-| 450 | `MMFZv` | P-2 Event RSVP | Large emoji hero icon, event details, 3 full-width stacked RSVP buttons (active = filled color), team attendance summary (12/2/4) |
-| 900 | `8TGI0` | P-3 My Season Stats | Filter chips, ring chart (ellipse with colored border), big % in center, Training/Match breakdown cards, recent events with Present/Absent badges |
-| 1350 | `gIq9e` | P-4 My Team | Next event teaser card with avatar strip, 2×2 player grid (green ring = confirmed for next event, grey = no response) |
+| Node | Screen |
+|---|---|
+| `iRz5V` | V1-C — Event List (Light) |
+| `UhlZ9` | V1-P — Event List (Light) |
+| `8RVYu` | V1-C — Event Calendar (Light) |
+| `JRE44` | V1-P — Event Calendar (Light) |
+| `mgXNx` | V1-C — Teams (Light) |
+| `tnB8i` | V1-P — Teams (Light) |
+| `E4bif` | V1-P — Teams (single) (Light) |
+| `sWbWj` | V1 — Inbox (Light) |
+| `m5RdO` | V1 — Profile (Light) |
+| `p6DNb` | V1 - New Event (Light) |
+| `NDxOi` | V1 - Event Detail (Light) |
+| `fhGRl` | V1 - Event Edit (Light) |
+| `20pZ0` | V1 - NE-Date Picker (Light) |
+| `6E3xt` | V1 - NE-Time Picker (Light) |
+| `0bGW1` | V1 - NE-Recurring Config (Light) |
+| `yBJPo` | V1 - NE-Sub-groups (Light) |
+| `Cxc0M` | V1 - EE-Modal for recurring events (Light) |
+| `ujU0j` | V1-C — Invite Member (Light) |
+| `dbOXm` | V1-C — Invite Member Sent (Light) |
+| `7bpO0` | V1 — Add absence (Light) |
+| `CHGZR` | V1-T - Player Detail (Light) |
+| `4Ewz6` | V1-Team - Statistics (Light) |
 
 ---
 
 ## Pencil MCP — Key Lessons
 
 ### Screen frame setup (CRITICAL)
-Always set `layout: "vertical"` on the top-level screen frame, otherwise `fill_container` on children won't resolve and content only renders in part of the frame.
+Always set `layout: "vertical"` on the top-level screen frame.
 
 ```javascript
-screen=I(document, {type: "frame", width: 390, height: 844, fill: "#0A0A0F", layout: "vertical", name: "Screen Name", x: 0, y: 0})
+screen=I(document, {type: "frame", width: 390, height: 844, fill: "#090912", layout: "vertical", name: "Screen Name", x: 0, y: 0})
 ```
 
 ### Standard screen structure
 ```javascript
-// Status bar
-sb=I(screen, {type: "frame", width: "fill_container", height: 62, layout: "horizontal", alignItems: "center", padding: [0, 20, 0, 20], ...})
-// Scrollable body
-body=I(screen, {type: "frame", layout: "vertical", gap: 16, padding: [8, 20, 20, 20], width: "fill_container", height: "fill_container", ...})
-// Spacer (pushes nav to bottom)
+sb=I(screen, {type: "frame", width: "fill_container", height: 62, layout: "horizontal", alignItems: "center", padding: [0, 20, 0, 20]})
+body=I(screen, {type: "frame", layout: "vertical", gap: 16, padding: [8, 20, 20, 20], width: "fill_container", height: "fill_container"})
 spacer=I(body, {type: "frame", height: "fill_container", width: "fill_container"})
-// Bottom nav pill
-nav=I(body, {type: "frame", layout: "horizontal", width: "fill_container", height: 62, padding: 4, cornerRadius: 36, fill: "#1C1C2E", gap: 4, alignItems: "center"})
+nav=I(body, {type: "ref", ref: "FTbAZ"})
+```
+
+### Text color (CRITICAL)
+Use `fill` for text color — NOT `color`.
+```javascript
+I(parent, {type: "text", content: "Hello", fill: "#F0F0FF", fontSize: 16})
 ```
 
 ### Icon fonts
-Specify `family: "lucide"` but the stored property is `iconFontFamily`. Icons use Lucide names (e.g. `circle-alert` not `alert-circle`, `chevron-right`, `bar-chart-2`). Material Symbols Rounded is the fallback if family doesn't apply.
+Use `iconFontFamily: "lucide"`. Icon names follow Lucide convention (`circle-alert`, `chevron-right`, etc.).
 
-### Text color (CRITICAL)
-Use `fill` for text node color — NOT `color`. The `color` property is silently ignored on text nodes.
-```javascript
-I(parent, {type: "text", content: "Hello", fill: "#F8FAFC", fontSize: 16})
-```
-
-### Variables format
-Color variables require `{type: "color", value: "#hex"}` — not a plain string. Font and radius variables are not supported.
+### Light mode — applying color overrides to ref instances
+Use `replace_all_matching_properties` with all parents at once. For ref nodes, set `fill` directly on the ref and use `descendants` map for nested overrides. Alternatively use `U("refId/childId", {fill: "..."})` for targeted descendant updates.
 
 ### 2-column grid
-Use two explicit row frames, not `flexWrap` (not supported):
+Use two row frames — `flexWrap` is not supported.
 ```javascript
 grid=I(parent, {type: "frame", layout: "vertical", gap: 10, width: "fill_container"})
 row1=I(grid, {type: "frame", layout: "horizontal", gap: 10, width: "fill_container"})
 row2=I(grid, {type: "frame", layout: "horizontal", gap: 10, width: "fill_container"})
-// Then insert cards into row1/row2 with width: "fill_container"
 ```
 
-### Pill bottom nav — active tab pattern
-Active tab: `fill: "#3B82F6"`, `layout: "horizontal"`, `padding: [10, 18]`, shows icon + label inline.
-Inactive tabs: no fill, `layout: "vertical"`, `width: "fill_container"`, icon above label (10px font).
-
-### fill_container in fixed-height frames
-A `fill_container` spacer before the nav pushes it to the bottom of the body frame. Works when the body itself is `height: fill_container`.
+### Variables format
+Color variables require `{type: "color", value: "#hex"}` — not a plain string.
