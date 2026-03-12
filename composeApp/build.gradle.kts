@@ -25,7 +25,7 @@ kotlin {
             implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.coil3.compose)
-            implementation(libs.lifecycle.viewmodel-compose)
+            implementation(libs.lc.viewmodel.compose)
         }
         
         androidMain.dependencies {
