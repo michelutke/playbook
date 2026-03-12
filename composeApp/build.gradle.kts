@@ -32,6 +32,13 @@ kotlin {
             implementation(libs.lifecycle.process)
             implementation("androidx.activity:activity-compose:1.10.0")
         }
+
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(libs.compose.ui.test.junit4)
+                debugImplementation(libs.compose.ui.test.manifest)
+            }
+        }
     }
     
     compilerOptions {
@@ -44,5 +51,6 @@ android {
     compileSdk = 36
     defaultConfig {
         minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
