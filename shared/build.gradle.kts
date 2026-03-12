@@ -20,12 +20,12 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content-negotiation)
+            implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.runtime)
-            implementation(libs.multiplatform-settings)
+            implementation(libs.multiplatform.settings)
         }
         
         androidMain.dependencies {
