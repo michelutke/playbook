@@ -9,8 +9,8 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 fun Application.module() {
     DatabaseFactory.init(environment.config)
     
+    configureKoin()
     configureSerialization()
     configureAuth()
-    // Koin and Routing will be configured as they are implemented
     configureRouting()
 }
