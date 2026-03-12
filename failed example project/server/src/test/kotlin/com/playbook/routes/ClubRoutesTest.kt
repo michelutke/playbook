@@ -102,4 +102,39 @@ class ClubRoutesTest : IntegrationTestBase() {
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
+
+    @Test
+    fun `postClubs_creatorIsAutoAddedAsManager_canAccessDashboardAndCreateTeam`() = testApp {
+        val client = jsonClient()
+
+        // Create club via HTTP endpoint (not raw SQL fixture)
+        val createResponse = client.post("/clubs") {
+            bearerAuth(bearerToken(Fixtures.TEST_COACH_ID))
+            contentType(ContentType.Application.Json)
+            setBody("""{"name":"Regression Club","sportType":"football"}""")
+        }
+        assertEquals(HttpStatusCode.Created, createResponse.status)
+        val clubId = createResponse.bodyAsText()
+            .substringAfter("\"id\":\"").substringBefore("\"")
+
+        // Creator must be auto-added to club_managers → GET /clubs/{id} returns 200
+        val getResponse = client.get("/clubs/$clubId") {
+            bearerAuth(bearerToken(Fixtures.TEST_COACH_ID))
+        }
+        assertEquals(HttpStatusCode.OK, getResponse.status)
+
+        // Creator can list teams
+        val teamsResponse = client.get("/clubs/$clubId/teams") {
+            bearerAuth(bearerToken(Fixtures.TEST_COACH_ID))
+        }
+        assertEquals(HttpStatusCode.OK, teamsResponse.status)
+
+        // Creator can create a team
+        val createTeamResponse = client.post("/clubs/$clubId/teams") {
+            bearerAuth(bearerToken(Fixtures.TEST_COACH_ID))
+            contentType(ContentType.Application.Json)
+            setBody("""{"name":"First Team"}""")
+        }
+        assertEquals(HttpStatusCode.Created, createTeamResponse.status)
+    }
 }

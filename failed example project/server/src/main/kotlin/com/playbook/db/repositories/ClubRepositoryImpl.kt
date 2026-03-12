@@ -1,6 +1,8 @@
 package com.playbook.db.repositories
 
+import com.playbook.db.tables.ClubManagersTable
 import com.playbook.db.tables.ClubsTable
+import com.playbook.db.tables.UsersTable
 import com.playbook.domain.Club
 import com.playbook.domain.ClubStatus
 import com.playbook.domain.CreateClubRequest
@@ -28,6 +30,19 @@ class ClubRepositoryImpl : ClubRepository {
                 it[status] = "active"
                 it[createdAt] = now
                 it[updatedAt] = now
+            }
+            val creatorUuid = UUID.fromString(createdByUserId)
+            val creatorEmail = UsersTable.selectAll()
+                .where { UsersTable.id eq creatorUuid }
+                .single()[UsersTable.email]
+            ClubManagersTable.insert {
+                it[clubId] = id
+                it[userId] = creatorUuid
+                it[invitedEmail] = creatorEmail
+                it[status] = "active"
+                it[addedBy] = creatorUuid
+                it[addedAt] = now
+                it[acceptedAt] = now
             }
             ClubsTable.selectAll().where { ClubsTable.id eq id }.single().toClub()
         }
