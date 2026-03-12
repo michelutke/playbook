@@ -53,10 +53,19 @@ class InviteViewModel(
                     )
                 },
                 onFailure = { e ->
-                    _state.value = _state.value.copy(
-                        isRedeeming = false,
-                        error = e.message ?: "Failed to redeem invite"
-                    )
+                    // Handle idempotent join (already a member)
+                    if (e.message?.contains("Already a member", ignoreCase = true) == true || 
+                        e.message?.contains("409") == true) {
+                        _state.value = _state.value.copy(
+                            isRedeeming = false,
+                            isRedeemed = true
+                        )
+                    } else {
+                        _state.value = _state.value.copy(
+                            isRedeeming = false,
+                            error = e.message ?: "Failed to redeem invite"
+                        )
+                    }
                 }
             )
         }
