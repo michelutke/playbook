@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Screen(val route: String) {
     @Serializable
+    data object Loading : Screen("loading")
+    
+    @Serializable
     data object Events : Screen("events")
     
     @Serializable

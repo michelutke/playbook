@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation3.rememberNavController
 import androidx.navigation3.NavBackStackEntry
-import androidx.navigation3.rememberNavWrapper
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
 import com.playbook.navigation.AppNavigation
@@ -21,44 +21,45 @@ fun PlaybookApp(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val authState by viewModel.state.collectAsState()
+    val navController = rememberNavController<Screen>(startDestination = Screen.Loading)
     
     PlaybookTheme {
-        val backstack = remember { mutableStateListOf<NavBackStackEntry<Screen>>() }
-        
         // Navigation logic based on AuthState
         LaunchedEffect(authState) {
             val state = authState
             when (state) {
                 is AuthState.Loading -> {
-                    // Stay on splash/current until loaded
+                    navController.navigate(Screen.Loading)
                 }
                 is AuthState.Unauthenticated -> {
-                    backstack.clear()
-                    backstack.add(NavBackStackEntry(Screen.Login, null))
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Loading) { inclusive = true }
+                    }
                 }
                 is AuthState.Authenticated -> {
                     if (!state.hasTeam) {
-                        backstack.clear()
-                        backstack.add(NavBackStackEntry(Screen.EmptyState, null))
-                    } else if (backstack.lastOrNull()?.destination !in listOf(Screen.Events, Screen.Calendar, Screen.Teams, Screen.Inbox, Screen.Profile)) {
-                        backstack.clear()
-                        backstack.add(NavBackStackEntry(Screen.Events, null))
+                        navController.navigate(Screen.EmptyState) {
+                            popUpTo(Screen.Loading) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Events) {
+                            popUpTo(Screen.Loading) { inclusive = true }
+                        }
                     }
                 }
             }
         }
 
-        if (backstack.isEmpty()) {
-            // Loading screen or Splash
+        val currentEntry = navController.currentBackStack.lastOrNull()
+        if (currentEntry == null) {
             Box(modifier = Modifier.fillMaxSize())
             return@PlaybookTheme
         }
-
-        val currentEntry = backstack.last()
+        
         val currentScreen = currentEntry.destination
 
         val showBottomBar = when (currentScreen) {
-            Screen.Login, Screen.Register, Screen.EmptyState -> false
+            Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading -> false
             else -> true
         }
 
@@ -68,10 +69,7 @@ fun PlaybookApp(
                     PlaybookBottomBar(
                         currentRoute = currentScreen.route,
                         onNavigate = { screen ->
-                            if (backstack.last().destination != screen) {
-                                backstack.clear()
-                                backstack.add(NavBackStackEntry(screen, null))
-                            }
+                            navController.navigate(screen)
                         }
                     )
                 }
@@ -79,15 +77,7 @@ fun PlaybookApp(
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 AppNavigation(
-                    currentBackStack = backstack,
-                    onNavigate = { screen ->
-                        backstack.add(NavBackStackEntry(screen, null))
-                    },
-                    onBack = {
-                        if (backstack.size > 1) {
-                            backstack.removeAt(backstack.size - 1)
-                        }
-                    },
+                    navController = navController,
                     isLoggedIn = authState is AuthState.Authenticated
                 )
             }

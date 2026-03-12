@@ -2,7 +2,7 @@ package com.playbook.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation3.NavHost
-import androidx.navigation3.NavBackStackEntry
+import androidx.navigation3.NavController
 import com.playbook.ui.emptystate.EmptyStateScreen
 import com.playbook.ui.emptystate.EmptyStateViewModel
 import com.playbook.ui.login.LoginScreen
@@ -21,47 +21,46 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun AppNavigation(
-    currentBackStack: List<NavBackStackEntry<Screen>>,
-    onNavigate: (Screen) -> Unit,
-    onBack: () -> Unit,
+    navController: NavController<Screen>,
     isLoggedIn: Boolean
 ) {
     NavHost(
-        backStack = currentBackStack,
-    ) { entry ->
-        when (val screen = entry.destination) {
+        navController = navController,
+    ) { screen ->
+        when (screen) {
+            Screen.Loading -> PlaceholderScreen("Loading...")
             Screen.Login -> {
                 val viewModel: LoginViewModel = koinViewModel(
-                    parameters = { parametersOf({ onNavigate(Screen.Events) }) }
+                    parameters = { parametersOf({ navController.navigate(Screen.Events) }) }
                 )
                 LoginScreen(
                     viewModel = viewModel,
-                    onNavigateToRegister = { onNavigate(Screen.Register) }
+                    onNavigateToRegister = { navController.navigate(Screen.Register) }
                 )
             }
             Screen.Register -> {
                 val viewModel: RegisterViewModel = koinViewModel(
-                    parameters = { parametersOf({ onNavigate(Screen.EmptyState) }) }
+                    parameters = { parametersOf({ navController.navigate(Screen.EmptyState) }) }
                 )
                 RegisterScreen(
                     viewModel = viewModel,
-                    onNavigateToLogin = { onNavigate(Screen.Login) }
+                    onNavigateToLogin = { navController.navigate(Screen.Login) }
                 )
             }
             Screen.EmptyState -> {
                 val viewModel: EmptyStateViewModel = koinViewModel()
                 EmptyStateScreen(
                     viewModel = viewModel,
-                    onNavigateToClubSetup = { onNavigate(Screen.ClubSetup) },
-                    onNavigateToInvite = { token -> onNavigate(Screen.Invite(token)) }
+                    onNavigateToClubSetup = { navController.navigate(Screen.ClubSetup) },
+                    onNavigateToInvite = { token -> navController.navigate(Screen.Invite(token)) }
                 )
             }
             Screen.ClubSetup -> {
                 val viewModel: ClubSetupViewModel = koinViewModel()
                 ClubSetupScreen(
                     viewModel = viewModel,
-                    onBack = onBack,
-                    onClubCreated = { clubId -> onNavigate(Screen.Teams) }
+                    onBack = { navController.pop() },
+                    onClubCreated = { clubId -> navController.navigate(Screen.Teams) }
                 )
             }
             is Screen.TeamRoster -> {
@@ -69,7 +68,7 @@ fun AppNavigation(
                 TeamRosterScreen(
                     teamId = screen.teamId,
                     viewModel = viewModel,
-                    onBack = onBack,
+                    onBack = { navController.pop() },
                     onShareInvite = { url -> /* Handle share sheet */ }
                 )
             }
@@ -79,9 +78,9 @@ fun AppNavigation(
                     token = screen.token,
                     viewModel = viewModel,
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = { token -> onNavigate(Screen.Login) }, // In a real app, pass token to Login
-                    onNavigateToRegister = { token -> onNavigate(Screen.Register) }, // In a real app, pass token to Register
-                    onJoinSuccess = { onNavigate(Screen.Events) }
+                    onNavigateToLogin = { token -> navController.navigate(Screen.Login) },
+                    onNavigateToRegister = { token -> navController.navigate(Screen.Register) },
+                    onJoinSuccess = { navController.navigate(Screen.Events) }
                 )
             }
             Screen.Events -> PlaceholderScreen("Events List")
