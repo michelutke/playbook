@@ -15,9 +15,20 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun EmptyStateScreen(
-    viewModel: EmptyStateViewModel
+    viewModel: EmptyStateViewModel,
+    onNavigateToClubSetup: () -> Unit,
+    onNavigateToInvite: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is EmptyStateEvent.NavigateToClubSetup -> onNavigateToClubSetup()
+                is EmptyStateEvent.NavigateToInvite -> onNavigateToInvite(event.token)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
