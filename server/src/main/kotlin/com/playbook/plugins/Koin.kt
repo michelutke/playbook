@@ -1,5 +1,6 @@
 package com.playbook.plugins
 
+import com.playbook.di.StorageModule
 import com.playbook.domain.repositories.UserRepository
 import com.playbook.domain.repositories.UserRepositoryImpl
 import io.ktor.server.application.*
@@ -14,6 +15,6 @@ val appModule = module {
 fun Application.configureKoin() {
     install(Koin) {
         slf4jLogger()
-        modules(appModule)
+        modules(appModule, StorageModule)
     }
 }
