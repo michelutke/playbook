@@ -11,6 +11,7 @@ val appModule = module {
     single<UserRepository> { UserRepositoryImpl() }
     single<ClubRepository> { ClubRepositoryImpl() }
     single<TeamRepository> { TeamRepositoryImpl() }
+    single<InviteRepository> { InviteRepositoryImpl() }
 }
 
 fun Application.configureKoin() {
