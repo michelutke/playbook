@@ -1,123 +1,22 @@
-# ================================
-# macOS
-# ================================
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon[]
-._*
-.Spotlight-V100
-.Trashes
-.fseventsd
-.TemporaryItems
-.DocumentRevisions-V100
-.com.apple.timemachine.donotpresent
-.VolumeIcon.icns
-
-# ================================
-# JetBrains IDEs (IntelliJ, Android Studio, AppCode)
-# ================================
+.gradle/
+build/
+*/build/
 .idea/
 *.iml
-*.iws
-*.ipr
-cmake-build-*/
-http-client.private.env.json
-
-# ================================
-# Kotlin
-# ================================
-.kotlin/
-
-# ================================
-# Gradle
-# ================================
-.gradle/
-local.properties
-build/
-*.gradle.lock
-# Keep the wrapper JAR so CI works without pre-installed Gradle
-!gradle/wrapper/gradle-wrapper.jar
-
-# ================================
-# JVM artifacts
-# ================================
 *.class
-*.jar
-*.war
-hs_err_pid*
-replay_pid*
-*.hprof
-# But keep the Gradle wrapper JAR
-!gradle/wrapper/gradle-wrapper.jar
+local.properties
+.DS_Store
 
-# ================================
 # Android
-# ================================
-*.apk
-*.aab
-*.ap_
-captures/
-.externalNativeBuild/
-.cxx/
-output-metadata.json
-*.jks
-*.keystore
+**/*.keystore
+capture/
 google-services.json
 
-# ================================
-# iOS / Xcode (for when iosApp is wired up)
-# ================================
-xcuserdata/
-*.xcworkspace/
-*.xcodeproj/xcuserdata/
-.build/
-Pods/
-Podfile.lock
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# ================================
-# KMP / SQLDelight generated code
-# ================================
-shared/build/xcode-frameworks/
-shared/build/bin/
-shared/build/konan/
-**/generated/sqldelight/
-
-# ================================
-# Node.js / SvelteKit (super-admin module)
-# ================================
+# Node/Admin
 node_modules/
-.svelte-kit/
-.turbo/
-.vercel/
-.netlify/
-vite.config.ts.timestamp-*
-vite.config.js.timestamp-*
-coverage/
-.nyc_output/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log
+admin/.svelte-kit/
+admin/build/
+admin/.env
 
-# ================================
-# Environment / Secrets
-# ================================
-.env
-.env.local
-.env.*.local
-*.pem
-*.p12
-*.p8
-*.pfx
-*.key
-secrets/
-
-# ================================
-# Logs
-# ================================
-*.log
-logs/
+# Temporary
+failed example project/
