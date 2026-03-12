@@ -30,7 +30,13 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
-            implementation("androidx.activity:activity-compose:1.10.0")
+            implementation(libs.activity.compose)
+        }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
         }
 
         val androidInstrumentedTest by getting {
