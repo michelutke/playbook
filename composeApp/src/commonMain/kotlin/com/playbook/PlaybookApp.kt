@@ -4,28 +4,59 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation3.NavBackStackEntry
+import androidx.navigation3.rememberNavWrapper
+import com.playbook.auth.AuthState
+import com.playbook.auth.AuthViewModel
 import com.playbook.navigation.AppNavigation
 import com.playbook.navigation.Screen
 import com.playbook.ui.components.PlaybookBottomBar
 import com.playbook.ui.theme.PlaybookTheme
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun PlaybookApp() {
+fun PlaybookApp(
+    viewModel: AuthViewModel = koinViewModel()
+) {
+    val authState by viewModel.state.collectAsState()
+    
     PlaybookTheme {
-        // Simple navigation state for now until AuthViewModel is ready in Plan 04
-        val backstack = remember { mutableStateListOf(NavBackStackEntry(Screen.Events, null)) }
+        val backstack = remember { mutableStateListOf<NavBackStackEntry<Screen>>() }
+        
+        // Navigation logic based on AuthState
+        LaunchedEffect(authState) {
+            val state = authState
+            when (state) {
+                is AuthState.Loading -> {
+                    // Stay on splash/current until loaded
+                }
+                is AuthState.Unauthenticated -> {
+                    backstack.clear()
+                    backstack.add(NavBackStackEntry(Screen.Login, null))
+                }
+                is AuthState.Authenticated -> {
+                    if (!state.hasTeam) {
+                        backstack.clear()
+                        backstack.add(NavBackStackEntry(Screen.EmptyState, null))
+                    } else if (backstack.lastOrNull()?.destination !in listOf(Screen.Events, Screen.Calendar, Screen.Teams, Screen.Inbox, Screen.Profile)) {
+                        backstack.clear()
+                        backstack.add(NavBackStackEntry(Screen.Events, null))
+                    }
+                }
+            }
+        }
+
+        if (backstack.isEmpty()) {
+            // Loading screen or Splash
+            Box(modifier = Modifier.fillMaxSize())
+            return@PlaybookTheme
+        }
+
         val currentEntry = backstack.last()
         val currentScreen = currentEntry.destination
 
-        // Bottom nav is hidden on auth screens
         val showBottomBar = when (currentScreen) {
             Screen.Login, Screen.Register, Screen.EmptyState -> false
             else -> true
@@ -37,7 +68,6 @@ fun PlaybookApp() {
                     PlaybookBottomBar(
                         currentRoute = currentScreen.route,
                         onNavigate = { screen ->
-                            // Simple nav logic for placeholder
                             if (backstack.last().destination != screen) {
                                 backstack.clear()
                                 backstack.add(NavBackStackEntry(screen, null))

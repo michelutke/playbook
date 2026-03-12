@@ -55,6 +55,9 @@ android {
     defaultConfig {
         minSdk = 26
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 sqldelight {
