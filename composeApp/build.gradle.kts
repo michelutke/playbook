@@ -43,7 +43,7 @@ kotlin {
         val androidInstrumentedTest by getting {
             dependencies {
                 implementation(libs.compose.ui.test.junit4)
-                debugImplementation(libs.compose.ui.test.manifest)
+                implementation(libs.compose.ui.test.manifest)
             }
         }
     }
