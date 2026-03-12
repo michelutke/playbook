@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.simple-java-mail)
     implementation(libs.logback-classic)
+    implementation("org.mindrot:jbcrypt:0.4")
     
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test)
