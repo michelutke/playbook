@@ -1,0 +1,44 @@
+package com.playbook.infra
+
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.config.*
+import org.flywaydb.core.Flyway
+import org.jetbrains.exposed.sql.Database
+import org.slf4j.LoggerFactory
+import javax.sql.DataSource
+
+object DatabaseFactory {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    fun init(config: ApplicationConfig) {
+        val driverClassName = config.property("database.driver").getString()
+        val jdbcUrl = config.property("database.url").getString()
+        
+        val dataSource = createHikariDataSource(driverClassName, jdbcUrl)
+        
+        runFlyway(dataSource)
+        
+        Database.connect(dataSource)
+        logger.info("Database connection established and migrations applied")
+    }
+
+    private fun createHikariDataSource(driver: String, url: String): DataSource {
+        val config = HikariConfig().apply {
+            driverClassName = driver
+            jdbcUrl = url
+            maximumPoolSize = 10
+            isAutoCommit = false
+            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            validate()
+        }
+        return HikariDataSource(config)
+    }
+
+    private fun runFlyway(dataSource: DataSource) {
+        val flyway = Flyway.configure()
+            .dataSource(dataSource)
+            .load()
+        flyway.migrate()
+    }
+}

@@ -1,14 +1,16 @@
 package com.playbook
 
+import com.playbook.infra.DatabaseFactory
+import com.playbook.plugins.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 
-fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
-}
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 fun Application.module() {
-    // Basic server setup
+    DatabaseFactory.init(environment.config)
+    
+    configureSerialization()
+    configureAuth()
+    // Koin and Routing will be configured as they are implemented
+    configureRouting()
 }
