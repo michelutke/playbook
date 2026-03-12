@@ -1,0 +1,2 @@
+-- Placeholder migration for roles (deferred to Phase 2)
+-- No-op for now.
