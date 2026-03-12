@@ -82,7 +82,13 @@ fun PlaybookApp(
                     currentBackStack = backstack,
                     onNavigate = { screen ->
                         backstack.add(NavBackStackEntry(screen, null))
-                    }
+                    },
+                    onBack = {
+                        if (backstack.size > 1) {
+                            backstack.removeAt(backstack.size - 1)
+                        }
+                    },
+                    isLoggedIn = authState is AuthState.Authenticated
                 )
             }
         }
