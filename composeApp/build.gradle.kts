@@ -25,6 +25,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil3.compose)
             implementation(libs.lc.viewmodel.compose)
         }

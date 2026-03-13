@@ -12,10 +12,12 @@ import java.util.*
 class InviteRepositoryImpl : InviteRepository {
     override suspend fun create(teamId: UUID, createdByUserId: UUID, role: String, email: String?): InviteLink = transaction {
         val insertedId = InviteLinksTable.insert {
+            it[InviteLinksTable.token] = UUID.randomUUID().toString()
             it[InviteLinksTable.teamId] = teamId
             it[InviteLinksTable.invitedByUserId] = createdByUserId
             it[InviteLinksTable.role] = role
             it[InviteLinksTable.invitedEmail] = email
+            it[InviteLinksTable.expiresAt] = Instant.now().plusSeconds(7 * 24 * 60 * 60)
         } get InviteLinksTable.id
 
         InviteLinksTable.selectAll().where { InviteLinksTable.id eq insertedId }
