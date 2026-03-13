@@ -23,7 +23,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.navigation3.ui)
+            implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.coil3.compose)
             implementation(libs.lc.viewmodel.compose)
