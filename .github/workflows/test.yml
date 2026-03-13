@@ -79,10 +79,13 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: admin/package-lock.json
+          cache-dependency-path: "admin/package-lock.json"
       - name: Install admin dependencies
         working-directory: admin
         run: npm ci
+      - name: Generate SvelteKit types
+        working-directory: admin
+        run: npx svelte-kit sync
       - name: Run Vitest unit tests
         working-directory: admin
         run: npm test
