@@ -121,6 +121,11 @@ jobs:
             PG="postgresql@16"
           fi
           echo "Using formula: $PG"
+          # Add postgres binaries to PATH (Homebrew does not auto-link versioned formulae)
+          PG_BIN="/opt/homebrew/opt/$PG/bin"
+          echo "Adding $PG_BIN to PATH"
+          echo "$PG_BIN" >> $GITHUB_PATH
+          export PATH="$PG_BIN:$PATH"
           brew services start "$PG"
           sleep 5
           createdb playbook_ios_test
