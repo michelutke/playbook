@@ -2,8 +2,9 @@ package com.playbook.ui.emptystate
 
 import com.playbook.domain.AuthUser
 import com.playbook.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class EmptyStateViewModelTest {
@@ -11,9 +12,17 @@ class EmptyStateViewModelTest {
     private lateinit var viewModel: EmptyStateViewModel
     private lateinit var repository: FakeAuthRepository
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeTest
     fun setup() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         repository = FakeAuthRepository()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

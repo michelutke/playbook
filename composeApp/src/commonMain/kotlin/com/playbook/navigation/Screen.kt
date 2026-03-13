@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Screen(val route: String) {
     @Serializable
+    data object Loading : Screen("loading")
+    
+    @Serializable
     data object Events : Screen("events")
     
     @Serializable
@@ -28,4 +31,13 @@ sealed class Screen(val route: String) {
     
     @Serializable
     data object EmptyState : Screen("empty_state")
+
+    @Serializable
+    data object ClubSetup : Screen("club_setup")
+
+    @Serializable
+    data class TeamRoster(val teamId: String) : Screen("team_roster/{teamId}")
+
+    @Serializable
+    data class Invite(val token: String) : Screen("invite/{token}")
 }

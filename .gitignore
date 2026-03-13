@@ -20,3 +20,4 @@ admin/.env
 
 # Temporary
 failed example project/
+server/uploads/

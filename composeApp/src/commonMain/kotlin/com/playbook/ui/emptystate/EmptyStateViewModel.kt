@@ -2,7 +2,9 @@ package com.playbook.ui.emptystate
 
 import com.playbook.di.KmpViewModel
 import com.playbook.repository.AuthRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -14,6 +16,11 @@ data class EmptyStateUiState(
     val infoMessage: String? = null
 )
 
+sealed class EmptyStateEvent {
+    data object NavigateToClubSetup : EmptyStateEvent()
+    data class NavigateToInvite(val token: String) : EmptyStateEvent()
+}
+
 class EmptyStateViewModel(
     private val authRepository: AuthRepository
 ) : KmpViewModel() {
@@ -21,16 +28,18 @@ class EmptyStateViewModel(
     private val _state = MutableStateFlow(EmptyStateUiState())
     val state = _state.asStateFlow()
 
+    private val _events = MutableSharedFlow<EmptyStateEvent>()
+    val events = _events.asSharedFlow()
+
     init {
         loadProfileLink()
     }
 
     private fun loadProfileLink() {
         viewModelScope.launch {
-            val userId = authRepository.getMe().getOrNull()?.userId
-            if (userId != null) {
+            authRepository.getMe().onSuccess { user ->
                 _state.value = _state.value.copy(
-                    profileLink = "playbook://invite/player/$userId"
+                    profileLink = "playbook://invite/player/${user.userId}"
                 )
             }
         }
@@ -41,13 +50,36 @@ class EmptyStateViewModel(
     }
 
     fun onJoinTeamClick() {
-        // Handled in Phase 2
         _state.value = _state.value.copy(infoMessage = "Team joining will be available in Phase 2")
+        return
+
+        val link = _state.value.inviteLink
+        if (link.isBlank()) {
+            _state.value = _state.value.copy(error = "Please paste an invite link")
+            return
+        }
+
+        // Extract token from playbook://invite/team/{token} or just take the whole thing if it's just the token
+        val token = if (link.startsWith("playbook://invite/team/")) {
+            link.substringAfterLast("/")
+        } else {
+            link
+        }
+
+        if (token.isBlank()) {
+            _state.value = _state.value.copy(error = "Invalid invite link")
+            return
+        }
+
+        viewModelScope.launch {
+            _events.emit(EmptyStateEvent.NavigateToInvite(token))
+        }
     }
 
     fun onCreateClubClick() {
-        // Handled in Phase 2
-        _state.value = _state.value.copy(infoMessage = "Club creation will be available in Phase 2")
+        viewModelScope.launch {
+            _events.emit(EmptyStateEvent.NavigateToClubSetup)
+        }
     }
 
     fun onProfileLinkCopied() {

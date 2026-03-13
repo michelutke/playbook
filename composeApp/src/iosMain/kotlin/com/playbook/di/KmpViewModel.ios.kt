@@ -1,14 +1,9 @@
 package com.playbook.di
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 
-actual abstract class KmpViewModel {
-    actual val viewModelScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-
-    fun clear() {
-        viewModelScope.cancel()
-    }
+actual abstract class KmpViewModel : ViewModel() {
+    actual val viewModelScope: CoroutineScope = this.viewModelScope
 }

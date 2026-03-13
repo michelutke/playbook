@@ -1,6 +1,6 @@
 package com.playbook.preferences
 
-import com.russhwolf.multiplatform.settings.Settings
+import com.russhwolf.settings.Settings
 
 expect class UserPreferences {
     fun saveToken(token: String)

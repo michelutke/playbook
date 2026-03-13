@@ -1,6 +1,7 @@
 package com.playbook.test
 
 import com.playbook.module
+import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.*
@@ -28,5 +29,15 @@ abstract class IntegrationTestBase {
         }
 
         block()
+    }
+
+    fun ApplicationTestBuilder.createJsonClient(): HttpClient = createClient {
+        install(ContentNegotiation) {
+            json(kotlinx.serialization.json.Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                prettyPrint = true
+            })
+        }
     }
 }

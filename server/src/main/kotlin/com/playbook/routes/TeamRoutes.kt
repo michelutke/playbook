@@ -1,0 +1,63 @@
+package com.playbook.routes
+
+import com.playbook.domain.repositories.TeamRepository
+import com.playbook.middleware.requireTeamRole
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+import org.koin.ktor.ext.inject
+import java.util.*
+
+@Serializable
+data class CreateTeamRequest(val name: String, val description: String? = null)
+
+@Serializable
+data class UpdateTeamRequest(val name: String? = null, val description: String? = null)
+
+fun Route.teamRoutes() {
+    val teamRepository by inject<TeamRepository>()
+
+    authenticate("jwt") {
+        route("/teams") {
+            route("/{teamId}") {
+                get {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    val team = teamRepository.findById(teamId)
+                    if (team == null) {
+                        call.respond(HttpStatusCode.NotFound, "Team not found")
+                    } else {
+                        call.respond(team)
+                    }
+                }
+
+                patch {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    if (!call.requireTeamRole(teamId, "coach", "club_manager", teamRepository = teamRepository)) return@patch
+                    
+                    val request = call.receive<UpdateTeamRequest>()
+                    val team = teamRepository.update(teamId, request.name, request.description)
+                    call.respond(team)
+                }
+
+                delete {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    // archive only, and only club_manager
+                    if (!call.requireTeamRole(teamId, "club_manager", teamRepository = teamRepository)) return@delete
+                    
+                    val team = teamRepository.archive(teamId)
+                    call.respond(team)
+                }
+
+                get("/members") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    val members = teamRepository.listMembers(teamId)
+                    call.respond(members)
+                }
+            }
+        }
+    }
+}

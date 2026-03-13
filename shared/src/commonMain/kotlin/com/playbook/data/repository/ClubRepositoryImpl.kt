@@ -1,0 +1,70 @@
+package com.playbook.data.repository
+
+import com.playbook.domain.Club
+import com.playbook.domain.Team
+import com.playbook.repository.ClubRepository
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.Serializable
+
+@Serializable
+private data class CreateClubRequest(val name: String, val sportType: String, val location: String?)
+
+class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
+    override suspend fun createClub(name: String, sportType: String, location: String?): Result<Club> {
+        return try {
+            val response = client.post("/clubs") {
+                setBody(CreateClubRequest(name, sportType, location))
+            }
+            if (response.status == HttpStatusCode.Created) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to create club: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun uploadLogo(clubId: String, imageBytes: ByteArray, extension: String): Result<Club> {
+        return try {
+            val response = client.submitFormWithBinaryData(
+                url = "/clubs/$clubId/logo",
+                formData = formData {
+                    append("logo", imageBytes, Headers.build {
+                        append(HttpHeaders.ContentType, "image/$extension")
+                        append(HttpHeaders.ContentDisposition, "filename=\"logo.$extension\"")
+                    })
+                }
+            )
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to upload logo: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getClubTeams(clubId: String): Result<List<Team>> {
+        return try {
+            val response = client.get("/clubs/$clubId/teams")
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to fetch teams: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

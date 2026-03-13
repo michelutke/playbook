@@ -1,7 +1,7 @@
 package com.playbook.preferences
 
-import com.russhwolf.multiplatform.settings.NSUserDefaultsSettings
-import com.russhwolf.multiplatform.settings.Settings
+import com.russhwolf.settings.NSUserDefaultsSettings
+import com.russhwolf.settings.Settings
 import platform.Foundation.NSUserDefaults
 
 actual class UserPreferences {

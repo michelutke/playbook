@@ -1,8 +1,8 @@
 package com.playbook.preferences
 
 import android.content.Context
-import com.russhwolf.multiplatform.settings.Settings
-import com.russhwolf.multiplatform.settings.SharedPreferencesSettings
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.SharedPreferencesSettings
 
 actual class UserPreferences(context: Context) {
     private val settings: Settings = SharedPreferencesSettings(

@@ -3,7 +3,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
+
 
 kotlin {
     androidTarget()
@@ -18,25 +20,34 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil3.compose)
-            implementation(libs.lifecycle.viewmodel-compose)
+            implementation(libs.lc.viewmodel.compose)
         }
         
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
-            implementation("androidx.activity:activity-compose:1.10.0")
+            implementation(libs.activity.compose)
+        }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+            }
         }
 
         val androidInstrumentedTest by getting {
             dependencies {
                 implementation(libs.compose.ui.test.junit4)
-                debugImplementation(libs.compose.ui.test.manifest)
+                implementation(libs.compose.ui.test.manifest)
             }
         }
     }
@@ -49,8 +60,16 @@ kotlin {
 android {
     namespace = "com.playbook.compose"
     compileSdk = 36
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
