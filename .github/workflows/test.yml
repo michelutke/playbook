@@ -113,9 +113,16 @@ jobs:
 
       - name: Start PostgreSQL
         run: |
-          PG=$(brew list --formula | grep "^postgresql@" | tail -1)
+          # Detect installed postgres formula, install if missing
+          PG=$(brew list --formula 2>/dev/null | grep "^postgresql@" | sort -V | tail -1)
+          if [ -z "$PG" ]; then
+            echo "No PostgreSQL formula found, installing postgresql@16..."
+            brew install postgresql@16
+            PG="postgresql@16"
+          fi
+          echo "Using formula: $PG"
           brew services start "$PG"
-          sleep 4
+          sleep 5
           createdb playbook_ios_test
           psql playbook_ios_test -c "CREATE ROLE ios_test LOGIN PASSWORD 'ios_test';"
           psql playbook_ios_test -c "GRANT ALL PRIVILEGES ON DATABASE playbook_ios_test TO ios_test;"
