@@ -11,6 +11,7 @@ jobs:
   build-and-deploy:
     name: Build APK + Upload to Updraft
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -25,19 +26,29 @@ jobs:
 
       - name: Create local.properties
         run: echo "API_BASE_URL=https://api.playbook.app" >> local.properties
-      - name: Build Debug APK
-        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > androidApp/release.jks
+
+      - name: Build Release APK
+        run: ./gradlew :androidApp:assembleRelease
         env:
-          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api.playbook.app' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          UPDRAFT_APP_KEY: ${{ secrets.UPDRAFT_APP_KEY }}
+          UPDRAFT_SDK_KEY: ${{ secrets.UPDRAFT_SDK_KEY }}
 
       - name: Upload to Updraft
         run: |
-          APK_PATH=$(find androidApp/build/outputs/apk/debug -name "*.apk" | head -1)
+          APK_PATH=$(find androidApp/build/outputs/apk/release -name "*.apk" | head -1)
           if [ -z "$APK_PATH" ]; then
             echo "Error: Could not find APK file."
             exit 1
           fi
           echo "Uploading: $APK_PATH"
-          curl -X PUT --http1.1 \
+          curl -v -X PUT --http1.1 \
             -F "app=@$APK_PATH" \
-            "https://app.getupdraft.com/api/app_upload/${{ secrets.UPDRAFT_APP_ID }}/${{ secrets.UPDRAFT_API_KEY }}/"
+            -F "whats_new=Build from GitHub Actions. Run: ${GITHUB_RUN_NUMBER}" \
+            -F "build_version=${GITHUB_RUN_NUMBER}" \
+            "https://app.getupdraft.com/api/app_upload/${{ secrets.UPDRAFT_APP_KEY }}/${{ secrets.UPDRAFT_API_KEY }}/"

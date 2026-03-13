@@ -34,6 +34,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
             implementation(libs.activity.compose)
+            implementation(libs.updraft.sdk)
         }
 
         val androidUnitTest by getting {
@@ -66,5 +67,11 @@ android {
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        buildConfigField("String", "UPDRAFT_APP_KEY", "\"${System.getenv("UPDRAFT_APP_KEY") ?: ""}\"")
+        buildConfigField("String", "UPDRAFT_SDK_KEY", "\"${System.getenv("UPDRAFT_SDK_KEY") ?: ""}\"")
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
