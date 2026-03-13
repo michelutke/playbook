@@ -3,7 +3,6 @@ name: Deploy Android to Updraft
 on:
   push:
     branches:
-      - 'feat/**'
       - main
   workflow_dispatch:
 

@@ -12,11 +12,8 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
-        buildConfigField("String", "UPDRAFT_APP_KEY", "\"${System.getenv("UPDRAFT_APP_KEY") ?: ""}\"")
-        buildConfigField("String", "UPDRAFT_SDK_KEY", "\"${System.getenv("UPDRAFT_SDK_KEY") ?: ""}\"")
     }
-    
+
     signingConfigs {
         create("release") {
             storeFile = file("${project.projectDir}/release.jks")
@@ -31,19 +28,11 @@ android {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
         }
-        debug {
-            // Use release signing for debug builds in CI if needed, 
-            // but usually we just build release for Updraft
-        }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-
-    buildFeatures {
-        buildConfig = true
     }
 }
 
