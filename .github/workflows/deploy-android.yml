@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - main
+      - production
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     name: Build APK + Upload to Updraft
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+    environment: ${{ github.ref == 'refs/heads/production' && 'production' || 'development' }}
 
     steps:
       - uses: actions/checkout@v4
