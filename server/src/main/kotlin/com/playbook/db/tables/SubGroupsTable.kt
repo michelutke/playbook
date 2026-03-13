@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.UUIDColumnType
-import org.jetbrains.exposed.sql.CurrentTimestamp
+import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 
 object SubGroupsTable : Table("sub_groups") {
     val id = uuid("id").defaultExpression(CustomFunction("gen_random_uuid", UUIDColumnType()))

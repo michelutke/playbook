@@ -10,8 +10,6 @@ kotlin {
         publishLibraryVariants("release", "debug")
     }
     
-    jvm()
-
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -39,11 +37,6 @@ kotlin {
             implementation(libs.sqldelight.native.driver)
         }
 
-        jvmMain.dependencies {
-            implementation(libs.ktor.client.cio)
-            implementation(libs.sqldelight.sqlite.driver)
-        }
-        
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }

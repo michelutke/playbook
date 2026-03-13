@@ -5,11 +5,11 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.UUIDColumnType
-import org.jetbrains.exposed.sql.CurrentTimestamp
+import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 
 object InviteLinksTable : Table("invite_links") {
     val id = uuid("id").defaultExpression(CustomFunction("gen_random_uuid", UUIDColumnType()))
-    val token = text("token").uniqueIndex().defaultExpression(CustomFunction("gen_random_uuid", UUIDColumnType()).castTo(org.jetbrains.exposed.sql.TextColumnType()))
+    val token = text("token").uniqueIndex() // generated in application code via UUID.randomUUID()
     val teamId = uuid("team_id").references(TeamsTable.id, onDelete = ReferenceOption.CASCADE)
     val invitedByUserId = uuid("invited_by_user_id").references(UsersTable.id)
     val invitedEmail = text("invited_email").nullable()
