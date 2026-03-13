@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// Updraft SDK 1.0.7 pulls in com.simplify:ink and com.rm:freedrawview as transitive
+// deps for its screenshot-annotation drawing UI. Neither exists on Maven Central,
+// Google, or JitPack. Exclude globally — core update functionality still works.
+configurations.configureEach {
+    exclude(group = "com.simplify", module = "ink")
+    exclude(group = "com.rm", module = "freedrawview")
+}
+
 kotlin {
     androidTarget()
     
