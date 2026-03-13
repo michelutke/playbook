@@ -17,7 +17,7 @@ class LoginViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeAuthRepository()
         viewModel = LoginViewModel(repository) {
             navigateCalled = true
@@ -52,6 +52,7 @@ class LoginViewModelTest {
         viewModel.onPasswordChange("password")
         
         viewModel.onLoginClick()
+        advanceUntilIdle()
         
         assertTrue(navigateCalled)
         assertFalse(viewModel.state.value.isLoading)
@@ -65,6 +66,7 @@ class LoginViewModelTest {
         viewModel.onPasswordChange("password")
         
         viewModel.onLoginClick()
+        advanceUntilIdle()
         
         assertFalse(navigateCalled)
         assertEquals("Login failed", viewModel.state.value.error)
