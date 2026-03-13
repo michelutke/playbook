@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.koin.ktor)
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.javatime)
     implementation(libs.hikaricp)
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
