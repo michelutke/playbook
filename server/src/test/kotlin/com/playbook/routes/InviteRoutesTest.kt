@@ -33,10 +33,10 @@ class InviteRoutesTest : IntegrationTestBase() {
             setBody(mapOf("name" to "Test Club", "sportType" to "Football"))
         }.body<Club>()
         
-        val teamResp = client.post("/teams") {
+        val teamResp = client.post("/clubs/${clubResp.id}/teams") {
             header(HttpHeaders.Authorization, "Bearer $token")
             contentType(ContentType.Application.Json)
-            setBody(mapOf("clubId" to clubResp.id, "name" to "Test Team"))
+            setBody(mapOf("name" to "Test Team"))
         }.body<Team>()
         
         return teamResp.id

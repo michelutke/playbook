@@ -33,7 +33,11 @@ abstract class IntegrationTestBase {
 
     fun ApplicationTestBuilder.createJsonClient(): HttpClient = createClient {
         install(ContentNegotiation) {
-            json()
+            json(kotlinx.serialization.json.Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                prettyPrint = true
+            })
         }
     }
 }
