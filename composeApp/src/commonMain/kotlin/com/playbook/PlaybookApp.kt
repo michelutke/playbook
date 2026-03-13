@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation3.rememberNavController
 import androidx.navigation3.NavBackStackEntry
+import androidx.navigation3.rememberNavWrapper
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
 import com.playbook.navigation.AppNavigation
@@ -21,7 +21,7 @@ fun PlaybookApp(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val authState by viewModel.state.collectAsState()
-    val navController = rememberNavController<Screen>(startDestination = Screen.Loading)
+    val navWrapper = rememberNavWrapper<Screen>(startDestination = Screen.Loading)
     
     PlaybookTheme {
         // Navigation logic based on AuthState
@@ -29,20 +29,20 @@ fun PlaybookApp(
             val state = authState
             when (state) {
                 is AuthState.Loading -> {
-                    navController.navigate(Screen.Loading)
+                    navWrapper.manager.navigate(Screen.Loading)
                 }
                 is AuthState.Unauthenticated -> {
-                    navController.navigate(Screen.Login) {
+                    navWrapper.manager.navigate(Screen.Login) {
                         popUpTo(Screen.Loading) { inclusive = true }
                     }
                 }
                 is AuthState.Authenticated -> {
                     if (!state.hasTeam) {
-                        navController.navigate(Screen.EmptyState) {
+                        navWrapper.manager.navigate(Screen.EmptyState) {
                             popUpTo(Screen.Loading) { inclusive = true }
                         }
                     } else {
-                        navController.navigate(Screen.Events) {
+                        navWrapper.manager.navigate(Screen.Events) {
                             popUpTo(Screen.Loading) { inclusive = true }
                         }
                     }
@@ -50,7 +50,7 @@ fun PlaybookApp(
             }
         }
 
-        val currentEntry = navController.currentBackStack.lastOrNull()
+        val currentEntry = navWrapper.manager.currentBackStack.lastOrNull()
         if (currentEntry == null) {
             Box(modifier = Modifier.fillMaxSize())
             return@PlaybookTheme
@@ -69,7 +69,7 @@ fun PlaybookApp(
                     PlaybookBottomBar(
                         currentRoute = currentScreen.route,
                         onNavigate = { screen ->
-                            navController.navigate(screen)
+                            navWrapper.manager.navigate(screen)
                         }
                     )
                 }
@@ -77,7 +77,7 @@ fun PlaybookApp(
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 AppNavigation(
-                    navController = navController,
+                    navWrapper = navWrapper,
                     isLoggedIn = authState is AuthState.Authenticated
                 )
             }

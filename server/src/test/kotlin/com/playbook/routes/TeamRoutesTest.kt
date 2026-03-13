@@ -18,9 +18,7 @@ class TeamRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `create team success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -47,9 +45,7 @@ class TeamRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `get team success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -78,9 +74,7 @@ class TeamRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `update team name success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -111,9 +105,7 @@ class TeamRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `archive team success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -149,9 +141,7 @@ class TeamRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `get team members`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)

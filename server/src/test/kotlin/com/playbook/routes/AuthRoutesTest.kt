@@ -15,9 +15,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `register success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val response = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -32,9 +30,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `register duplicate email returns 409`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -51,9 +47,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `register invalid email returns 400`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val response = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -65,9 +59,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `register short password returns 400`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val response = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -79,9 +71,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `login success returns JWT`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -100,9 +90,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `login wrong password returns 401`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -119,9 +107,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `login unknown email returns 401`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val response = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
@@ -133,9 +119,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `GET auth me authenticated returns user`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val regResponse = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -154,9 +138,7 @@ class AuthRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `GET auth me no token returns 401`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val response = client.get("/auth/me")
 

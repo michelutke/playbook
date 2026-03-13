@@ -17,9 +17,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `create club success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         // 1. Register & Login
         val auth = client.post("/auth/register") {
@@ -42,9 +40,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `get club returns correct data`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -68,9 +64,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `update club name success`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -97,9 +91,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `upload logo stored successfully`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
@@ -131,9 +123,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `list teams in club`() = withPlaybookTestApplication {
-        val client = createClient {
-            install(ContentNegotiation) { json() }
-        }
+        val client = createJsonClient()
 
         val auth = client.post("/auth/register") {
             contentType(ContentType.Application.Json)

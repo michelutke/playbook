@@ -17,10 +17,6 @@ import kotlin.test.assertTrue
 
 class InviteRoutesTest : IntegrationTestBase() {
 
-    private fun ApplicationTestBuilder.createJsonClient(): HttpClient {
-        return createClient { install(ContentNegotiation) { json() } }
-    }
-
     private suspend fun ApplicationTestBuilder.setupAuthUser(email: String): AuthResponse {
         val client = createJsonClient()
         return client.post("/auth/register") {

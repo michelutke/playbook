@@ -8,6 +8,8 @@ ktor = "3.0.3"
 kotlinx-datetime = "0.6.0"
 kotlinx-serialization = "1.8.1"
 navigation3-jb = "1.0.0+dev2887"
+navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3-jb" }
+navigation3-browser = { module = "org.jetbrains.androidx.navigation3:navigation3-browser", version.ref = "navigation3-jb" }
 coil3 = "3.0.4"
 sqldelight = "2.0.2"
 lifecycle = "2.9.1"
@@ -61,7 +63,7 @@ sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", versi
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 
 # Compose / UI
-compose-navigation3 = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3-jb" }
+compose-navigation3 = { module = "org.jetbrains.androidx.navigation3:navigation3", version.ref = "navigation3-jb" }
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 lc-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
