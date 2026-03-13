@@ -1,10 +1,20 @@
 package com.playbook.infra
 
+import com.playbook.db.tables.ClubRolesTable
+import com.playbook.db.tables.ClubsTable
+import com.playbook.db.tables.InviteLinksTable
+import com.playbook.db.tables.SubGroupMembersTable
+import com.playbook.db.tables.SubGroupsTable
+import com.playbook.db.tables.TeamRolesTable
+import com.playbook.db.tables.TeamsTable
+import com.playbook.db.tables.UsersTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.*
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -14,13 +24,30 @@ object DatabaseFactory {
     fun init(config: ApplicationConfig) {
         val driverClassName = config.property("database.driver").getString()
         val jdbcUrl = config.property("database.url").getString()
-        
+
         val dataSource = createHikariDataSource(driverClassName, jdbcUrl)
-        
-        runFlyway(dataSource)
-        
+
         Database.connect(dataSource)
-        logger.info("Database connection established and migrations applied")
+
+        if (driverClassName.contains("h2", ignoreCase = true)) {
+            // H2 test database: create tables directly with Exposed (skip Flyway)
+            transaction {
+                SchemaUtils.create(
+                    UsersTable,
+                    ClubsTable,
+                    ClubRolesTable,
+                    TeamsTable,
+                    TeamRolesTable,
+                    InviteLinksTable,
+                    SubGroupsTable,
+                    SubGroupMembersTable
+                )
+            }
+            logger.info("H2 test database initialised with SchemaUtils")
+        } else {
+            runFlyway(dataSource)
+            logger.info("Database connection established and migrations applied")
+        }
     }
 
     private fun createHikariDataSource(driver: String, url: String): DataSource {
