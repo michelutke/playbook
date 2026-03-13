@@ -49,5 +49,4 @@ android {
 
 dependencies {
     implementation(project(":composeApp"))
-    implementation(libs.updraft.sdk)
 }
