@@ -28,7 +28,26 @@ implementation(libs.compose.navigation3)
 ```
 Repo required: `maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")` — already in settings.
 
-API is identical to Google's Navigation3 (`NavHost`, `NavController<T>`, `rememberNavController<T>`) — drop-in replacement.
+**API (verified from sources JAR):**
+```kotlin
+// backStack is just a MutableList
+val backStack = remember { mutableStateListOf<Screen>(Screen.Loading) }
+
+// NavDisplay replaces NavHost
+NavDisplay(
+    backStack = backStack,
+    onBack = { backStack.removeAt(backStack.lastIndex) },
+    entryProvider = { screen ->
+        NavEntry(screen) { /* @Composable content */ }
+    }
+)
+
+// Navigate: backStack.add(Screen.Login)
+// Pop: backStack.removeAt(backStack.lastIndex)
+// popUpTo equivalent: backStack.clear(); backStack.add(Screen.Events)
+```
+Imports: `androidx.navigation3.runtime.NavEntry`, `androidx.navigation3.ui.NavDisplay`
+⚠️ NOT the same as Google nav3 — no NavController, no NavHost, no rememberNavController.
 
 ### ViewModel
 | ❌ Do NOT use | ✅ Use instead |
