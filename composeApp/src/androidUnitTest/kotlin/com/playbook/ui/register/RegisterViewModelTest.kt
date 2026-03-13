@@ -17,7 +17,7 @@ class RegisterViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeTest
     fun setup() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeAuthRepository()
         viewModel = RegisterViewModel(repository) {
             navigateCalled = true
@@ -77,6 +77,7 @@ class RegisterViewModelTest {
         viewModel.onConfirmPasswordChange("password123")
         
         viewModel.onRegisterClick()
+        advanceUntilIdle()
         
         assertTrue(navigateCalled)
     }
