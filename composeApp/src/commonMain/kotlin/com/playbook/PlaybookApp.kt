@@ -56,7 +56,7 @@ fun PlaybookApp(
             return@PlaybookTheme
         }
         
-        val currentScreen = currentEntry.destination
+        val currentScreen = currentEntry.destination as Screen
 
         val showBottomBar = when (currentScreen) {
             Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading -> false
