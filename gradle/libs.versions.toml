@@ -8,7 +8,7 @@ ktor = "3.0.3"
 kotlinx-datetime = "0.6.0"
 kotlinx-serialization = "1.8.1"
 navigation3 = "1.0.0-alpha01"
-coil3 = "3.4.0"
+coil3 = "3.0.4"
 sqldelight = "2.0.2"
 lifecycle = "2.9.1"
 material3 = "1.4.0-alpha13"
@@ -51,7 +51,7 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "k
 ktor-server-auth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
-ktor-server-tests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
+ktor-server-tests = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 # SQLDelight
