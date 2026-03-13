@@ -13,7 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 @Serializable
@@ -80,8 +80,8 @@ fun Route.inviteRoutes() {
                     ?: return@post call.respond(HttpStatusCode.NotFound, "Invite not found")
 
                 // Check expiry
-                val expiresAt = LocalDateTime.parse(invite.expiresAt)
-                if (LocalDateTime.now().isAfter(expiresAt)) {
+                val expiresAt = Instant.parse(invite.expiresAt)
+                if (Instant.now().isAfter(expiresAt)) {
                     return@post call.respond(HttpStatusCode.Gone, "Invite link has expired")
                 }
 
