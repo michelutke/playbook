@@ -1,86 +1,84 @@
 package com.playbook.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation3.NavController
 import androidx.navigation3.NavHost
-import androidx.navigation3.NavWrapper
-import com.playbook.ui.emptystate.EmptyStateScreen
-import com.playbook.ui.emptystate.EmptyStateViewModel
-import com.playbook.ui.login.LoginScreen
-import com.playbook.ui.login.LoginViewModel
-import com.playbook.ui.register.RegisterScreen
-import com.playbook.ui.register.RegisterViewModel
 import com.playbook.ui.club.ClubSetupScreen
 import com.playbook.ui.club.ClubSetupViewModel
-import com.playbook.ui.team.TeamRosterScreen
-import com.playbook.ui.team.TeamRosterViewModel
+import com.playbook.ui.emptystate.EmptyStateScreen
+import com.playbook.ui.emptystate.EmptyStateViewModel
 import com.playbook.ui.invite.InviteScreen
 import com.playbook.ui.invite.InviteViewModel
+import com.playbook.ui.login.LoginScreen
+import com.playbook.ui.login.LoginViewModel
 import com.playbook.ui.placeholder.PlaceholderScreen
+import com.playbook.ui.register.RegisterScreen
+import com.playbook.ui.register.RegisterViewModel
+import com.playbook.ui.team.TeamRosterScreen
+import com.playbook.ui.team.TeamRosterViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
 fun AppNavigation(
-    navWrapper: NavWrapper<Screen>,
+    navController: NavController<Screen>,
     isLoggedIn: Boolean
 ) {
-    NavHost(
-        wrapper = navWrapper,
-    ) { screen ->
-        when (val s = screen as Screen) {
+    NavHost(navController = navController) { screen ->
+        when (screen) {
             Screen.Loading -> PlaceholderScreen("Loading...")
             Screen.Login -> {
                 val viewModel: LoginViewModel = koinViewModel(
-                    parameters = { parametersOf({ navWrapper.manager.navigate(Screen.Events) }) }
+                    parameters = { parametersOf({ navController.navigate(Screen.Events) }) }
                 )
                 LoginScreen(
                     viewModel = viewModel,
-                    onNavigateToRegister = { navWrapper.manager.navigate(Screen.Register) }
+                    onNavigateToRegister = { navController.navigate(Screen.Register) }
                 )
             }
             Screen.Register -> {
                 val viewModel: RegisterViewModel = koinViewModel(
-                    parameters = { parametersOf({ navWrapper.manager.navigate(Screen.EmptyState) }) }
+                    parameters = { parametersOf({ navController.navigate(Screen.EmptyState) }) }
                 )
                 RegisterScreen(
                     viewModel = viewModel,
-                    onNavigateToLogin = { navWrapper.manager.navigate(Screen.Login) }
+                    onNavigateToLogin = { navController.navigate(Screen.Login) }
                 )
             }
             Screen.EmptyState -> {
                 val viewModel: EmptyStateViewModel = koinViewModel()
                 EmptyStateScreen(
                     viewModel = viewModel,
-                    onNavigateToClubSetup = { navWrapper.manager.navigate(Screen.ClubSetup) },
-                    onNavigateToInvite = { token -> navWrapper.manager.navigate(Screen.Invite(token)) }
+                    onNavigateToClubSetup = { navController.navigate(Screen.ClubSetup) },
+                    onNavigateToInvite = { token -> navController.navigate(Screen.Invite(token)) }
                 )
             }
             Screen.ClubSetup -> {
                 val viewModel: ClubSetupViewModel = koinViewModel()
                 ClubSetupScreen(
                     viewModel = viewModel,
-                    onBack = { navWrapper.manager.pop() },
-                    onClubCreated = { clubId -> navWrapper.manager.navigate(Screen.Teams) }
+                    onBack = { navController.pop() },
+                    onClubCreated = { _ -> navController.navigate(Screen.Teams) }
                 )
             }
             is Screen.TeamRoster -> {
                 val viewModel: TeamRosterViewModel = koinViewModel()
                 TeamRosterScreen(
-                    teamId = s.teamId,
+                    teamId = screen.teamId,
                     viewModel = viewModel,
-                    onBack = { navWrapper.manager.pop() },
-                    onShareInvite = { url -> /* Handle share sheet */ }
+                    onBack = { navController.pop() },
+                    onShareInvite = { }
                 )
             }
             is Screen.Invite -> {
                 val viewModel: InviteViewModel = koinViewModel()
                 InviteScreen(
-                    token = s.token,
+                    token = screen.token,
                     viewModel = viewModel,
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = { token -> navWrapper.manager.navigate(Screen.Login) },
-                    onNavigateToRegister = { token -> navWrapper.manager.navigate(Screen.Register) },
-                    onJoinSuccess = { navWrapper.manager.navigate(Screen.Events) }
+                    onNavigateToLogin = { navController.navigate(Screen.Login) },
+                    onNavigateToRegister = { navController.navigate(Screen.Register) },
+                    onJoinSuccess = { navController.navigate(Screen.Events) }
                 )
             }
             Screen.Events -> PlaceholderScreen("Events List")

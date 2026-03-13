@@ -38,6 +38,7 @@ object DatabaseFactory {
     private fun runFlyway(dataSource: DataSource) {
         val flyway = Flyway.configure()
             .dataSource(dataSource)
+            .locations("classpath:db/migrations")
             .load()
         flyway.migrate()
     }
