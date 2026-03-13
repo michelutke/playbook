@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation3.NavBackStackEntry
-import androidx.navigation3.rememberNavController
 import com.playbook.auth.AuthState
 import com.playbook.auth.AuthViewModel
 import com.playbook.navigation.AppNavigation
@@ -21,58 +19,43 @@ fun PlaybookApp(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val authState by viewModel.state.collectAsState()
-    val navController = rememberNavController<Screen>(startDestination = Screen.Loading)
+    val backStack = remember { mutableStateListOf<Screen>(Screen.Loading) }
 
     PlaybookTheme {
         LaunchedEffect(authState) {
-            val state = authState
-            when (state) {
-                is AuthState.Loading -> navController.navigate(Screen.Loading)
+            when (val state = authState) {
+                is AuthState.Loading -> Unit
                 is AuthState.Unauthenticated -> {
-                    navController.navigate(Screen.Login) {
-                        popUpTo(Screen.Loading) { inclusive = true }
-                    }
+                    backStack.clear()
+                    backStack.add(Screen.Login)
                 }
                 is AuthState.Authenticated -> {
-                    if (!state.hasTeam) {
-                        navController.navigate(Screen.EmptyState) {
-                            popUpTo(Screen.Loading) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Screen.Events) {
-                            popUpTo(Screen.Loading) { inclusive = true }
-                        }
-                    }
+                    backStack.clear()
+                    backStack.add(if (!state.hasTeam) Screen.EmptyState else Screen.Events)
                 }
             }
         }
 
-        val currentEntry = navController.currentBackStack.lastOrNull()
-        if (currentEntry == null) {
-            Box(modifier = Modifier.fillMaxSize())
-            return@PlaybookTheme
-        }
-
-        val currentScreen = currentEntry.destination
-
-        val showBottomBar = when (currentScreen) {
-            Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading -> false
-            else -> true
-        }
+        val currentScreen = backStack.lastOrNull() ?: Screen.Loading
+        val showBottomBar = currentScreen !in listOf(
+            Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading
+        )
 
         Scaffold(
             bottomBar = {
                 if (showBottomBar) {
                     PlaybookBottomBar(
                         currentRoute = currentScreen.route,
-                        onNavigate = { screen -> navController.navigate(screen) }
+                        onNavigate = { screen ->
+                            backStack.add(screen)
+                        }
                     )
                 }
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 AppNavigation(
-                    navController = navController,
+                    backStack = backStack,
                     isLoggedIn = authState is AuthState.Authenticated
                 )
             }
