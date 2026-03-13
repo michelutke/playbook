@@ -33,7 +33,7 @@ fun Route.clubRoutes() {
     authenticate("jwt") {
         route("/clubs") {
             post {
-                authenticateUser(userRepository) { user ->
+                call.authenticateUser(userRepository) { user ->
                     val request = call.receive<CreateClubRequest>()
                     if (request.name.isBlank()) {
                         return@authenticateUser call.respond(HttpStatusCode.BadRequest, "Club name is required")

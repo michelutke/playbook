@@ -43,7 +43,7 @@ fun Route.inviteRoutes() {
                     return@post call.respond(HttpStatusCode.BadRequest, "Invalid role. Must be 'player' or 'coach'")
                 }
 
-                authenticateUser(userRepository) { user ->
+                call.authenticateUser(userRepository) { user ->
                     val invite = inviteRepository.create(
                         teamId = teamId,
                         createdByUserId = UUID.fromString(user.id),
@@ -86,7 +86,7 @@ fun Route.inviteRoutes() {
                 }
 
                 // Check if already redeemed by someone else
-                authenticateUser(userRepository) { user ->
+                call.authenticateUser(userRepository) { user ->
                     val userId = UUID.fromString(user.id)
                     
                     if (invite.redeemedAt != null && invite.redeemedByUserId != user.id) {

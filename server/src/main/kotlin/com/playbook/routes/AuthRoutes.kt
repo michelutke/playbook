@@ -86,7 +86,7 @@ fun Route.authRoutes() {
             }
 
             get("/me") {
-                authenticateUser(userRepository) { user ->
+                call.authenticateUser(userRepository) { user ->
                     call.respond(user)
                 }
             }
