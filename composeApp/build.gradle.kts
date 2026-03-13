@@ -22,7 +22,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.compose.navigation3.runtime)
+            implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.coil3.compose)
             implementation(libs.lc.viewmodel.compose)
@@ -32,7 +32,6 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
             implementation(libs.activity.compose)
-            implementation(libs.compose.navigation3.ui)
         }
 
         val androidUnitTest by getting {
