@@ -3,9 +3,9 @@ package com.playbook.plugins
 import com.playbook.di.StorageModule
 import com.playbook.domain.repositories.*
 import io.ktor.server.application.*
+import org.koin.core.logger.Level
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
-import org.koin.logger.slf4jLogger
 
 val appModule = module {
     single<UserRepository> { UserRepositoryImpl() }
@@ -16,7 +16,7 @@ val appModule = module {
 
 fun Application.configureKoin() {
     install(Koin) {
-        slf4jLogger()
+        printLogger(Level.INFO)
         modules(appModule, StorageModule)
     }
 }

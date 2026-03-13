@@ -46,6 +46,10 @@ kotlin {
 android {
     namespace = "com.playbook.shared"
     compileSdk = 36
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
     defaultConfig {
         minSdk = 26
         buildConfigField("String", "API_BASE_URL", "\"${System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL") ?: "https://api.playbook.app"}\"")

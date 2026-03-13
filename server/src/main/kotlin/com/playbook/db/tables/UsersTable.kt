@@ -2,6 +2,7 @@ package com.playbook.db.tables
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 
 object UsersTable : Table("users") {
     val id = uuid("id").defaultExpression(org.jetbrains.exposed.sql.CustomFunction("gen_random_uuid", org.jetbrains.exposed.sql.UUIDColumnType()))

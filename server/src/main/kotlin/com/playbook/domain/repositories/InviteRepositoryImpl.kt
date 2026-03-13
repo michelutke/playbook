@@ -5,10 +5,8 @@ import com.playbook.domain.models.InviteDetails
 import com.playbook.domain.models.InviteLink
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.and
-import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 class InviteRepositoryImpl : InviteRepository {
@@ -54,13 +52,13 @@ class InviteRepositoryImpl : InviteRepository {
         val teamId = invite[InviteLinksTable.teamId]
         val role = invite[InviteLinksTable.role]
 
-        if (isMember(teamId, userId, role)) {
+        if (checkIsMember(teamId, userId, role)) {
             return@transaction rowToInviteLink(InviteLinksTable.selectAll().where { InviteLinksTable.token eq token }.single())
         }
 
         // Atomic: Mark redeemed + create team_role
         InviteLinksTable.update({ InviteLinksTable.token eq token }) {
-            it[redeemedAt] = LocalDateTime.now()
+            it[redeemedAt] = Instant.now()
             it[redeemedByUserId] = userId
         }
 
@@ -80,10 +78,14 @@ class InviteRepositoryImpl : InviteRepository {
     }
 
     override suspend fun isMember(teamId: UUID, userId: UUID, role: String): Boolean = transaction {
-        !TeamRolesTable.selectAll().where { 
+        checkIsMember(teamId, userId, role)
+    }
+
+    // Non-suspend version for use inside transaction blocks
+    private fun checkIsMember(teamId: UUID, userId: UUID, role: String): Boolean =
+        !TeamRolesTable.selectAll().where {
             (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId) and (TeamRolesTable.role eq role)
         }.empty()
-    }
 
     private fun rowToInviteLink(row: ResultRow) = InviteLink(
         id = row[InviteLinksTable.id].toString(),
