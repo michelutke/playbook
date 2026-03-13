@@ -102,7 +102,7 @@ jobs:
     name: iOS XCTest Smoke Tests
     runs-on: macos-14
     needs: [test-backend, test-shared]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/phase-2-team-management'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
