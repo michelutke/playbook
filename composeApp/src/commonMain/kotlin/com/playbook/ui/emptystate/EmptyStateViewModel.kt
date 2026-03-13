@@ -39,7 +39,7 @@ class EmptyStateViewModel(
         viewModelScope.launch {
             authRepository.getMe().onSuccess { user ->
                 _state.value = _state.value.copy(
-                    profileLink = "playbook://profile/${user.userId}"
+                    profileLink = "playbook://invite/player/${user.userId}"
                 )
             }
         }
@@ -50,6 +50,9 @@ class EmptyStateViewModel(
     }
 
     fun onJoinTeamClick() {
+        _state.value = _state.value.copy(infoMessage = "Team joining will be available in Phase 2")
+        return
+
         val link = _state.value.inviteLink
         if (link.isBlank()) {
             _state.value = _state.value.copy(error = "Please paste an invite link")
