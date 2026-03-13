@@ -1,6 +1,6 @@
 package com.playbook.ui.team
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -159,7 +159,7 @@ fun MemberItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onLongClick = onLongClick),
+            .combinedClickable(onLongClick = onLongClick, onClick = {}),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
