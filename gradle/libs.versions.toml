@@ -61,7 +61,8 @@ sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", versi
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 
 # Compose / UI
-compose-navigation3 = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
+compose-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
+compose-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 lc-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
