@@ -26,13 +26,13 @@ kotlin {
             implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            implementation(libs.coil3.compose)
-            implementation(libs.lc.viewmodel.compose)
+            implementation(libs.compose.coil3.compose)
+            implementation(libs.compose.lc.viewmodel.compose)
         }
         
         androidMain.dependencies {
             implementation(libs.koin.android)
-            implementation(libs.lifecycle.process)
+            implementation(libs.compose.lifecycle.process)
             implementation(libs.activity.compose)
         }
 

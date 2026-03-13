@@ -3,6 +3,7 @@ package com.playbook.ui.register
 import com.playbook.domain.AuthResponse
 import com.playbook.domain.RegisterRequest
 import com.playbook.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import kotlin.test.*
@@ -13,12 +14,20 @@ class RegisterViewModelTest {
     private lateinit var repository: FakeAuthRepository
     private var navigateCalled = false
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeTest
     fun setup() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         repository = FakeAuthRepository()
         viewModel = RegisterViewModel(repository) {
             navigateCalled = true
         }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test

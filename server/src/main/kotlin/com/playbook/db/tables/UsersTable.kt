@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 
 object UsersTable : Table("users") {
-    val id = uuid("id").defaultExpression(org.jetbrains.exposed.sql.CustomFunction("gen_random_uuid", org.jetbrains.exposed.sql.UUIDColumnType()))
+    val id = uuid("id").clientDefault { java.util.UUID.randomUUID() }
     val email = text("email").uniqueIndex()
     val passwordHash = text("password_hash")
     val displayName = text("display_name")

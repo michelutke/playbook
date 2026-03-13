@@ -14,12 +14,20 @@ class LoginViewModelTest {
     private lateinit var repository: FakeAuthRepository
     private var navigateCalled = false
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeTest
     fun setup() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         repository = FakeAuthRepository()
         viewModel = LoginViewModel(repository) {
             navigateCalled = true
         }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test

@@ -33,50 +33,62 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose-version" }
 
 # Koin
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
-koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-compose" }
-koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-compose" }
-koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+[libraries.koin]
+core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-compose" }
+compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-compose" }
+ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 
 # Ktor Client
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
-ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+[libraries.ktor.client]
+core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+
+[libraries.ktor.serialization]
+kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 # Ktor Server
-ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
-ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
-ktor-server-auth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor" }
-ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor" }
-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
-ktor-server-tests = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+[libraries.ktor.server]
+core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+auth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor" }
+auth-jwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor" }
+content-negotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
+tests = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 
 # SQLDelight
-sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
-sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
-sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
-sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+[libraries.sqldelight]
+runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
+sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 
 # Compose / UI
-compose-navigation3 = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3-jb" }
+[libraries.compose]
+navigation3 = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3-jb" }
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 lc-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 
 # Database (Server)
-exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
-exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
-exposed-javatime = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+[libraries.exposed]
+core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+javatime = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+
+[libraries.db]
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+[libraries]
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 # Utilities
 simple-java-mail = { module = "org.simplejavamail:simple-java-mail", version.ref = "simple-java-mail" }

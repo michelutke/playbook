@@ -3,12 +3,10 @@ package com.playbook.db.tables
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
-import org.jetbrains.exposed.sql.CustomFunction
-import org.jetbrains.exposed.sql.UUIDColumnType
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 
 object TeamsTable : Table("teams") {
-    val id = uuid("id").defaultExpression(CustomFunction("gen_random_uuid", UUIDColumnType()))
+    val id = uuid("id").clientDefault { java.util.UUID.randomUUID() }
     val clubId = uuid("club_id").references(ClubsTable.id, onDelete = ReferenceOption.CASCADE)
     val name = text("name")
     val description = text("description").nullable()
@@ -20,7 +18,7 @@ object TeamsTable : Table("teams") {
 }
 
 object TeamRolesTable : Table("team_roles") {
-    val id = uuid("id").defaultExpression(CustomFunction("gen_random_uuid", UUIDColumnType()))
+    val id = uuid("id").clientDefault { java.util.UUID.randomUUID() }
     val userId = uuid("user_id").references(UsersTable.id, onDelete = ReferenceOption.CASCADE)
     val teamId = uuid("team_id").references(TeamsTable.id, onDelete = ReferenceOption.CASCADE)
     val role = text("role") // coach, player
