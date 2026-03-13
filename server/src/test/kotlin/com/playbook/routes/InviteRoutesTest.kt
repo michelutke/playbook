@@ -2,6 +2,7 @@ package com.playbook.routes
 
 import com.playbook.domain.models.*
 import com.playbook.test.IntegrationTestBase
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -16,8 +17,12 @@ import kotlin.test.assertTrue
 
 class InviteRoutesTest : IntegrationTestBase() {
 
+    private fun ApplicationTestBuilder.createJsonClient(): HttpClient {
+        return createClient { install(ContentNegotiation) { json() } }
+    }
+
     private suspend fun ApplicationTestBuilder.setupAuthUser(email: String): AuthResponse {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         return client.post("/auth/register") {
             contentType(ContentType.Application.Json)
             setBody(RegisterRequest(email, "password123", "User $email"))
@@ -25,7 +30,7 @@ class InviteRoutesTest : IntegrationTestBase() {
     }
 
     private suspend fun ApplicationTestBuilder.setupClubAndTeam(token: String): String {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         val clubResp = client.post("/clubs") {
             header(HttpHeaders.Authorization, "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -43,7 +48,7 @@ class InviteRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `full invite flow - create, get details, redeem`() = withPlaybookTestApplication {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         
         // 1. Setup: Coach creates a team
         val coachAuth = setupAuthUser("coach@test.com")
@@ -91,7 +96,7 @@ class InviteRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `redeem - already redeemed by another user returns 409`() = withPlaybookTestApplication {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         val coachAuth = setupAuthUser("coach2@test.com")
         val teamId = setupClubAndTeam(coachAuth.token)
         
@@ -115,7 +120,7 @@ class InviteRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `redeem - already member returns 200 idempotent`() = withPlaybookTestApplication {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         val coachAuth = setupAuthUser("coach3@test.com")
         val teamId = setupClubAndTeam(coachAuth.token)
         
@@ -141,14 +146,14 @@ class InviteRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `redeem - unauthenticated returns 401`() = withPlaybookTestApplication {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         val response = client.post("/invites/some-token/redeem")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
     
     @Test
     fun `create invite - unauthorized returns 403`() = withPlaybookTestApplication {
-        val client = createClient { install(ContentNegotiation) { json() } }
+        val client = createJsonClient()
         val coachAuth = setupAuthUser("coach4@test.com")
         val teamId = setupClubAndTeam(coachAuth.token)
         

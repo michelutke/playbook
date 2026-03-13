@@ -1,7 +1,8 @@
 package com.playbook.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation3.*
+import androidx.navigation3.NavHost
+import androidx.navigation3.NavController
 import com.playbook.ui.emptystate.EmptyStateScreen
 import com.playbook.ui.emptystate.EmptyStateViewModel
 import com.playbook.ui.login.LoginScreen
@@ -26,7 +27,7 @@ fun AppNavigation(
     NavHost(
         navController = navController,
     ) { screen ->
-        when (screen) {
+        when (val s = screen as Screen) {
             Screen.Loading -> PlaceholderScreen("Loading...")
             Screen.Login -> {
                 val viewModel: LoginViewModel = koinViewModel(
@@ -65,7 +66,7 @@ fun AppNavigation(
             is Screen.TeamRoster -> {
                 val viewModel: TeamRosterViewModel = koinViewModel()
                 TeamRosterScreen(
-                    teamId = screen.teamId,
+                    teamId = s.teamId,
                     viewModel = viewModel,
                     onBack = { navController.pop() },
                     onShareInvite = { url -> /* Handle share sheet */ }
@@ -74,7 +75,7 @@ fun AppNavigation(
             is Screen.Invite -> {
                 val viewModel: InviteViewModel = koinViewModel()
                 InviteScreen(
-                    token = screen.token,
+                    token = s.token,
                     viewModel = viewModel,
                     isLoggedIn = isLoggedIn,
                     onNavigateToLogin = { token -> navController.navigate(Screen.Login) },
