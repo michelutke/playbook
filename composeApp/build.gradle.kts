@@ -27,7 +27,6 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil3.compose)
@@ -38,6 +37,8 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
             implementation(libs.activity.compose)
+            // navigation3-ui has no iOS variant — Android only
+            implementation(libs.compose.navigation3)
         }
 
         val androidUnitTest by getting {
@@ -57,15 +58,6 @@ kotlin {
     
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-}
-
-// navigationevent-compose has no iOS/native artifacts — it's Android-only.
-// navigation3-ui's iOS variant incorrectly declares a dependency on it.
-// Exclude from all iOS/native configurations to unblock the iOS framework build.
-configurations.configureEach {
-    if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
-        exclude(group = "androidx.navigationevent")
     }
 }
 
