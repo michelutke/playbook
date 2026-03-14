@@ -60,6 +60,15 @@ kotlin {
     }
 }
 
+// navigationevent-compose has no iOS/native artifacts — it's Android-only.
+// navigation3-ui's iOS variant incorrectly declares a dependency on it.
+// Exclude from all iOS/native configurations to unblock the iOS framework build.
+configurations.configureEach {
+    if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
+        exclude(group = "androidx.navigationevent")
+    }
+}
+
 android {
     namespace = "com.playbook.compose"
     compileSdk = 36
