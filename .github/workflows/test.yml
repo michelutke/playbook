@@ -2,9 +2,10 @@ name: Test Suite
 
 on:
   push:
-    branches: [main, feat/phase-2-team-management]
+    branches:
+      - 'feat/**'
   pull_request:
-    branches: [main, feat/phase-2-team-management]
+    branches: [ main ]
 
 jobs:
   # ──────────────────────────────────────────────
