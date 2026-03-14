@@ -127,6 +127,7 @@ jobs:
           [ -f "$PG_DATA/pg_hba.conf" ] && sed -i '' 's/scram-sha-256/trust/g' "$PG_DATA/pg_hba.conf"
           brew services start "$PG"
           sleep 5
+          # Use runner superuser (created by initdb) — no separate role needed
           createdb playbook_ios_test
 
       - name: Build and start Ktor backend
@@ -134,7 +135,9 @@ jobs:
           ./gradlew :server:installDist
           server/build/install/server/bin/server > /tmp/ktor.log 2>&1 &
           echo $! > ktor.pid
+          echo "Server PID: $(cat ktor.pid)"
         env:
+          # runner is the postgres superuser — no user/password needed with trust auth
           DATABASE_URL: jdbc:postgresql://localhost:5432/playbook_ios_test
           JWT_SECRET: ios-ci-test-secret
           PORT: 8080
