@@ -103,7 +103,7 @@ jobs:
     name: iOS XCTest Smoke Tests
     runs-on: macos-14
     needs: [test-backend, test-shared]
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
