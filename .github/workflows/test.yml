@@ -103,7 +103,7 @@ jobs:
     name: iOS XCTest Smoke Tests
     runs-on: macos-14
     needs: [test-backend, test-shared]
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -114,24 +114,17 @@ jobs:
 
       - name: Start PostgreSQL
         run: |
-          # Detect installed postgres formula, install if missing
           PG=$(brew list --formula 2>/dev/null | grep "^postgresql@" | sort -V | tail -1)
           if [ -z "$PG" ]; then
-            echo "No PostgreSQL formula found, installing postgresql@16..."
             brew install postgresql@16
             PG="postgresql@16"
           fi
-          echo "Using formula: $PG"
-          # Add postgres binaries to PATH (keg-only formula, not auto-linked)
           PG_BIN="/opt/homebrew/opt/$PG/bin"
           PG_DATA="/opt/homebrew/var/$PG"
           echo "$PG_BIN" >> $GITHUB_PATH
           export PATH="$PG_BIN:$PATH"
-          # Force trust auth for all local connections — avoids SCRAM/password issues
-          if [ -f "$PG_DATA/pg_hba.conf" ]; then
-            sed -i '' 's/scram-sha-256/trust/g' "$PG_DATA/pg_hba.conf"
-            echo "Set pg_hba.conf to trust auth"
-          fi
+          # Force trust auth — avoids SCRAM/password issues on TCP connections
+          [ -f "$PG_DATA/pg_hba.conf" ] && sed -i '' 's/scram-sha-256/trust/g' "$PG_DATA/pg_hba.conf"
           brew services start "$PG"
           sleep 5
           # Use runner superuser (created by initdb) — no separate role needed
@@ -140,7 +133,6 @@ jobs:
       - name: Build and start Ktor backend
         run: |
           ./gradlew :server:installDist
-          # Redirect server output to log file for debugging
           server/build/install/server/bin/server > /tmp/ktor.log 2>&1 &
           echo $! > ktor.pid
           echo "Server PID: $(cat ktor.pid)"
@@ -153,35 +145,24 @@ jobs:
       - name: Wait for backend health
         run: |
           for i in $(seq 1 30); do
-            # Fail fast if server process already died
             if ! kill -0 $(cat ktor.pid 2>/dev/null) 2>/dev/null; then
-              echo "Server process died. Logs:"
-              cat /tmp/ktor.log
-              exit 1
+              echo "Server process died. Logs:"; cat /tmp/ktor.log; exit 1
             fi
             if curl -sf http://localhost:8080/health; then
-              echo "Backend ready after $i attempts"
-              exit 0
+              echo "Backend ready after $i attempts"; exit 0
             fi
             echo "Waiting... ($i/30)"; sleep 3
           done
-          echo "Server never became healthy. Logs:"
-          cat /tmp/ktor.log
-          exit 1
+          echo "Server never became healthy. Logs:"; cat /tmp/ktor.log; exit 1
 
       - name: Seed test data
         run: |
-          # Register test user
           RESPONSE=$(curl -sf -X POST http://localhost:8080/auth/register \
             -H 'Content-Type: application/json' \
             -d '{"email":"test@playbook.test","password":"testpassword","displayName":"Test Coach"}')
           USER_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['userId'])")
-          echo "Registered user: $USER_ID"
-
           CLUB_ID=$(python3 -c "import uuid; print(uuid.uuid4())")
           TEAM_ID=$(python3 -c "import uuid; print(uuid.uuid4())")
-
-          # Use local socket (peer auth as runner superuser — no -h, no -U needed)
           PG="psql -d playbook_ios_test"
           $PG -c "INSERT INTO clubs (id, name, sport_type, created_at, updated_at) VALUES ('$CLUB_ID', 'Test Club', 'volleyball', now(), now());"
           $PG -c "INSERT INTO club_roles (id, user_id, club_id, role, created_at) VALUES (gen_random_uuid(), '$USER_ID', '$CLUB_ID', 'club_manager', now());"
@@ -189,16 +170,23 @@ jobs:
           $PG -c "INSERT INTO team_roles (id, user_id, team_id, role, created_at) VALUES (gen_random_uuid(), '$USER_ID', '$TEAM_ID', 'coach', now());"
           echo "Seed complete"
 
-      - name: Build KMP framework for iOS
-        run: ./gradlew :composeApp:assembleXCFramework
+      - name: Install Tuist
+        run: brew install tuist/tuist/tuist
+
+      - name: Build KMP framework (iosSimulatorArm64)
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+
+      - name: Generate Xcode project
+        run: cd iosApp && tuist install && tuist generate --no-open
 
       - name: Run iOS XCTest smoke tests
         run: |
           xcodebuild test \
-            -project iosApp/iosApp.xcodeproj \
+            -workspace iosApp/iosApp.xcworkspace \
             -scheme iosApp \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath TestResults.xcresult \
+            API_BASE_URL=http://localhost:8080 \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty
 
@@ -206,5 +194,4 @@ jobs:
         if: always()
         run: |
           kill $(cat ktor.pid) 2>/dev/null || true
-          echo "=== Server logs ==="
-          cat /tmp/ktor.log || true
+          echo "=== Server logs ===" && cat /tmp/ktor.log || true
