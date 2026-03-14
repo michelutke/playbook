@@ -5,5 +5,5 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 
 actual abstract class KmpViewModel : ViewModel() {
-    actual val viewModelScope: CoroutineScope = this.viewModelScope
+    actual val viewModelScope: CoroutineScope = (this as ViewModel).viewModelScope
 }
