@@ -27,6 +27,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.navigation3)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil3.compose)
@@ -37,8 +38,6 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
             implementation(libs.activity.compose)
-            // navigation3-ui has no iOS variant — Android only
-            implementation(libs.compose.navigation3)
         }
 
         val androidUnitTest by getting {
@@ -58,6 +57,15 @@ kotlin {
     
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+}
+
+// navigationevent-compose-iossimulatorarm64 only exists up to 1.0.0-alpha07 on Google Maven.
+// Gradle conflict resolution can upgrade it to 1.0.2 (stable, Android-only) which has no
+// iOS variant. Pin it to 1.0.0-alpha07 for iOS/native configurations only.
+configurations.configureEach {
+    if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
+        resolutionStrategy.force("androidx.navigationevent:navigationevent-compose:1.0.0-alpha07")
     }
 }
 
