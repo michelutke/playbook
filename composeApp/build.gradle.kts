@@ -10,9 +10,12 @@ plugins {
 kotlin {
     androidTarget()
     
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
     
     sourceSets {
         commonMain.dependencies {
@@ -54,6 +57,15 @@ kotlin {
     
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+}
+
+// navigationevent-compose-iossimulatorarm64 only exists up to 1.0.0-alpha07 on Google Maven.
+// Gradle conflict resolution can upgrade it to 1.0.2 (stable, Android-only) which has no
+// iOS variant. Pin it to 1.0.0-alpha07 for iOS/native configurations only.
+configurations.configureEach {
+    if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
+        resolutionStrategy.force("androidx.navigationevent:navigationevent-compose:1.0.0-alpha07")
     }
 }
 
