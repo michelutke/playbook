@@ -1,9 +1,6 @@
 name: Test Suite
 
 on:
-  push:
-    branches:
-      - 'feat/**'
   pull_request:
     branches: [ main ]
 
