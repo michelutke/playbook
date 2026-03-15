@@ -21,3 +21,5 @@ admin/.env
 # Temporary
 failed example project/
 server/uploads/
+composeApp/src/androidMain/kotlin/com/playbook/navigation.bak/
+composeApp/src/iosMain/kotlin/com/playbook/navigation.bak/

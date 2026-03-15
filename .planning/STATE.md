@@ -36,9 +36,9 @@
 - ❌ Not fully tested end-to-end on device
 
 ## Open Items (before closing Phase 1)
-1. Wire CMP UI into `iosApp/iosApp/iOSApp.swift` — replace placeholder with actual app
-2. Add SPM deps to `iosApp/Project.swift` as needed (Miggi to add)
-3. Verify iOS app runs in simulator with auth flow working
+1. ✅ Wire CMP UI into `iosApp/iosApp/iOSApp.swift` — `MainViewController.kt` + UIViewControllerRepresentable
+2. Add SPM deps to `iosApp/Project.swift` as needed (Miggi to add if needed)
+3. Verify iOS app runs in simulator with auth flow working (Miggi, needs Mac)
 
 ## Notes
 - `failed example project/` can be deleted once iOS is running

@@ -1,8 +1,2 @@
-import SwiftUI
-
-struct ContentView: View {
-    var body: some View {
-        Text("Playbook KMP")
-            .padding()
-    }
-}
+// ContentView is now defined as a UIViewControllerRepresentable in iOSApp.swift.
+// This file is intentionally empty.
