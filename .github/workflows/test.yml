@@ -101,7 +101,7 @@ jobs:
 
   test-ios:
     name: iOS XCTest Smoke Tests
-    runs-on: macos-14
+    runs-on: macos-15
     needs: [test-backend, test-shared]
     if: github.event_name == 'pull_request'
     steps:
