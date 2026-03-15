@@ -2,7 +2,7 @@ import ProjectDescription
 
 // KMP framework built by: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
 // Output: composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework
-let composeFramework: Path = "../../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework"
+let composeFramework: Path = "../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework"
 
 let project = Project(
     name: "iosApp",
