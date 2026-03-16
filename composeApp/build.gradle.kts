@@ -28,16 +28,18 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.compose.navigation3)
+            implementation(libs.koin.core)
             implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil3.compose)
-            implementation(libs.lc.viewmodel.compose)
         }
         
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.lifecycle.process)
             implementation(libs.activity.compose)
+        }
+
+        iosMain.dependencies {
         }
 
         val androidUnitTest by getting {
@@ -60,12 +62,21 @@ kotlin {
     }
 }
 
-// navigationevent-compose-iossimulatorarm64 only exists up to 1.0.0-alpha07 on Google Maven.
-// Gradle conflict resolution can upgrade it to 1.0.2 (stable, Android-only) which has no
-// iOS variant. Pin it to 1.0.0-alpha07 for iOS/native configurations only.
+// kotlinx-datetime 0.7.x typealiases (Instant = kotlin.time.Instant) cause a Kotlin/Native IR
+// ClassCastException during framework linking with CMP 1.10.1. Force 0.6.0 until upstream fix lands.
+configurations.all {
+    resolutionStrategy.force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+}
+
+// navigationevent-compose: Google Maven only has up to alpha07 for iOS variants.
+// Substitute Google artifact with JetBrains UIKit variant (rc01) for iOS/native configs.
+// This ensures NavDisplay and MainViewController both reference the same CompositionLocal singleton.
 configurations.configureEach {
     if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
-        resolutionStrategy.force("androidx.navigationevent:navigationevent-compose:1.0.0-alpha07")
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("androidx.navigationevent:navigationevent-compose"))
+                .using(module("org.jetbrains.androidx.navigationevent:navigationevent-compose:1.0.0-rc01"))
+        }
     }
 }
 

@@ -16,7 +16,7 @@ import com.playbook.ui.register.RegisterScreen
 import com.playbook.ui.register.RegisterViewModel
 import com.playbook.ui.team.TeamRosterScreen
 import com.playbook.ui.team.TeamRosterViewModel
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -33,7 +33,7 @@ fun AppNavigation(
                     PlaceholderScreen("Loading...")
                 }
                 Screen.Login -> NavEntry(screen) {
-                    val viewModel: LoginViewModel = koinViewModel(
+                    val viewModel: LoginViewModel = kmpViewModel(
                         parameters = { parametersOf({ backStack.add(Screen.Events) }) }
                     )
                     LoginScreen(
@@ -42,7 +42,7 @@ fun AppNavigation(
                     )
                 }
                 Screen.Register -> NavEntry(screen) {
-                    val viewModel: RegisterViewModel = koinViewModel(
+                    val viewModel: RegisterViewModel = kmpViewModel(
                         parameters = { parametersOf({ backStack.add(Screen.EmptyState) }) }
                     )
                     RegisterScreen(
@@ -51,7 +51,7 @@ fun AppNavigation(
                     )
                 }
                 Screen.EmptyState -> NavEntry(screen) {
-                    val viewModel: EmptyStateViewModel = koinViewModel()
+                    val viewModel: EmptyStateViewModel = kmpViewModel()
                     EmptyStateScreen(
                         viewModel = viewModel,
                         onNavigateToClubSetup = { backStack.add(Screen.ClubSetup) },
@@ -59,7 +59,7 @@ fun AppNavigation(
                     )
                 }
                 Screen.ClubSetup -> NavEntry(screen) {
-                    val viewModel: ClubSetupViewModel = koinViewModel()
+                    val viewModel: ClubSetupViewModel = kmpViewModel()
                     ClubSetupScreen(
                         viewModel = viewModel,
                         onBack = { backStack.removeAt(backStack.lastIndex) },
@@ -67,7 +67,7 @@ fun AppNavigation(
                     )
                 }
                 is Screen.TeamRoster -> NavEntry(screen) {
-                    val viewModel: TeamRosterViewModel = koinViewModel()
+                    val viewModel: TeamRosterViewModel = kmpViewModel()
                     TeamRosterScreen(
                         teamId = screen.teamId,
                         viewModel = viewModel,
@@ -76,7 +76,7 @@ fun AppNavigation(
                     )
                 }
                 is Screen.Invite -> NavEntry(screen) {
-                    val viewModel: InviteViewModel = koinViewModel()
+                    val viewModel: InviteViewModel = kmpViewModel()
                     InviteScreen(
                         token = screen.token,
                         viewModel = viewModel,
