@@ -12,11 +12,11 @@ import com.playbook.navigation.AppNavigation
 import com.playbook.navigation.Screen
 import com.playbook.ui.components.PlaybookBottomBar
 import com.playbook.ui.theme.PlaybookTheme
-import org.koin.compose.viewmodel.koinViewModel
+import com.playbook.di.kmpViewModel
 
 @Composable
 fun PlaybookApp(
-    viewModel: AuthViewModel = koinViewModel()
+    viewModel: AuthViewModel = kmpViewModel()
 ) {
     val authState by viewModel.state.collectAsState()
     val backStack = remember { mutableStateListOf<Screen>(Screen.Loading) }
