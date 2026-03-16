@@ -13,7 +13,19 @@ let project = Project(
             product: .app,
             bundleId: "com.playbook.ios",
             deploymentTargets: .iOS("16.0"),
-            infoPlist: .default,
+            infoPlist: .extendingDefault(with: [
+                "UIApplicationSceneManifest": .dictionary([
+                    "UIApplicationSupportsMultipleScenes": .boolean(false),
+                    "UISceneConfigurations": .dictionary([
+                        "UIWindowSceneSessionRoleApplication": .array([
+                            .dictionary([
+                                "UISceneConfigurationName": .string("Default Configuration"),
+                                "UISceneClassName": .string("UIWindowScene"),
+                            ])
+                        ])
+                    ])
+                ])
+            ]),
             sources: ["iosApp/**"],
             dependencies: [
                 .framework(path: composeFramework, status: .optional)
