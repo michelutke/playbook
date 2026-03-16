@@ -68,15 +68,13 @@ configurations.all {
     resolutionStrategy.force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 }
 
-// navigationevent-compose: Google Maven only has up to alpha07 for iOS variants.
-// Substitute Google artifact with JetBrains UIKit variant (rc01) for iOS/native configs.
-// This ensures NavDisplay and MainViewController both reference the same CompositionLocal singleton.
+// navigationevent-compose: Google Maven only publishes alpha07 with Kotlin Native klibs.
+// Force alpha07 for iOS/native configs — nav3 dev2887 klib was compiled against this version.
+// JetBrains rc01 substitution does NOT work: Kotlin Native linker matches by unique_name,
+// so substituting creates two singletons in the binary → NavDisplay gets null → crash.
 configurations.configureEach {
     if (name.contains("ios", ignoreCase = true) || name.contains("native", ignoreCase = true)) {
-        resolutionStrategy.dependencySubstitution {
-            substitute(module("androidx.navigationevent:navigationevent-compose"))
-                .using(module("org.jetbrains.androidx.navigationevent:navigationevent-compose:1.0.0-rc01"))
-        }
+        resolutionStrategy.force("androidx.navigationevent:navigationevent-compose:1.0.0-alpha07")
     }
 }
 
