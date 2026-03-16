@@ -17,7 +17,6 @@ import com.playbook.ui.register.RegisterViewModel
 import com.playbook.ui.team.TeamRosterScreen
 import com.playbook.ui.team.TeamRosterViewModel
 import com.playbook.di.kmpViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun AppNavigation(
@@ -33,20 +32,18 @@ fun AppNavigation(
                     PlaceholderScreen("Loading...")
                 }
                 Screen.Login -> NavEntry(screen) {
-                    val viewModel: LoginViewModel = kmpViewModel(
-                        parameters = { parametersOf({ backStack.add(Screen.Events) }) }
-                    )
+                    val viewModel: LoginViewModel = kmpViewModel()
                     LoginScreen(
                         viewModel = viewModel,
+                        onLoginSuccess = { backStack.add(Screen.Events) },
                         onNavigateToRegister = { backStack.add(Screen.Register) }
                     )
                 }
                 Screen.Register -> NavEntry(screen) {
-                    val viewModel: RegisterViewModel = kmpViewModel(
-                        parameters = { parametersOf({ backStack.add(Screen.EmptyState) }) }
-                    )
+                    val viewModel: RegisterViewModel = kmpViewModel()
                     RegisterScreen(
                         viewModel = viewModel,
+                        onRegisterSuccess = { backStack.add(Screen.EmptyState) },
                         onNavigateToLogin = { backStack.add(Screen.Login) }
                     )
                 }

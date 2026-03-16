@@ -2,8 +2,10 @@ package com.playbook.ui.register
 
 import com.playbook.di.KmpViewModel
 import com.playbook.repository.AuthRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 data class RegisterUiState(
@@ -16,12 +18,14 @@ data class RegisterUiState(
 )
 
 class RegisterViewModel(
-    private val authRepository: AuthRepository,
-    private val onRegisterSuccess: () -> Unit
+    private val authRepository: AuthRepository
 ) : KmpViewModel() {
 
     private val _state = MutableStateFlow(RegisterUiState())
     val state = _state.asStateFlow()
+
+    private val _registerSuccess = Channel<Unit>(Channel.CONFLATED)
+    val registerSuccess = _registerSuccess.receiveAsFlow()
 
     fun onDisplayNameChange(name: String) {
         _state.value = _state.value.copy(displayName = name, error = null)
@@ -41,8 +45,8 @@ class RegisterViewModel(
 
     fun onRegisterClick() {
         val currentState = _state.value
-        
-        if (currentState.displayName.isBlank() || currentState.email.isBlank() || 
+
+        if (currentState.displayName.isBlank() || currentState.email.isBlank() ||
             currentState.password.isBlank() || currentState.confirmPassword.isBlank()) {
             _state.value = currentState.copy(error = "Please fill in all fields")
             return
@@ -69,7 +73,7 @@ class RegisterViewModel(
             ).fold(
                 onSuccess = {
                     _state.value = _state.value.copy(isLoading = false)
-                    onRegisterSuccess()
+                    _registerSuccess.send(Unit)
                 },
                 onFailure = { error ->
                     _state.value = _state.value.copy(

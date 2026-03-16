@@ -2,8 +2,10 @@ package com.playbook.ui.login
 
 import com.playbook.di.KmpViewModel
 import com.playbook.repository.AuthRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 data class LoginUiState(
@@ -14,12 +16,14 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val authRepository: AuthRepository,
-    private val onLoginSuccess: () -> Unit
+    private val authRepository: AuthRepository
 ) : KmpViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
     val state = _state.asStateFlow()
+
+    private val _loginSuccess = Channel<Unit>(Channel.CONFLATED)
+    val loginSuccess = _loginSuccess.receiveAsFlow()
 
     fun onEmailChange(email: String) {
         _state.value = _state.value.copy(email = email, error = null)
@@ -41,7 +45,7 @@ class LoginViewModel(
             authRepository.login(com.playbook.domain.LoginRequest(currentState.email, currentState.password)).fold(
                 onSuccess = {
                     _state.value = _state.value.copy(isLoading = false)
-                    onLoginSuccess()
+                    _loginSuccess.send(Unit)
                 },
                 onFailure = { error ->
                     _state.value = _state.value.copy(

@@ -3,7 +3,7 @@
 ## Current State
 - **Active phase:** Phase 1 — completing iOS wiring
 - **Mode:** YOLO
-- **Last updated:** 2026-03-15
+- **Last updated:** 2026-03-16
 
 ## Phase Status
 
@@ -27,7 +27,9 @@
 - ✅ Auth screens: Login, Register (Android working)
 - ✅ CI/CD: Test Suite + Deploy Android pipelines, iOS XCTest smoke tests
 - ✅ iOS scaffold: Tuist project, KMP framework linked, smoke tests run in CI
-- ❌ iOS app UI: entry point not wired to CMP (shows placeholder text only)
+- ✅ iOS UIKit lifecycle wired (AppDelegate + UIWindowSceneDelegate)
+- ✅ NavigationEventDispatcher crash fixed (JetBrains rc01 substitution)
+- ⏳ Waiting for Miggi to verify in simulator
 
 ### Phase 2 — Team Management
 - ✅ Backend: clubs, teams, invite system, role assignments, sub-groups (DB + API)
@@ -36,9 +38,10 @@
 - ❌ Not fully tested end-to-end on device
 
 ## Open Items (before closing Phase 1)
-1. ✅ Wire CMP UI into `iosApp/iosApp/iOSApp.swift` — `MainViewController.kt` + UIViewControllerRepresentable
-2. Add SPM deps to `iosApp/Project.swift` as needed (Miggi to add if needed)
-3. Verify iOS app runs in simulator with auth flow working (Miggi, needs Mac)
+1. ✅ Wire CMP UI into `iosApp/iosApp/iOSApp.swift` — UIKit lifecycle
+2. ✅ Fix NavigationEventDispatcher crash (2026-03-16)
+3. Add SPM deps to `iosApp/Project.swift` as needed (Miggi to add if needed)
+4. Verify iOS app runs in simulator with auth flow working (Miggi, needs Mac)
 
 ## Notes
 - `failed example project/` can be deleted once iOS is running

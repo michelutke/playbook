@@ -19,10 +19,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel,
+    onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.registerSuccess.collect { onRegisterSuccess() }
+    }
 
     Box(
         modifier = Modifier

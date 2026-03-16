@@ -20,10 +20,15 @@ import com.playbook.ui.theme.PlaybookTheme
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
+    onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loginSuccess.collect { onLoginSuccess() }
+    }
 
     Box(
         modifier = Modifier
