@@ -1,25 +1,39 @@
-import SwiftUI
+import UIKit
 import ComposeApp
 
 @main
-struct iOSApp: App {
-    init() {
-        // Start Koin DI once at app launch
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    ) -> Bool {
         MainViewControllerKt.doInitKoin()
+        return true
     }
 
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .ignoresSafeArea(.keyboard)
-        }
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
     }
 }
 
-struct ContentView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController()
-    }
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = MainViewControllerKt.MainViewController()
+        self.window = window
+        window.makeKeyAndVisible()
+    }
 }
