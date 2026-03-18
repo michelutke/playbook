@@ -21,8 +21,5 @@ node_modules/
 # Server uploads (real user data)
 server/uploads/
 
-# KMP jvmMain stub
-shared/src/jvmMain/
-
 # Release keystore
 composeApp/release.jks
