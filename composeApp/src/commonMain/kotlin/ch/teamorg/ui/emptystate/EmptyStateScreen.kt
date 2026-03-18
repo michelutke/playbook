@@ -11,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -36,6 +39,7 @@ fun EmptyStateScreen(
             .background(Color(0xFF090912))
             .padding(24.dp)
             .statusBarsPadding()
+            .testTagsAsResourceId()
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -78,12 +82,12 @@ fun EmptyStateScreen(
                         value = state.inviteLink,
                         onValueChange = { viewModel.onInviteLinkChange(it) },
                         label = { Text("Paste invite link") },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("tf_invite_link"),
                         singleLine = true
                     )
                     Button(
                         onClick = { viewModel.onJoinTeamClick() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("btn_join_team"),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4F8EF7))
                     ) {
                         Text("Join Team")
@@ -108,7 +112,7 @@ fun EmptyStateScreen(
                     Text("Starting a new club for your organization?", color = Color.Gray)
                     Button(
                         onClick = { viewModel.onCreateClubClick() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("btn_setup_club"),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF97316))
                     ) {
                         Text("Set up your club")
@@ -138,7 +142,10 @@ fun EmptyStateScreen(
                             color = Color.LightGray,
                             maxLines = 1
                         )
-                        IconButton(onClick = { viewModel.onProfileLinkCopied() }) {
+                        IconButton(
+                            onClick = { viewModel.onProfileLinkCopied() },
+                            modifier = Modifier.testTag("btn_copy_profile_link")
+                        ) {
                             Icon(Icons.Default.ContentCopy, contentDescription = "Copy", tint = Color(0xFF4F8EF7))
                         }
                     }

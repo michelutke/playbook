@@ -22,15 +22,15 @@
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EDDC9037D014CD9DDCA653AC"
-               BuildableName = "iosAppTests.xctest"
-               BlueprintName = "iosAppTests"
+               BlueprintIdentifier = "A7B8C9D0E1F2A3B4C5D6E7F8"
+               BuildableName = "iosAppUITests.xctest"
+               BlueprintName = "iosAppUITests"
                ReferencedContainer = "container:iosApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,9 +47,9 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EDDC9037D014CD9DDCA653AC"
-               BuildableName = "iosAppTests.xctest"
-               BlueprintName = "iosAppTests"
+               BlueprintIdentifier = "A7B8C9D0E1F2A3B4C5D6E7F8"
+               BuildableName = "iosAppUITests.xctest"
+               BlueprintName = "iosAppUITests"
                ReferencedContainer = "container:iosApp.xcodeproj">
             </BuildableReference>
          </TestableReference>

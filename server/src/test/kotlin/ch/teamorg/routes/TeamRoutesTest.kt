@@ -167,4 +167,135 @@ class TeamRoutesTest : IntegrationTestBase() {
         val members = response.body<List<TeamMember>>()
         assertEquals(0, members.size)
     }
+
+    @Test
+    fun `delete team as non-manager returns 403`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("delmgr@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Delete Club"))
+        }.body<Club>().id
+
+        val teamId = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Delete Me"))
+        }.body<Team>().id
+
+        val otherAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("delother@example.com", "password123", "Non Manager"))
+        }.body<AuthResponse>()
+
+        val response = client.delete("/teams/$teamId") {
+            header(HttpHeaders.Authorization, "Bearer ${otherAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `update team as non-member returns 403`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("updmgr@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Update Club"))
+        }.body<Club>().id
+
+        val teamId = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Protected Team"))
+        }.body<Team>().id
+
+        val otherAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("updother@example.com", "password123", "Non Member"))
+        }.body<AuthResponse>()
+
+        val response = client.patch("/teams/$teamId") {
+            header(HttpHeaders.Authorization, "Bearer ${otherAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(UpdateTeamRequest(name = "Hijacked Name"))
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `get nonexistent team returns 404`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val auth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("team404@example.com", "password123", "Creator"))
+        }.body<AuthResponse>()
+
+        val response = client.get("/teams/00000000-0000-0000-0000-000000000000") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
+    fun `members list contains user after invite redeem`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("memmgr@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Members Club"))
+        }.body<Club>().id
+
+        val teamId = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Members Team"))
+        }.body<Team>().id
+
+        val inviteToken = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        val playerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("memplayer@example.com", "password123", "Player User"))
+        }.body<AuthResponse>()
+
+        client.post("/invites/$inviteToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        val response = client.get("/teams/$teamId/members") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val members = response.body<List<TeamMember>>()
+        assertEquals(1, members.size)
+        assertEquals("Player User", members[0].displayName)
+        assertEquals("player", members[0].role)
+    }
 }

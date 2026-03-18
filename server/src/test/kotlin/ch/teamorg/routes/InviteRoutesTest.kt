@@ -1,5 +1,8 @@
 package ch.teamorg.routes
 
+import ch.teamorg.db.tables.InviteLinksTable
+import ch.teamorg.db.tables.TeamsTable
+import ch.teamorg.db.tables.UsersTable
 import ch.teamorg.domain.models.*
 import ch.teamorg.test.IntegrationTestBase
 import io.ktor.client.*
@@ -9,6 +12,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -81,7 +87,30 @@ class InviteRoutesTest : IntegrationTestBase() {
 
     @Test
     fun `redeem - expired token returns 410`() = withTeamorgTestApplication {
-        // Hard to test without mocking time or manually inserting expired row
+        val client = createJsonClient()
+        val coachAuth = setupAuthUser("coachexp@test.com")
+        val teamId = setupClubAndTeam(coachAuth.token)
+
+        // Insert invite directly with a past expiresAt
+        val expiredToken = UUID.randomUUID().toString()
+        val coachUserId = UUID.fromString(coachAuth.userId)
+        val teamUUID = UUID.fromString(teamId)
+        transaction {
+            InviteLinksTable.insert {
+                it[token] = expiredToken
+                it[InviteLinksTable.teamId] = teamUUID
+                it[invitedByUserId] = coachUserId
+                it[role] = "player"
+                it[expiresAt] = Instant.now().minusSeconds(3600)
+            }
+        }
+
+        val playerAuth = setupAuthUser("playerexp@test.com")
+        val response = client.post("/invites/$expiredToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.Gone, response.status)
     }
 
     @Test
@@ -152,5 +181,67 @@ class InviteRoutesTest : IntegrationTestBase() {
             setBody(CreateInviteRequest(role = "player"))
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `create invite - invalid role returns 400`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = setupAuthUser("coach5@test.com")
+        val teamId = setupClubAndTeam(coachAuth.token)
+
+        val response = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "admin"))
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `get invite - nonexistent token returns 404`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val response = client.get("/invites/nonexistent-token-12345")
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
+    fun `create invite unauthenticated returns 401`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = setupAuthUser("coach6@test.com")
+        val teamId = setupClubAndTeam(coachAuth.token)
+
+        val response = client.post("/teams/$teamId/invites") {
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `redeem invite - user added to team members`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = setupAuthUser("coach7@test.com")
+        val teamId = setupClubAndTeam(coachAuth.token)
+
+        val inviteToken = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        val playerAuth = setupAuthUser("player7@test.com")
+        client.post("/invites/$inviteToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        val members = client.get("/teams/$teamId/members") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }.body<List<TeamMember>>()
+
+        assertEquals(1, members.size)
+        assertEquals(playerAuth.userId, members[0].userId)
+        assertEquals("player", members[0].role)
     }
 }
