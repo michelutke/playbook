@@ -1,7 +1,0 @@
-@import "tailwindcss";
-
-@layer base {
-  :root {
-    --sidebar-width: 240px;
-  }
-}

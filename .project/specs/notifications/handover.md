@@ -35,7 +35,7 @@ Full push + in-app notification system:
 ## Key Files
 
 ```
-backend/src/main/kotlin/com/playbook/
+backend/src/main/kotlin/ch/teamorg/
   routes/NotificationRoutes.kt
   routes/NotificationSettingsRoutes.kt
   routes/PushTokenRoutes.kt

@@ -1,0 +1,20 @@
+package ch.teamorg.di
+
+import ch.teamorg.auth.AuthViewModel
+import ch.teamorg.ui.club.ClubSetupViewModel
+import ch.teamorg.ui.invite.InviteViewModel
+import ch.teamorg.ui.team.TeamRosterViewModel
+import ch.teamorg.ui.emptystate.EmptyStateViewModel
+import ch.teamorg.ui.login.LoginViewModel
+import ch.teamorg.ui.register.RegisterViewModel
+import org.koin.dsl.module
+
+val uiModule = module {
+    factory { AuthViewModel(get()) }
+    factory { LoginViewModel(get()) }
+    factory { RegisterViewModel(get()) }
+    factory { EmptyStateViewModel(get()) }
+    factory { ClubSetupViewModel(get()) }
+    factory { TeamRosterViewModel(get()) }
+    factory { InviteViewModel(get()) }
+}

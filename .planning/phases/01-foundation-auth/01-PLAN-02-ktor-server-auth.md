@@ -6,20 +6,20 @@ title: "Ktor server — DB + Flyway + JWT auth endpoints"
 depends_on: ["01"]
 autonomous: true
 files_modified:
-  - server/src/main/kotlin/com/playbook/Application.kt
-  - server/src/main/kotlin/com/playbook/plugins/Auth.kt
-  - server/src/main/kotlin/com/playbook/plugins/Routing.kt
-  - server/src/main/kotlin/com/playbook/plugins/Serialization.kt
-  - server/src/main/kotlin/com/playbook/plugins/Koin.kt
-  - server/src/main/kotlin/com/playbook/infra/DatabaseFactory.kt
-  - server/src/main/kotlin/com/playbook/db/tables/UsersTable.kt
-  - server/src/main/kotlin/com/playbook/routes/AuthRoutes.kt
-  - server/src/main/kotlin/com/playbook/middleware/AuthMiddleware.kt
+  - server/src/main/kotlin/ch/teamorg/Application.kt
+  - server/src/main/kotlin/ch/teamorg/plugins/Auth.kt
+  - server/src/main/kotlin/ch/teamorg/plugins/Routing.kt
+  - server/src/main/kotlin/ch/teamorg/plugins/Serialization.kt
+  - server/src/main/kotlin/ch/teamorg/plugins/Koin.kt
+  - server/src/main/kotlin/ch/teamorg/infra/DatabaseFactory.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/UsersTable.kt
+  - server/src/main/kotlin/ch/teamorg/routes/AuthRoutes.kt
+  - server/src/main/kotlin/ch/teamorg/middleware/AuthMiddleware.kt
   - server/src/main/resources/application.conf
   - server/src/main/resources/db/migrations/V1__create_users.sql
   - server/src/main/resources/db/migrations/V2__create_roles.sql
-  - server/src/test/kotlin/com/playbook/routes/AuthRoutesTest.kt
-  - server/src/test/kotlin/com/playbook/test/IntegrationTestBase.kt
+  - server/src/test/kotlin/ch/teamorg/routes/AuthRoutesTest.kt
+  - server/src/test/kotlin/ch/teamorg/test/IntegrationTestBase.kt
   - local.properties.example
 requirements:
   - AUTH-01
@@ -54,13 +54,13 @@ Running Ktor server with PostgreSQL, Flyway migrations, and working auth endpoin
 ```
 ktor {
   deployment { port = 8080 }
-  application { modules = [com.playbook.ApplicationKt.module] }
+  application { modules = [ch.teamorg.ApplicationKt.module] }
 }
 jwt {
   secret = ${JWT_SECRET}
-  issuer = "playbook"
-  audience = "playbook-users"
-  realm = "playbook"
+  issuer = "teamorg"
+  audience = "teamorg-users"
+  realm = "teamorg"
   expiry-days = 30
 }
 database {
@@ -131,7 +131,7 @@ CREATE INDEX idx_users_email ON users(email);
 - Authenticated — returns current user's profile (`{ userId, email, displayName, avatarUrl, isSuperAdmin }`)
 - Used by app on startup to validate stored token
 
-JWT payload: `{ sub: userId, iss: "playbook", aud: "playbook-users", exp: now+30d }`
+JWT payload: `{ sub: userId, iss: "teamorg", aud: "teamorg-users", exp: now+30d }`
 </task>
 
 <task id="02-06" title="AuthMiddleware">
@@ -165,7 +165,7 @@ All protected routes use `authenticate("jwt") {}`.
 <task id="02-08" title="local.properties.example">
 ```
 # Copy to local.properties (never commit local.properties)
-DATABASE_URL=jdbc:postgresql://localhost:5432/playbook_dev
+DATABASE_URL=jdbc:postgresql://localhost:5432/teamorg_dev
 JWT_SECRET=change_me_in_production_min_32_chars
 ```
 </task>

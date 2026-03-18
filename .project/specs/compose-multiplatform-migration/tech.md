@@ -17,7 +17,7 @@ gate: READY GO
 │       ├── commonMain/  — all screens, ViewModels, navigation, shared components
 │       ├── androidMain/ — expect/actual: DataStore settings, push permission, haptic
 │       └── iosMain/     — expect/actual: NSUserDefaults settings, push permission, haptic
-├── androidApp/    — THIN SHELL: MainActivity, PlaybookApp (Koin init), Android manifest
+├── androidApp/    — THIN SHELL: MainActivity, TeamorgApp (Koin init), Android manifest
 ├── iosApp/        — PROPER XCODE PROJECT: SwiftUI ContentView wrapping CMP root composable
 ├── backend/       — unchanged
 └── admin/         — unchanged
@@ -65,7 +65,7 @@ iosApp/ (Swift) → iOSPlatformModule (NSUserDefaults, OneSignal iOS SDK)
 
 ### `androidApp/` Thin Shell (post-migration contents)
 - `MainActivity.kt` — `setContent { /* composeApp root composable */ }`
-- `PlaybookApp.kt` — Application class, `startKoin {}`, OneSignal Android init
+- `TeamorgApp.kt` — Application class, `startKoin {}`, OneSignal Android init
 - `di/AndroidPlatformModule.kt` — DataStore, push token manager bindings
 - `push/` — OneSignal Android SDK wiring (unchanged)
 - `preferences/UserPreferencesImpl.android.kt` — DataStore implementation
@@ -124,23 +124,23 @@ No new backend endpoints. The migration is purely client-side.
 // composeApp entry point composable (called from both platforms)
 // Internally starts at Screen.Splash and resolves auth state asynchronously
 @Composable
-fun PlaybookApp(windowSizeClass: WindowSizeClass? = null)
+fun TeamorgApp(windowSizeClass: WindowSizeClass? = null)
 
 // iOS entry point (called from Swift)
 fun MainViewController(): UIViewController =
-    ComposeUIViewController { PlaybookApp() }
+    ComposeUIViewController { TeamorgApp() }
 ```
 
 ### Initial Auth State — Async Pattern (replaces `runBlocking`)
 
-The current `PlaybookNavGraph.kt` uses `runBlocking` to read the auth token synchronously and pick the start destination. **This will deadlock on iOS** (iOS main thread cannot block). Replaced with:
+The current `TeamorgNavGraph.kt` uses `runBlocking` to read the auth token synchronously and pick the start destination. **This will deadlock on iOS** (iOS main thread cannot block). Replaced with:
 
 ```kotlin
 // Screen.Splash is the initial back stack entry — renders nothing / app icon
 sealed interface AuthState { object Loading; object Unauthenticated; data class Authenticated(val clubId: String) : AuthState() }
 
 @Composable
-fun PlaybookApp(...) {
+fun TeamorgApp(...) {
     val authState by authViewModel.authState.collectAsState()
     val backStack = rememberNavBackStack(Screen.Splash)
 
@@ -159,8 +159,8 @@ fun PlaybookApp(...) {
 
 ### Deep Link Handling
 
-- `playbook://invite?token={token}` — registered in Android `AndroidManifest.xml` (unchanged)
-- iOS: URL scheme `playbook://` registered in `Info.plist`
+- `teamorg://invite?token={token}` — registered in Android `AndroidManifest.xml` (unchanged)
+- iOS: URL scheme `teamorg://` registered in `Info.plist`
 
 **Navigation 3 deep link pattern** (differs from AndroidX Navigation — no automatic route resolution):
 
@@ -168,14 +168,14 @@ fun PlaybookApp(...) {
 ```kotlin
 // In MainActivity.onCreate / onNewIntent
 intent?.data?.let { uri ->
-    if (uri.scheme == "playbook" && uri.host == "invite") {
+    if (uri.scheme == "teamorg" && uri.host == "invite") {
         val token = uri.getQueryParameter("token")
-        deepLinkToken = token  // passed into PlaybookApp as parameter or via ViewModel
+        deepLinkToken = token  // passed into TeamorgApp as parameter or via ViewModel
     }
 }
 ```
 
-*In `PlaybookApp` commonMain:*
+*In `TeamorgApp` commonMain:*
 ```kotlin
 LaunchedEffect(deepLinkToken, authState) {
     if (deepLinkToken != null) {
@@ -205,11 +205,11 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 **Chosen:** `org.jetbrains.androidx.navigation3:navigation3-ui:1.0.0-alpha06`
 
-**Rationale:** Official CMP successor to AndroidX Navigation. Preserves type-safe serializable routes (same pattern as current `Screens.kt`). Migration surface is contained to `PlaybookNavGraph.kt` + `Screens.kt` (2 files).
+**Rationale:** Official CMP successor to AndroidX Navigation. Preserves type-safe serializable routes (same pattern as current `Screens.kt`). Migration surface is contained to `TeamorgNavGraph.kt` + `Screens.kt` (2 files).
 
 **Version history:**
 - Phase 1 (CMP-010–018): All available Nav3 alphas required CMP 1.10.0-beta02 + Kotlin 2.2.20+, which exceeded the Phase 1 stack (Kotlin 2.1.10, CMP 1.7.1). Nav3 was dropped and replaced with a manual `mutableStateListOf<Screen>` + `when(currentScreen)` backstack workaround (committed in Phase 1 completion commit).
-- Stack upgrade (this PR): Kotlin bumped to 2.3.10, CMP to 1.10.1, AGP to 8.13.2 — all compatibility requirements satisfied. Nav3 `1.0.0-alpha06` (latest 1.0.x) restored. `NavDisplay` + `NavEntry` replaces the manual workaround in `PlaybookApp.kt`. Note: Nav3 1.0.1 stable does NOT exist as of the upgrade date; 1.1.x alphas require CMP 1.11.0-alpha (unstable) so were excluded.
+- Stack upgrade (this PR): Kotlin bumped to 2.3.10, CMP to 1.10.1, AGP to 8.13.2 — all compatibility requirements satisfied. Nav3 `1.0.0-alpha06` (latest 1.0.x) restored. `NavDisplay` + `NavEntry` replaces the manual workaround in `TeamorgApp.kt`. Note: Nav3 1.0.1 stable does NOT exist as of the upgrade date; 1.1.x alphas require CMP 1.11.0-alpha (unstable) so were excluded.
 
 **Rejected alternatives:**
 - *Voyager*: stable but different paradigm; large API delta; locks to third-party
@@ -241,7 +241,7 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 **Deviation from original D3:** Original design specified `com.russhwolf:multiplatform-settings-datastore` to avoid expect/actual. Rejected during implementation — the extra indirection adds complexity without benefit given the minimal UserPreferences interface (3 keys: token, clubId, userId).
 
-**Android continuity:** New `UserPreferences.android.kt` uses the same DataStore file name (`user_prefs`) and key names (`auth_token`, `club_id`) as the old `com.playbook.android.preferences.UserPreferences`. No migration required — same underlying storage.
+**Android continuity:** New `UserPreferences.android.kt` uses the same DataStore file name (`user_prefs`) and key names (`auth_token`, `club_id`) as the old `ch.teamorg.android.preferences.UserPreferences`. No migration required — same underlying storage.
 
 ### D4: ViewModel sharing — `lifecycle-viewmodel` in commonMain, Koin injection
 
@@ -249,7 +249,7 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 **iOS note:** `collectAsStateWithLifecycle` is Android-only. All `StateFlow` collection in `commonMain` uses `collectAsState()`. Lifecycle-aware collection on Android achieved via `lifecycle-runtime-compose` in `androidMain` only where strictly needed (currently: none in existing screens).
 
-**Known issue (Phase 0):** `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 — `LocalViewModelStoreOwner` is not found in the `ComposeUIViewController` context, causing an uncaught `IllegalStateException` on a background coroutine thread → SIGABRT. Workaround for Phase 0: `koinViewModel` call removed from `PlaybookApp`; the ViewModel module DSL import updated to `org.koin.core.module.dsl.viewModel`. **Must be resolved before CMP-017** — options: upgrade to Koin 4.2.0 (improved KMP ViewModel support) or provide `LocalViewModelStoreOwner` explicitly in `MainViewController`.
+**Known issue (Phase 0):** `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 — `LocalViewModelStoreOwner` is not found in the `ComposeUIViewController` context, causing an uncaught `IllegalStateException` on a background coroutine thread → SIGABRT. Workaround for Phase 0: `koinViewModel` call removed from `TeamorgApp`; the ViewModel module DSL import updated to `org.koin.core.module.dsl.viewModel`. **Must be resolved before CMP-017** — options: upgrade to Koin 4.2.0 (improved KMP ViewModel support) or provide `LocalViewModelStoreOwner` explicitly in `MainViewController`.
 
 ### D5: iOS Xcode Project — XcodeGen + XCFramework
 
@@ -278,7 +278,7 @@ MainViewControllerKt.MainViewController(deepLinkToken: extractedToken)
 
 **Rejected:** `runBlocking` — deadlocks iOS main thread. Android accepted it historically but it's wrong there too (ANR risk under slow DataStore reads).
 
-**AuthViewModel** lives in `composeApp/commonMain`, injected by Koin. It reads `UserPreferences` in `init { viewModelScope.launch { ... } }` and exposes `StateFlow<AuthState>`. `PlaybookApp` composable observes and drives navigation via `LaunchedEffect`.
+**AuthViewModel** lives in `composeApp/commonMain`, injected by Koin. It reads `UserPreferences` in `init { viewModelScope.launch { ... } }` and exposes `StateFlow<AuthState>`. `TeamorgApp` composable observes and drives navigation via `LaunchedEffect`.
 
 ---
 
@@ -297,7 +297,7 @@ Expected results:
 - `LocalContext`: any hit in a composable that will move to `commonMain` → refactor to expect/actual or move to `androidMain`. Coil 3 eliminates most `LocalContext` usages for image loading automatically.
 - `LocalActivity`: must not appear in commonMain-bound composables
 - `rememberLauncherForActivityResult`: none expected (push permission uses `PushPermissionRequester` expect/actual; no file pickers in scope)
-- `runBlocking`: only in `PlaybookNavGraph.kt` — replaced by D6 pattern above
+- `runBlocking`: only in `TeamorgNavGraph.kt` — replaced by D6 pattern above
 
 ## Implementation Phases
 
@@ -305,8 +305,8 @@ Recommended order to reduce risk and enable incremental testing:
 
 | Phase | Scope | Gate |
 |-------|-------|------|
-| 0 — Scaffold ✅ | Create `composeApp/` module, Gradle config, XcodeGen project, empty `PlaybookApp` composable, `AuthViewModel`, `Screen.Splash`. Android + iOS simulator both launch to blank screen. | Simulator builds green |
-| 1 — Auth + Nav skeleton | Migrate `Screen.Login`, `PlaybookNavGraph`, `Screens.kt`, bottom nav, `AuthState` flow. Deep link wiring. | Login flow works on both platforms |
+| 0 — Scaffold ✅ | Create `composeApp/` module, Gradle config, XcodeGen project, empty `TeamorgApp` composable, `AuthViewModel`, `Screen.Splash`. Android + iOS simulator both launch to blank screen. | Simulator builds green |
+| 1 — Auth + Nav skeleton | Migrate `Screen.Login`, `TeamorgNavGraph`, `Screens.kt`, bottom nav, `AuthState` flow. Deep link wiring. | Login flow works on both platforms |
 | 2 — Team Management | Migrate club/team/member/invite/player screens + VMs (7 screens) | All team features work on iOS sim |
 | 3 — Events | Migrate eventlist, calendar, form, subgroupmgmt, eventdetail + VMs (5 screens) | All event features work on iOS sim |
 | 4 — Attendance + Stats | Migrate attendance, absences, stats + VMs (3 screens) | All attendance features work on iOS sim |
@@ -328,7 +328,7 @@ Recommended order to reduce risk and enable incremental testing:
 | XCFramework not rebuilt after KMP changes → stale iOS build | Medium | Always run `./gradlew :composeApp:assembleXCFramework` before Xcode builds after any Kotlin change |
 | DataStore → multiplatform-settings: Android users lose persisted tokens on first launch after upgrade | Medium | Silent one-time migration on first launch (see D3); no re-login required |
 | CMP iOS rendering performance vs native SwiftUI | Low | Acceptable for MVP; benchmark after first simulator run |
-| `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 | High | Removed from `PlaybookApp` for Phase 0. Must fix before CMP-017: upgrade Koin to 4.2.0 or provide `LocalViewModelStoreOwner` in `MainViewController` |
+| `koinViewModel<T>()` crashes on iOS with Koin 4.0.0 | High | Removed from `TeamorgApp` for Phase 0. Must fix before CMP-017: upgrade Koin to 4.2.0 or provide `LocalViewModelStoreOwner` in `MainViewController` |
 | macOS/Xcode beta SDK incompatibilities | Medium | `xcodebuild -runFirstLaunch` resolves framework mismatches; `xcodebuild -license accept` required after Xcode install |
 | OneSignal iOS SDK manual steps (NT-011, NT-016) still required post-migration | Known | Documented; no change to status |
-| Deep link URL scheme not registered on iOS | Medium | Add `playbook` URL scheme to `Info.plist` during Phase 0 iosApp setup |
+| Deep link URL scheme not registered on iOS | Medium | Add `teamorg` URL scheme to `Info.plist` during Phase 0 iosApp setup |

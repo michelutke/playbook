@@ -1,4 +1,5 @@
-rootProject.name = "playbook"
+rootProject.name = "teamorg"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
@@ -22,5 +23,4 @@ dependencyResolutionManagement {
 
 include(":shared")
 include(":composeApp")
-include(":androidApp")
 include(":server")

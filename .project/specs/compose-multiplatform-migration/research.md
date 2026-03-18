@@ -61,7 +61,7 @@ Mature, stable for CMP. iosApp is a placeholder — must run KMP wizard to gener
 
 ### ISSUE 1: `runBlocking` in NavGraph — Must Fix
 
-**File**: `androidApp/.../ui/navigation/PlaybookNavGraph.kt`
+**File**: `androidApp/.../ui/navigation/TeamorgNavGraph.kt`
 
 Current code reads the auth token synchronously via `runBlocking` to determine the start destination. This is Android-acceptable but **will not compile or will deadlock in commonMain** on iOS (iOS main thread cannot be blocked).
 
@@ -98,7 +98,7 @@ During migration, any `LocalContext.current` calls in composables that move to `
 
 ### ISSUE 4: Navigation 3 — No Code Sample for Deep Link Handling
 
-The spec correctly identifies the deep link `playbook://invite?token={token}` but doesn't specify how Navigation 3 handles deep links (it differs from AndroidX Navigation).
+The spec correctly identifies the deep link `teamorg://invite?token={token}` but doesn't specify how Navigation 3 handles deep links (it differs from AndroidX Navigation).
 
 In Navigation 3, deep links are handled by processing `Intent` in `MainActivity` and pushing a route onto the `BackStack` manually. The auth guard logic (no token → Login → InviteAccept) needs explicit implementation. This is doable but requires research at implementation time.
 

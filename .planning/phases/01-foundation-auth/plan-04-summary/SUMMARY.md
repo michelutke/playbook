@@ -19,24 +19,24 @@ Plan 04 of Phase 1 is complete. All auth screens, ViewModels, and repository log
 
 - **DI & Infrastructure:**
   - Koin modules for both shared (`SharedModule`) and UI (`UiModule`) layers.
-  - Android `PlaybookApplication` and `MainActivity` wired up.
+  - Android `TeamorgApplication` and `MainActivity` wired up.
   - Navigation updated to route based on `AuthState`.
-  - AndroidManifest updated with INTERNET permissions, custom Application, and Deep Link scheme (`playbook://`).
+  - AndroidManifest updated with INTERNET permissions, custom Application, and Deep Link scheme (`teamorg://`).
 
 - **Testing:**
   - Unit tests for `LoginViewModel`, `RegisterViewModel`, and `EmptyStateViewModel`.
 
 ## Key Files Created/Modified
 
-- `shared/src/commonMain/kotlin/com/playbook/data/network/HttpClientFactory.kt`
-- `shared/src/commonMain/kotlin/com/playbook/repository/AuthRepository.kt`
-- `shared/src/commonMain/kotlin/com/playbook/data/repository/AuthRepositoryImpl.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/auth/AuthViewModel.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/ui/login/LoginScreen.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/ui/register/RegisterScreen.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/ui/emptystate/EmptyStateScreen.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/PlaybookApp.kt`
-- `composeApp/src/commonMain/kotlin/com/playbook/navigation/AppNavigation.kt`
+- `shared/src/commonMain/kotlin/ch/teamorg/data/network/HttpClientFactory.kt`
+- `shared/src/commonMain/kotlin/ch/teamorg/repository/AuthRepository.kt`
+- `shared/src/commonMain/kotlin/ch/teamorg/data/repository/AuthRepositoryImpl.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/auth/AuthViewModel.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/ui/login/LoginScreen.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/ui/register/RegisterScreen.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/ui/emptystate/EmptyStateScreen.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/TeamorgApp.kt`
+- `composeApp/src/commonMain/kotlin/ch/teamorg/navigation/AppNavigation.kt`
 
 ## Must Haves Check
 

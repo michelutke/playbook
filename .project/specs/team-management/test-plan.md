@@ -69,4 +69,4 @@ version: 0.1.0
 | M-02 | Invite link on mobile | Copy link on web → open on iOS simulator → confirm join → appear in roster |
 | M-03 | Role chip display | User with Player + Coach roles: verify both sections in roster, both chips on profile |
 | M-04 | Logo upload + display | Upload JPEG → verify circular crop preview → verify logo shown in club header |
-| M-05 | Deep link handling | `playbook://join/{token}` — cold start app; confirm join flow; warm start app |
+| M-05 | Deep link handling | `teamorg://join/{token}` — cold start app; confirm join flow; warm start app |

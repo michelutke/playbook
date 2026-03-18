@@ -16,7 +16,7 @@
 - `shared/build.gradle.kts`: Shared KMP logic setup.
 - `composeApp/build.gradle.kts`: Compose Multiplatform setup.
 - `server/build.gradle.kts`: Ktor backend setup.
-- `androidApp/src/main/kotlin/com/playbook/MainActivity.kt`: Android entry point.
+- `androidApp/src/main/kotlin/ch/teamorg/MainActivity.kt`: Android entry point.
 - `iosApp/project.yml`: XcodeGen configuration.
 - `.github/workflows/ci.yml`: CI configuration.
 
@@ -28,7 +28,7 @@
 
 ## Self-Check Results
 - [x] Project structure matches `PROJECT.md`
-- [x] Package names set to `com.playbook.*`
+- [x] Package names set to `ch.teamorg.*`
 - [x] CI workflow is valid YAML
 - [x] `kotlinx-datetime` pinned to 0.6.0
 

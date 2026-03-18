@@ -6,15 +6,15 @@ title: "Club + Team CRUD API endpoints"
 depends_on: ["01", "02"]
 autonomous: true
 files_modified:
-  - server/src/main/kotlin/com/playbook/repository/ClubRepository.kt
-  - server/src/main/kotlin/com/playbook/data/repository/ClubRepositoryImpl.kt
-  - server/src/main/kotlin/com/playbook/repository/TeamRepository.kt
-  - server/src/main/kotlin/com/playbook/data/repository/TeamRepositoryImpl.kt
-  - server/src/main/kotlin/com/playbook/routes/ClubRoutes.kt
-  - server/src/main/kotlin/com/playbook/routes/TeamRoutes.kt
-  - server/src/main/kotlin/com/playbook/middleware/RoleMiddleware.kt
-  - server/src/test/kotlin/com/playbook/routes/ClubRoutesTest.kt
-  - server/src/test/kotlin/com/playbook/routes/TeamRoutesTest.kt
+  - server/src/main/kotlin/ch/teamorg/repository/ClubRepository.kt
+  - server/src/main/kotlin/ch/teamorg/data/repository/ClubRepositoryImpl.kt
+  - server/src/main/kotlin/ch/teamorg/repository/TeamRepository.kt
+  - server/src/main/kotlin/ch/teamorg/data/repository/TeamRepositoryImpl.kt
+  - server/src/main/kotlin/ch/teamorg/routes/ClubRoutes.kt
+  - server/src/main/kotlin/ch/teamorg/routes/TeamRoutes.kt
+  - server/src/main/kotlin/ch/teamorg/middleware/RoleMiddleware.kt
+  - server/src/test/kotlin/ch/teamorg/routes/ClubRoutesTest.kt
+  - server/src/test/kotlin/ch/teamorg/routes/TeamRoutesTest.kt
 requirements:
   - TM-01
   - TM-02

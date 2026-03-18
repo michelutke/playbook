@@ -1,43 +1,47 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinSerialization)
+    application
 }
 
-group = "com.playbook"
+group = "ch.teamorg"
 version = "1.0.0"
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
 application {
-    mainClass.set("com.playbook.ApplicationKt")
+    mainClass.set("ch.teamorg.ApplicationKt")
+    val isDevelopment: Boolean = project.ext.has("development")
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 dependencies {
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.logback)
+    implementation(libs.ktor.serverCore)
+    implementation(libs.ktor.serverNetty)
+    implementation(libs.ktor.serverAuth)
+    implementation(libs.ktor.serverAuthJwt)
+    implementation(libs.ktor.serverContentNegotiation)
+    implementation(libs.ktor.serializationKotlinxJson)
     implementation(libs.koin.ktor)
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.javatime)
     implementation(libs.db.hikaricp)
     implementation(libs.flyway.core)
-    implementation(libs.flyway.database.postgresql)
+    implementation(libs.flyway.databasePostgresql)
     implementation(libs.postgresql)
-    implementation(libs.simple.java.mail)
-    implementation(libs.logback.classic)
+    implementation(libs.simple.javaMail)
     implementation("org.mindrot:jbcrypt:0.4")
-
-    testImplementation(libs.ktor.server.tests)
-    testImplementation(libs.ktor.client.content.negotiation)
-    testImplementation(libs.kotlin.test)
+    testImplementation(libs.ktor.serverTestHost)
+    testImplementation(libs.ktor.clientContentNegotiation)
+    testImplementation(libs.kotlin.testJunit)
     testImplementation("com.h2database:h2:2.3.232")
 }

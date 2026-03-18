@@ -1,4 +1,4 @@
-# PROJECT.md — Playbook
+# PROJECT.md — Teamorg
 
 ## What We're Building
 
@@ -62,7 +62,7 @@ Note: `failed example project/` will be deleted once GSD planning is complete.
 
 ## Design System
 
-- **Design file:** `pencil/playbook.pen`
+- **Design file:** `pencil/teamorg.pen`
 - **Tokens documented:** `pencil/design.md`
 - **Approach:** Material 3 components, fully themed with custom tokens
   - Dark mode default: `background #090912`, `primary #4F8EF7`, `accent #F97316`
@@ -114,7 +114,7 @@ Every phase must:
 |---|---|---|
 | Fresh backend start | Failed example had significant tech debt | Decided |
 | Failed example as reference only | Don't copy-paste — use for domain knowledge | Decided |
-| M3 + custom tokens | M3 structure, Playbook visual identity | Decided |
+| M3 + custom tokens | M3 structure, Teamorg visual identity | Decided |
 | Phase-by-phase, always working | Prevent repeat of non-functional first attempt | Decided |
 | Navigation3 | Latest KMP navigation | Decided |
 | ADR-001 (web client) | Deferred — SvelteKit admin only for now | Open |

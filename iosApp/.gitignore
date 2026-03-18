@@ -1,5 +1,0 @@
-# Tuist generated files (regenerated via `tuist generate`)
-*.xcodeproj
-*.xcworkspace
-!*.xcworkspace/contents.xcworkspacedata
-Derived/

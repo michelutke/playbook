@@ -1,6 +1,6 @@
 # CI Pipeline Fixes Summary
 
-Fixed several CI and build-related issues in the Playbook KMP project to ensure stable builds and deployments.
+Fixed several CI and build-related issues in the Teamorg KMP project to ensure stable builds and deployments.
 
 ## Changes Made
 
@@ -10,7 +10,7 @@ Fixed several CI and build-related issues in the Playbook KMP project to ensure 
 
 ### 2. API Config & CI Environment
 - Added `API_BASE_URL` build configuration field to `shared/build.gradle.kts`.
-- It defaults to `https://api.playbook.app` but can be overridden via Gradle properties.
+- It defaults to `https://api.teamorg.app` but can be overridden via Gradle properties.
 - Updated `local.properties.example` with the new property.
 - Modified `.github/workflows/ci.yml` and `deploy-android.yml` to create `local.properties` with the default API URL before running any Gradle tasks.
 

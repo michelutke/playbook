@@ -6,10 +6,10 @@ title: "Invite system — generate, send, redeem"
 depends_on: ["01"]
 autonomous: true
 files_modified:
-  - server/src/main/kotlin/com/playbook/repository/InviteRepository.kt
-  - server/src/main/kotlin/com/playbook/data/repository/InviteRepositoryImpl.kt
-  - server/src/main/kotlin/com/playbook/routes/InviteRoutes.kt
-  - server/src/test/kotlin/com/playbook/routes/InviteRoutesTest.kt
+  - server/src/main/kotlin/ch/teamorg/repository/InviteRepository.kt
+  - server/src/main/kotlin/ch/teamorg/data/repository/InviteRepositoryImpl.kt
+  - server/src/main/kotlin/ch/teamorg/routes/InviteRoutes.kt
+  - server/src/test/kotlin/ch/teamorg/routes/InviteRoutesTest.kt
 requirements:
   - TM-04
   - TM-10
@@ -46,8 +46,8 @@ Coaches/ClubManagers can generate invite links (and optionally email invites). A
 
 <task id="04-02" title="InviteRoutes.kt">
 Generate: validate caller has coach/club_manager role, create invite, return deep link URL.
-Deep link format: `playbook://invite/team/{token}`
-Fallback web URL (for SMS/email): `https://playbook.app/join/{token}` (handled by app's deep link config)
+Deep link format: `teamorg://invite/team/{token}`
+Fallback web URL (for SMS/email): `https://teamorg.app/join/{token}` (handled by app's deep link config)
 
 Get invite details: public endpoint, no auth gate.
 

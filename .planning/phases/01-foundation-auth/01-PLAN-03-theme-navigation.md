@@ -6,15 +6,15 @@ title: "Material 3 theme + design tokens + Navigation3 shell"
 depends_on: ["01"]
 autonomous: true
 files_modified:
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/theme/PlaybookTheme.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/theme/Color.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/theme/Type.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/theme/Shape.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/navigation/AppNavigation.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/navigation/Screen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/components/PlaybookBottomBar.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/PlaybookApp.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/placeholder/PlaceholderScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/TeamorgTheme.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/Color.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/Type.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/Shape.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/navigation/AppNavigation.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/navigation/Screen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/components/TeamorgBottomBar.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/TeamorgApp.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/placeholder/PlaceholderScreen.kt
 requirements:
   - AUTH-01
   - AUTH-02
@@ -23,7 +23,7 @@ requirements:
 # Plan 03 — Material 3 Theme + Design Tokens + Navigation3 Shell
 
 ## Goal
-M3 theme fully wired with Playbook design tokens. Navigation3 shell with bottom nav and placeholder screens for all 5 tabs. App renders with correct visual identity on both platforms.
+M3 theme fully wired with Teamorg design tokens. Navigation3 shell with bottom nav and placeholder screens for all 5 tabs. App renders with correct visual identity on both platforms.
 
 ## Context
 - Design tokens from `pencil/design.md` — exact hex values, no approximations
@@ -35,11 +35,11 @@ M3 theme fully wired with Playbook design tokens. Navigation3 shell with bottom 
 ## Tasks
 
 <task id="03-01" title="Color.kt — design token mapping to M3 ColorScheme">
-Map Playbook tokens to M3 `ColorScheme`.
+Map Teamorg tokens to M3 `ColorScheme`.
 
 Dark scheme:
 ```kotlin
-val PlaybookDarkColorScheme = darkColorScheme(
+val TeamorgDarkColorScheme = darkColorScheme(
     background = Color(0xFF090912),      // --background
     surface = Color(0xFF13131F),         // --surface
     surfaceVariant = Color(0xFF1C1C2E),  // --card
@@ -56,7 +56,7 @@ val PlaybookDarkColorScheme = darkColorScheme(
     // Status colors as extension properties (not M3 standard)
 )
 
-val PlaybookLightColorScheme = lightColorScheme(
+val TeamorgLightColorScheme = lightColorScheme(
     background = Color(0xFFFFFFFF),
     surface = Color(0xFFF4F4F9),
     surfaceVariant = Color(0xFFFFFFFF),
@@ -75,7 +75,7 @@ val PlaybookLightColorScheme = lightColorScheme(
 
 Extension colors (status + semantic, not in M3 standard):
 ```kotlin
-data class PlaybookExtendedColors(
+data class TeamorgExtendedColors(
     val success: Color,
     val warning: Color,
     val colorPurple: Color,
@@ -83,7 +83,7 @@ data class PlaybookExtendedColors(
     val colorGrey: Color,
     val cardBackground: Color,
 )
-val LocalPlaybookExtendedColors = staticCompositionLocalOf { /* dark defaults */ }
+val LocalTeamorgExtendedColors = staticCompositionLocalOf { /* dark defaults */ }
 ```
 </task>
 
@@ -97,29 +97,29 @@ val LocalPlaybookExtendedColors = staticCompositionLocalOf { /* dark defaults */
 - `extraLarge` = `RoundedCornerShape(36.dp)` — nav pill, bottom sheet handles
 </task>
 
-<task id="03-03" title="PlaybookTheme.kt">
+<task id="03-03" title="TeamorgTheme.kt">
 ```kotlin
 @Composable
-fun PlaybookTheme(
+fun TeamorgTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) PlaybookDarkColorScheme else PlaybookLightColorScheme
-    val extendedColors = if (darkTheme) PlaybookDarkExtendedColors else PlaybookLightExtendedColors
+    val colorScheme = if (darkTheme) TeamorgDarkColorScheme else TeamorgLightColorScheme
+    val extendedColors = if (darkTheme) TeamorgDarkExtendedColors else TeamorgLightExtendedColors
 
-    CompositionLocalProvider(LocalPlaybookExtendedColors provides extendedColors) {
+    CompositionLocalProvider(LocalTeamorgExtendedColors provides extendedColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = PlaybookTypography,
-            shapes = PlaybookShapes,
+            typography = TeamorgTypography,
+            shapes = TeamorgShapes,
             content = content
         )
     }
 }
 
 // Convenience accessor
-val MaterialTheme.extendedColors: PlaybookExtendedColors
-    @Composable get() = LocalPlaybookExtendedColors.current
+val MaterialTheme.extendedColors: TeamorgExtendedColors
+    @Composable get() = LocalTeamorgExtendedColors.current
 ```
 </task>
 
@@ -140,7 +140,7 @@ sealed class Screen(val route: String) {
 ```
 </task>
 
-<task id="03-05" title="PlaybookBottomBar.kt">
+<task id="03-05" title="TeamorgBottomBar.kt">
 Bottom nav pill component:
 - Height 62dp, cornerRadius 36dp
 - Background: `MaterialTheme.colorScheme.surface`
@@ -150,16 +150,16 @@ Bottom nav pill component:
 - Uses M3 `NavigationBar` + `NavigationBarItem` styled with custom colors to achieve pill shape
 </task>
 
-<task id="03-06" title="AppNavigation.kt + PlaybookApp.kt">
+<task id="03-06" title="AppNavigation.kt + TeamorgApp.kt">
 `AppNavigation.kt` — Navigation3 `NavHost`:
 - Auth graph: Login, Register (no bottom nav)
 - Main graph: all 5 tabs with bottom nav
-- Deep link support stub: `playbook://invite/player/{userId}` (wired in Phase 2)
+- Deep link support stub: `teamorg://invite/player/{userId}` (wired in Phase 2)
 
-`PlaybookApp.kt` — root composable:
+`TeamorgApp.kt` — root composable:
 - Observe `AuthState` (from AuthViewModel — plan 04)
 - Route: unauthenticated → Login, authenticated + no team → EmptyState, authenticated + has team → Main nav
-- Wrap everything in `PlaybookTheme`
+- Wrap everything in `TeamorgTheme`
 </task>
 
 <task id="03-07" title="Placeholder screens">
@@ -187,7 +187,7 @@ Visual check (manual, Phase 1 milestone):
 - Primary blue `#4F8EF7` on active tab
 
 ## must_haves
-- [ ] `PlaybookTheme` wraps entire app
+- [ ] `TeamorgTheme` wraps entire app
 - [ ] Dark mode colors exactly match `pencil/design.md` hex values
 - [ ] Light mode correctly overrides dark tokens
 - [ ] Navigation3 NavHost routes between auth and main graph

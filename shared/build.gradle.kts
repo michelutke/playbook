@@ -1,58 +1,72 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
 }
 
 kotlin {
     androidTarget {
-        publishLibraryVariants("release", "debug")
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
-    
-    iosX64()
+
     iosArm64()
     iosSimulatorArm64()
+
+    jvm()
 
     sourceSets {
         commonMain.dependencies {
             implementation(libs.koin.core)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.clientCore)
+            implementation(libs.ktor.clientContentNegotiation)
+            implementation(libs.ktor.clientLogging)
+            implementation(libs.ktor.serializationKotlinxJson)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.serializationJson)
             implementation(libs.sqldelight.runtime)
             implementation(libs.multiplatform.settings)
         }
-        
+
         androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.sqldelight.android.driver)
+            implementation(libs.ktor.clientOkhttp)
+            implementation(libs.sqldelight.androidDriver)
         }
-        
+
         iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-            implementation(libs.sqldelight.native.driver)
+            implementation(libs.ktor.clientDarwin)
+            implementation(libs.sqldelight.nativeDriver)
+        }
+
+        jvmMain.dependencies {
+            implementation(libs.ktor.clientOkhttp)
+            implementation(libs.sqldelight.sqliteDriver)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
     }
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 }
 
 android {
-    namespace = "com.playbook.shared"
-    compileSdk = 36
+    namespace = "ch.teamorg.shared"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
     defaultConfig {
-        minSdk = 26
-        buildConfigField("String", "API_BASE_URL", "\"${System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL") ?: "https://api.playbook.app"}\"")
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        buildConfigField("String", "API_BASE_URL", "\"${System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL") ?: "https://api.teamorg.app"}\"")
     }
     buildFeatures {
         buildConfig = true
@@ -61,8 +75,8 @@ android {
 
 sqldelight {
     databases {
-        create("PlaybookDb") {
-            packageName.set("com.playbook.db")
+        create("TeamorgDb") {
+            packageName.set("ch.teamorg.db")
         }
     }
 }

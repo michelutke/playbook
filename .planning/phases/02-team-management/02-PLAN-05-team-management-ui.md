@@ -6,22 +6,22 @@ title: "Team Management UI — Club setup, roster, invite flow"
 depends_on: ["03", "04"]
 autonomous: true
 files_modified:
-  - shared/src/commonMain/kotlin/com/playbook/domain/Club.kt
-  - shared/src/commonMain/kotlin/com/playbook/domain/Team.kt
-  - shared/src/commonMain/kotlin/com/playbook/domain/Invite.kt
-  - shared/src/commonMain/kotlin/com/playbook/repository/ClubRepository.kt
-  - shared/src/commonMain/kotlin/com/playbook/data/repository/ClubRepositoryImpl.kt
-  - shared/src/commonMain/kotlin/com/playbook/repository/TeamRepository.kt
-  - shared/src/commonMain/kotlin/com/playbook/data/repository/TeamRepositoryImpl.kt
-  - shared/src/commonMain/kotlin/com/playbook/repository/InviteRepository.kt
-  - shared/src/commonMain/kotlin/com/playbook/data/repository/InviteRepositoryImpl.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/club/ClubSetupScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/club/ClubSetupViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/team/TeamRosterScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/team/TeamRosterViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/invite/InviteScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/invite/InviteViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/emptystate/EmptyStateViewModel.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/domain/Club.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/domain/Team.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/domain/Invite.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/repository/ClubRepository.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/repository/ClubRepositoryImpl.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/repository/TeamRepository.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/repository/TeamRepositoryImpl.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/repository/InviteRepository.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/repository/InviteRepositoryImpl.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/club/ClubSetupScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/club/ClubSetupViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/team/TeamRosterScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/team/TeamRosterViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/invite/InviteScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/invite/InviteViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/emptystate/EmptyStateViewModel.kt
 requirements:
   - TM-01
   - TM-02
@@ -52,7 +52,7 @@ Club setup flow, team roster screen, and invite acceptance flow all working end-
 - Long press on player: remove from team (with confirmation dialog)
 
 ### InviteScreen (deep link handler)
-- Shown when user opens `playbook://invite/team/{token}`
+- Shown when user opens `teamorg://invite/team/{token}`
 - Displays: team name, club name, "invited by", role
 - CTA: "Join [team name]" button
 - If not logged in: "Create account first" button → navigates to Register with token in nav args
@@ -101,7 +101,7 @@ EmptyStateViewModel: update to handle token passed from nav args after registrat
 </task>
 
 <task id="05-06" title="Navigation wiring">
-- Deep link: `playbook://invite/team/{token}` → InviteScreen (with token arg)
+- Deep link: `teamorg://invite/team/{token}` → InviteScreen (with token arg)
 - EmptyState "Set up club" → ClubSetupScreen
 - InviteScreen "Join" (unauthenticated) → RegisterScreen (with token arg)
 - Post-register: AuthViewModel redeems pending token if present

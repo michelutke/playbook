@@ -11,11 +11,11 @@ files_modified:
   - server/src/main/resources/db/migrations/V5__create_roles.sql
   - server/src/main/resources/db/migrations/V6__create_invites.sql
   - server/src/main/resources/db/migrations/V7__create_subgroups.sql
-  - server/src/main/kotlin/com/playbook/db/tables/ClubsTable.kt
-  - server/src/main/kotlin/com/playbook/db/tables/TeamsTable.kt
-  - server/src/main/kotlin/com/playbook/db/tables/RolesTable.kt
-  - server/src/main/kotlin/com/playbook/db/tables/InviteLinksTable.kt
-  - server/src/main/kotlin/com/playbook/db/tables/SubGroupsTable.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/ClubsTable.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/TeamsTable.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/RolesTable.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/InviteLinksTable.kt
+  - server/src/main/kotlin/ch/teamorg/db/tables/SubGroupsTable.kt
 requirements:
   - TM-01
   - TM-02

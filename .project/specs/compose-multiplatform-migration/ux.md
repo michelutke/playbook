@@ -35,7 +35,7 @@ App start
 
 ### Deep Links
 ```
-playbook://invite?token={token}
+teamorg://invite?token={token}
   ├─ authenticated → InviteAccept(token)
   └─ not authenticated → Login → InviteAccept(token)
 ```
@@ -60,7 +60,7 @@ Login (email + password)
 
 ### F3 — Member Invite Accept
 ```
-Deep link: playbook://invite?token=…
+Deep link: teamorg://invite?token=…
   ├─ [not logged in] Login → InviteAccept(token)
   └─ [logged in]     InviteAccept(token)
        └─ ClubDashboard
@@ -149,7 +149,7 @@ AttendanceList, BegrundungSheet, MyAbsences, PlayerStats, TeamStats
 ### Shared Components
 | Component | Description |
 |-----------|-------------|
-| PlaybookBottomBar | 2-tab nav bar (Home, Notifications with badge) |
+| TeamorgBottomBar | 2-tab nav bar (Home, Notifications with badge) |
 | StatusBadge | Attendance status chip (Confirmed / Declined / Pending) |
 | InviteStatusBadge | Invite status chip (Pending / Accepted / Rejected) |
 | RoleChip | Role label (Coach / Player) |

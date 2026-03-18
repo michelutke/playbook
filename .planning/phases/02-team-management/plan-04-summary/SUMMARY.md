@@ -12,7 +12,7 @@
 
 ## Technical Choices
 - **Atomic Redemption:** Used a single `transaction` block in `InviteRepositoryImpl.redeem` to ensure `team_roles` creation and `invite_links` status update happen together.
-- **Deep Links:** Implemented `playbook://invite/team/{token}` format as requested.
+- **Deep Links:** Implemented `teamorg://invite/team/{token}` format as requested.
 - **Idempotency:** Added a check in `redeem` to return success (200 OK) if the user is already a member with that role, avoiding unique constraint violations and providing a smooth UX.
 - **Public Details:** `GET /invites/{token}` provides team and club names without requiring auth, allowing the app to show a "Join [Team Name]" preview screen.
 

@@ -35,7 +35,7 @@ Create the clean KMP monorepo structure. Everything in subsequent plans depends 
 - Kotlin 2.3.10, Compose Multiplatform 1.10.1, AGP 8.13.2, Gradle 8.13
 - Navigation3 1.0.0-alpha06, Koin 4.1.0, Ktor 3.1.0
 - kotlinx-datetime pinned to 0.6.0 (0.7.x causes Kotlin/Native IR crash — CRITICAL)
-- Package name: `com.playbook`
+- Package name: `ch.teamorg`
 
 ## Tasks
 
@@ -91,8 +91,8 @@ settings.gradle.kts includes modules:
 - iosMain: ktor-client-darwin, sqldelight-native-driver
 - jvmMain: ktor-client-cio, sqldelight-sqlite-driver (test only)
 
-Create stub `shared/src/commonMain/kotlin/com/playbook/` with `.gitkeep`.
-Create `shared/src/commonMain/sqldelight/com/playbook/db/` (SQLDelight query dir).
+Create stub `shared/src/commonMain/kotlin/ch/teamorg/` with `.gitkeep`.
+Create `shared/src/commonMain/sqldelight/ch/teamorg/db/` (SQLDelight query dir).
 </task>
 
 <task id="01-04" title="composeApp module setup">
@@ -107,7 +107,7 @@ Create `shared/src/commonMain/sqldelight/com/playbook/db/` (SQLDelight query dir
 
 <task id="01-05" title="androidApp thin shell">
 `androidApp/build.gradle.kts` — minimal Android application module.
-`androidApp/src/main/kotlin/com/playbook/MainActivity.kt` — stub, delegates to composeApp.
+`androidApp/src/main/kotlin/ch/teamorg/MainActivity.kt` — stub, delegates to composeApp.
 `androidApp/src/main/AndroidManifest.xml` — internet permission, main activity.
 </task>
 
@@ -120,7 +120,7 @@ Create `shared/src/commonMain/sqldelight/com/playbook/db/` (SQLDelight query dir
 
 <task id="01-07" title="iOS entry point stubs">
 Create `iosApp/iosApp/iOSApp.swift` and `ContentView.swift` (stubs — KMP not wired yet, just compiles).
-Create `iosApp/project.yml` (XcodeGen config) — configure bundle ID `com.playbook.ios`, deployment target iOS 16.
+Create `iosApp/project.yml` (XcodeGen config) — configure bundle ID `ch.teamorg.ios`, deployment target iOS 16.
 </task>
 
 <task id="01-08" title="GitHub Actions CI">

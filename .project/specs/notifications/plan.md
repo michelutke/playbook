@@ -103,5 +103,5 @@ gate: READY
 - [ ] **Notification settings screen** — toggle per type; lead time picker for reminders + summaries
 - [ ] **Push permission prompt** — shown on first launch after onboarding; if denied → persistent banner per ux-patterns
 - [ ] **Unread badge** on inbox nav icon (derived from local cache count)
-- [ ] **Deep link handling**: app handles `playbook://events/{id}`, `playbook://teams/{id}` etc. → correct screen
+- [ ] **Deep link handling**: app handles `teamorg://events/{id}`, `teamorg://teams/{id}` etc. → correct screen
 - [ ] In-app notification fallback: if push denied, notifications visible in inbox only; warning snackbar shown once

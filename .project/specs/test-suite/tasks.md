@@ -89,7 +89,7 @@ gate: READY GO
 | TS-037 | `AttendanceListScreenTest` + `MyAbsencesScreenTest` | TS-034 | ✅ |
 | TS-038 | `BottomNavTest` + `OfflineIndicatorTest` | TS-034 | ✅ |
 
-**Result:** 30 tests, all pass. Fakes in `composeApp/src/androidUnitTest/kotlin/com/playbook/test/FakeRepositories.kt`.
+**Result:** 30 tests, all pass. Fakes in `composeApp/src/androidUnitTest/kotlin/ch/teamorg/test/FakeRepositories.kt`.
 
 ## Phase 2b — Shared Composable Tests ✅ DONE
 
@@ -97,7 +97,7 @@ gate: READY GO
 |---|---|---|---|
 | TS-039 | Add `commonTest` dep: `ui-test-junit4:1.7.1` (pinned); add `androidUnitTest` test deps | — | ✅ |
 | TS-040 | `StatusBadgeTest` + `EventTypeIndicatorTest` + `OfflineIndicatorTest` | TS-039 | ✅ |
-| TS-041 | `PlaybookBottomBarTest` + `AuthStateTest` | TS-039 | ✅ |
+| TS-041 | `TeamorgBottomBarTest` + `AuthStateTest` | TS-039 | ✅ |
 
 ## Phase 2c — iOS Smoke Tests ✅ DONE
 
@@ -108,8 +108,8 @@ gate: READY GO
 
 **Implementation notes:**
 - `iosApp/project.yml`: added `iosAppUITests` ui-testing target; run `xcodegen generate` to apply
-- `.testTag()` accessibilityIdentifiers added to: `LoginScreen`, `ClubDashboardScreen`, `TeamDetailScreen`, `EventListScreen`, `AttendanceListScreen`, `PlaybookBottomBar`
-- `PlaybookUITestCase` base class: shared `login()` helper + `XCTSkip` guard when backend unavailable
+- `.testTag()` accessibilityIdentifiers added to: `LoginScreen`, `ClubDashboardScreen`, `TeamDetailScreen`, `EventListScreen`, `AttendanceListScreen`, `TeamorgBottomBar`
+- `TeamorgUITestCase` base class: shared `login()` helper + `XCTSkip` guard when backend unavailable
 - All post-login tests skip gracefully when backend is not running (CI without server)
 
 ## Phase 3 — Maestro Cross-Layer E2E ✅ DONE

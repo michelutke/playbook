@@ -6,34 +6,34 @@ title: "Auth UI — Login, Register, Empty State screens + ViewModels"
 depends_on: ["02", "03"]
 autonomous: true
 files_modified:
-  - shared/src/commonMain/kotlin/com/playbook/data/network/HttpClientFactory.kt
-  - shared/src/commonMain/kotlin/com/playbook/data/network/ApiConfig.kt
-  - shared/src/commonMain/kotlin/com/playbook/data/repository/AuthRepositoryImpl.kt
-  - shared/src/commonMain/kotlin/com/playbook/repository/AuthRepository.kt
-  - shared/src/commonMain/kotlin/com/playbook/domain/Auth.kt
-  - shared/src/commonMain/kotlin/com/playbook/auth/AuthState.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/auth/AuthViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/login/LoginScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/login/LoginViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/register/RegisterScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/register/RegisterViewModel.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/emptystate/EmptyStateScreen.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/ui/emptystate/EmptyStateViewModel.kt
-  - composeApp/src/androidMain/kotlin/com/playbook/di/KmpViewModel.android.kt
-  - composeApp/src/iosMain/kotlin/com/playbook/di/KmpViewModel.ios.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/di/KmpViewModel.kt
-  - shared/src/androidMain/kotlin/com/playbook/preferences/UserPreferences.android.kt
-  - shared/src/iosMain/kotlin/com/playbook/preferences/UserPreferences.ios.kt
-  - shared/src/commonMain/kotlin/com/playbook/preferences/UserPreferences.kt
-  - shared/src/commonMain/kotlin/com/playbook/di/SharedModule.kt
-  - composeApp/src/commonMain/kotlin/com/playbook/di/UiModule.kt
-  - composeApp/src/androidMain/kotlin/com/playbook/di/AndroidComposeModule.kt
-  - composeApp/src/androidMain/kotlin/com/playbook/PlaybookApplication.kt
-  - composeApp/src/androidMain/kotlin/com/playbook/MainActivity.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/network/HttpClientFactory.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/network/ApiConfig.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/data/repository/AuthRepositoryImpl.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/repository/AuthRepository.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/domain/Auth.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/auth/AuthState.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/auth/AuthViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/login/LoginScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/login/LoginViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/register/RegisterScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/register/RegisterViewModel.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/emptystate/EmptyStateScreen.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/ui/emptystate/EmptyStateViewModel.kt
+  - composeApp/src/androidMain/kotlin/ch/teamorg/di/KmpViewModel.android.kt
+  - composeApp/src/iosMain/kotlin/ch/teamorg/di/KmpViewModel.ios.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/di/KmpViewModel.kt
+  - shared/src/androidMain/kotlin/ch/teamorg/preferences/UserPreferences.android.kt
+  - shared/src/iosMain/kotlin/ch/teamorg/preferences/UserPreferences.ios.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/preferences/UserPreferences.kt
+  - shared/src/commonMain/kotlin/ch/teamorg/di/SharedModule.kt
+  - composeApp/src/commonMain/kotlin/ch/teamorg/di/UiModule.kt
+  - composeApp/src/androidMain/kotlin/ch/teamorg/di/AndroidComposeModule.kt
+  - composeApp/src/androidMain/kotlin/ch/teamorg/TeamorgApplication.kt
+  - composeApp/src/androidMain/kotlin/ch/teamorg/MainActivity.kt
   - composeApp/src/androidMain/AndroidManifest.xml
-  - composeApp/src/androidUnitTest/kotlin/com/playbook/ui/login/LoginScreenTest.kt
-  - composeApp/src/androidUnitTest/kotlin/com/playbook/ui/register/RegisterScreenTest.kt
-  - composeApp/src/androidUnitTest/kotlin/com/playbook/ui/emptystate/EmptyStateScreenTest.kt
+  - composeApp/src/androidUnitTest/kotlin/ch/teamorg/ui/login/LoginScreenTest.kt
+  - composeApp/src/androidUnitTest/kotlin/ch/teamorg/ui/register/RegisterScreenTest.kt
+  - composeApp/src/androidUnitTest/kotlin/ch/teamorg/ui/emptystate/EmptyStateScreenTest.kt
   - local.properties.example
 requirements:
   - AUTH-01
@@ -128,7 +128,7 @@ sealed class AuthState {
 - Holds `StateFlow<AuthState>`
 - On init: checks stored token → calls `GET /auth/me` → emits Authenticated or Unauthenticated
 - `hasTeam` = false in Phase 1 (team membership check added in Phase 2)
-- Consumed by `PlaybookApp.kt` for navigation routing
+- Consumed by `TeamorgApp.kt` for navigation routing
 </task>
 
 <task id="04-05" title="KmpViewModel expect/actual">
@@ -176,10 +176,10 @@ Koin `viewModel {}` on Android; direct constructor injection on iOS.
 Shown when user is authenticated but has no team yet.
 
 Three sections:
-1. **Welcome** — "Welcome to Playbook" + illustration/icon placeholder
+1. **Welcome** — "Welcome to Teamorg" + illustration/icon placeholder
 2. **Join a team** — "Got an invite link?" → text field to paste link + "Join" button
 3. **Create a club** — "Starting a club?" → "Set up your club" button (navigates to Phase 2 club setup)
-4. **Share your profile** — "Let a coach add you:" → generates `playbook://invite/player/{userId}` → copy to clipboard button + share sheet
+4. **Share your profile** — "Let a coach add you:" → generates `teamorg://invite/player/{userId}` → copy to clipboard button + share sheet
 
 Copy button shows Toast "Copied to clipboard" (bottom, info, 3s — from UX patterns doc).
 
@@ -198,7 +198,7 @@ Note: The deep link URI scheme is registered in AndroidManifest and iOS Info.pli
 - `viewModel { RegisterViewModel(get()) }`
 - `viewModel { EmptyStateViewModel(get()) }`
 
-`PlaybookApplication.kt` (Android): `startKoin { modules(SharedModule, UiModule, AndroidComposeModule) }`
+`TeamorgApplication.kt` (Android): `startKoin { modules(SharedModule, UiModule, AndroidComposeModule) }`
 </task>
 
 <task id="04-10" title="Tests — auth UI">
