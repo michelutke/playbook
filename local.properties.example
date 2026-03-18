@@ -1,4 +1,0 @@
-# Copy to local.properties (never commit local.properties)
-DATABASE_URL=jdbc:postgresql://localhost:5432/playbook_dev
-JWT_SECRET=change_me_in_production_min_32_chars
-API_BASE_URL=https://api.playbook.app

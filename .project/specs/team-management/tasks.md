@@ -115,7 +115,7 @@ gate: READY GO
 | TM-059 | **S6b Club Coach Invite Sheet** — copy link + email + pending coach list | TM-049 |
 | TM-060 | **S7 Player Profile** — avatar, jersey, position, role chips, contact info, attendance stats stub | TM-048, TM-050 |
 | TM-061 | **S8 Coach First-Team Setup** — "Submit for Approval" screen post-signup | TM-047 |
-| TM-062 | **F9 Invite link deep link handling** — `playbook://join/{token}` → confirm sheet → register if needed | TM-049 |
+| TM-062 | **F9 Invite link deep link handling** — `teamorg://join/{token}` → confirm sheet → register if needed | TM-049 |
 | TM-063 | **F13 Pending team approval** — ClubManager approve/reject with optional reason | TM-047 |
 | TM-064 | Role chip components (Gold=ClubManager, Blue=Coach, Grey=Player) | — |
 | TM-065 | Invite state badge components (Pending/Accepted/Expired/Revoked) | — |

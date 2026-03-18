@@ -18,7 +18,7 @@ status: planning
 ### Invite Token Flow
 - **Approach:** Token passed through navigation state → redeemed immediately post-auth
 - **Flow:**
-  1. User taps invite link: `playbook://invite/team/{inviteToken}`
+  1. User taps invite link: `teamorg://invite/team/{inviteToken}`
   2. App checks auth state
      - If authenticated: immediately call `POST /invites/{token}/redeem` → navigate to team
      - If unauthenticated: navigate to Register (or Login) with token in nav backstack args

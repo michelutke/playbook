@@ -48,7 +48,7 @@ The reverse invite sharing UI is on this empty state screen. The coach-side "add
 - No merge without green tests
 
 ### Claude's Discretion
-- M3 component selection (which M3 components map to which Playbook UI elements)
+- M3 component selection (which M3 components map to which Teamorg UI elements)
 - SQLDelight schema initial structure (minimal — extended in subsequent phases)
 - Koin module organization
 - Gradle version catalog structure (reference failed example's `libs.versions.toml`)
@@ -60,8 +60,8 @@ The reverse invite sharing UI is on this empty state screen. The coach-side "add
 
 ### Reusable Reference (failed example project)
 - `gradle/libs.versions.toml` — version catalog with pinned deps; use as reference, don't copy blindly
-- `composeApp/src/commonMain/kotlin/com/playbook/di/` — KmpViewModel pattern (expect/actual, iOS bypasses KoinViewModelFactory) — reuse this pattern
-- `shared/src/commonMain/kotlin/com/playbook/data/network/HttpClientFactory.kt` — Ktor client setup
+- `composeApp/src/commonMain/kotlin/ch/teamorg/di/` — KmpViewModel pattern (expect/actual, iOS bypasses KoinViewModelFactory) — reuse this pattern
+- `shared/src/commonMain/kotlin/ch/teamorg/data/network/HttpClientFactory.kt` — Ktor client setup
 - `server/` — Ktor server, Exposed tables, Flyway migrations — fresh start but use as domain reference
 - `iosApp/project.yml` — XcodeGen config
 
@@ -82,7 +82,7 @@ The reverse invite sharing UI is on this empty state screen. The coach-side "add
 <specifics>
 ## Specific Requirements
 
-- Reverse invite: player on empty state can copy a deep link (`playbook://invite/player/{userId}`) to share with coach
+- Reverse invite: player on empty state can copy a deep link (`teamorg://invite/player/{userId}`) to share with coach
 - Nav pill bottom bar with `cornerRadius: 36`, 62px height (from design.md)
 - Status bar: 62px
 - Screen frame: 390×844 base (iPhone 15)

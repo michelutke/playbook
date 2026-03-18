@@ -1,11 +1,11 @@
 # Plan 02 Summary - File Storage Service
 
-Implemented the file storage abstraction and local filesystem implementation for the Playbook KMP project.
+Implemented the file storage abstraction and local filesystem implementation for the Teamorg KMP project.
 
 ## Changes
 
 ### Abstraction
-- Created `FileStorageService` interface in `com.playbook.storage`.
+- Created `FileStorageService` interface in `ch.teamorg.storage`.
 - Added `FileType` enum with `AVATAR` and `CLUB_LOGO` types.
 - Interface methods:
     - `save(bytes: ByteArray, type: FileType, extension: String): String`
@@ -20,7 +20,7 @@ Implemented the file storage abstraction and local filesystem implementation for
 ### Infrastructure
 - Added `StaticFiles.kt` plugin to serve files from `/uploads/*`.
 - Integrated `configureStaticFiles()` into `Application.kt`.
-- Created `StorageModule.kt` in `com.playbook.di` for Koin dependency injection.
+- Created `StorageModule.kt` in `ch.teamorg.di` for Koin dependency injection.
 - Bound `FileStorageService` interface to `LocalFileStorageService` implementation in Koin.
 
 ## Verification

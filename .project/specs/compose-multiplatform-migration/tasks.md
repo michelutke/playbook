@@ -12,7 +12,7 @@ gate: READY GO
 | CMP-001 | Create `composeApp/` KMP module in `settings.gradle.kts`; add `build.gradle.kts` with Android + `iosSimulatorArm64` + `iosArm64` targets | — |
 | CMP-002 | Add dependencies: Navigation 3 `1.0.0-alpha05`, Coil `3.4.0` + `coil-network-ktor3`, multiplatform-settings `1.3.0`, Koin `4.2.0`, `lifecycle-viewmodel`, `kotlinx-coroutines` | CMP-001 |
 | CMP-003 | Create `Screen.kt` sealed class with `@Serializable` routes; add `Screen.Splash` entry point | CMP-001 |
-| CMP-004 | Create empty `PlaybookApp` composable (skeleton NavHost + auth state placeholder) | CMP-003 |
+| CMP-004 | Create empty `TeamorgApp` composable (skeleton NavHost + auth state placeholder) | CMP-003 |
 | CMP-005 | Implement `AuthViewModel` reading `UserPreferences` via coroutine; emit `AuthState.Loading / Authenticated / Unauthenticated` — no `runBlocking` | CMP-002 |
 | CMP-006 | expect/actual `UserPreferences` — DataStore (androidMain) / NSUserDefaults (iosMain); silent one-time migration on Android first launch | CMP-002 |
 | CMP-007 | expect/actual `PushPermissionRequester` — `POST_NOTIFICATIONS` (Android) / `UNUserNotificationCenter` (iOS) | CMP-002 |
@@ -29,7 +29,7 @@ gate: READY GO
 | CMP-053 ✅ | Create `iosApp/iosApp/ContentView.swift`; XcodeGen project; `assembleXCFramework`; verify iOS sim blank screen | CMP-009 |
 
 > **Phase 0 iOS gate PASSED.** Blank screen confirmed on iPhone 17 Pro simulator (Xcode 26.3, iOS 26.2 SDK).
-> Known: `koinViewModel<AuthViewModel>()` crashes on iOS with Koin 4.0.0 — removed from `PlaybookApp` for Phase 0. Will be resolved in CMP-017 (auth gate wiring, Phase 1).
+> Known: `koinViewModel<AuthViewModel>()` crashes on iOS with Koin 4.0.0 — removed from `TeamorgApp` for Phase 0. Will be resolved in CMP-017 (auth gate wiring, Phase 1).
 
 ## Phase 1 — Auth + Navigation Skeleton ✅
 
@@ -41,9 +41,9 @@ gate: READY GO
 | CMP-013 ✅ | Migrate `ClubSetupScreen` + `ClubSetupViewModel` (first-time onboarding; logo picker dropped — YAGNI) | CMP-010 |
 | CMP-014 ✅ | Migrate `TeamSetupScreen` + `TeamSetupViewModel` (F1 flow) | CMP-010 |
 | CMP-015 ✅ | Nav graph: manual `mutableStateListOf<Screen>()` backstack + `when(currentScreen)` (Navigation 3 dropped — all alphas require CMP 1.10.x / Kotlin 2.2+, incompatible with CMP 1.7.1) | CMP-011, CMP-012 |
-| CMP-016 ✅ | `PlaybookBottomBar` + `Scaffold` shell; bottom bar shown on ClubDashboard + NotificationInbox | CMP-015 |
-| CMP-017 ✅ | Auth gate in `PlaybookApp`: `filter { !Loading }.collect {}` pattern; `AuthViewModel.onLoginSuccess()` added | CMP-005, CMP-015 |
-| CMP-018 ✅ | Deep links: `playbook://invite?token=` in `MainActivity.onNewIntent`; `PlaybookApp` guards with auth state | CMP-017 |
+| CMP-016 ✅ | `TeamorgBottomBar` + `Scaffold` shell; bottom bar shown on ClubDashboard + NotificationInbox | CMP-015 |
+| CMP-017 ✅ | Auth gate in `TeamorgApp`: `filter { !Loading }.collect {}` pattern; `AuthViewModel.onLoginSuccess()` added | CMP-005, CMP-015 |
+| CMP-018 ✅ | Deep links: `teamorg://invite?token=` in `MainActivity.onNewIntent`; `TeamorgApp` guards with auth state | CMP-017 |
 | CMP-019 | Exit gate: Login → ClubDashboard flow verified on Android emulator + iOS simulator | CMP-018 |
 
 > **Phase 1 build gate PASSED.** Android + iOS compile clean. CMP-019 (runtime verification) pending.
@@ -56,7 +56,7 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 | ID | Task | Deps |
 |---|---|---|
 | CMP-054 ✅ | Bump Kotlin 2.1.10→2.3.10, CMP 1.7.1→1.10.1, AGP 8.5.0→8.13.2, Gradle 8.9→8.13, kotlinx-serialization 1.7.2→1.8.0, kotlinx-coroutines 1.9.0→1.10.2, compileSdk 35→36; migrate `kotlinOptions{}` → `compilerOptions{}` across all modules; fix `compose.*` accessor deprecations in `androidApp` | CMP-018 |
-| CMP-055 ✅ | Restore Navigation3 `1.0.0-alpha06` + Coil3 `3.4.0` to `composeApp/commonMain`; replace manual `when(currentScreen)` workaround with `NavDisplay`/`NavEntry` in `PlaybookApp.kt` | CMP-054 |
+| CMP-055 ✅ | Restore Navigation3 `1.0.0-alpha06` + Coil3 `3.4.0` to `composeApp/commonMain`; replace manual `when(currentScreen)` workaround with `NavDisplay`/`NavEntry` in `TeamorgApp.kt` | CMP-054 |
 
 ## Phase 2 — Team Management
 
@@ -103,14 +103,14 @@ Performed between Phase 1 completion and Phase 2 start to unblock Navigation3 + 
 | CMP-043 ✅ | Migrate `NotificationInboxScreen` + `NotificationInboxViewModel` | CMP-016 |
 | CMP-044 ✅ | Migrate `NotificationSettingsScreen` + `NotificationSettingsViewModel` (PushPermissionBanner "Open Settings" dropped — no platform way to open device settings in commonMain) | CMP-016 |
 | CMP-045 ✅ | Migrate `PushPermissionScreen` (uses `PushPermissionRequester` via `koinInject`) | CMP-007 |
-| CMP-046 ✅ | Wire notification badge: `NotificationRepository.getUnreadCount()` collected in `PlaybookApp`; passed to `PlaybookBottomBar` | CMP-016, CMP-043 |
+| CMP-046 ✅ | Wire notification badge: `NotificationRepository.getUnreadCount()` collected in `TeamorgApp`; passed to `TeamorgBottomBar` | CMP-016, CMP-043 |
 | CMP-047 | Exit gate: notification screens + badge verified on both platforms | CMP-043, CMP-044, CMP-045, CMP-046 |
 
 ## Phase 6 — Cleanup
 
 | ID | Task | Deps |
 |---|---|---|
-| CMP-048 ✅ | Delete all migrated UI from `androidApp/`; reduce to thin shell: `MainActivity` + `PlaybookApp` (Koin init) + `AndroidManifest.xml` only | CMP-030, CMP-037, CMP-042, CMP-047 |
+| CMP-048 ✅ | Delete all migrated UI from `androidApp/`; reduce to thin shell: `MainActivity` + `TeamorgApp` (Koin init) + `AndroidManifest.xml` only | CMP-030, CMP-037, CMP-042, CMP-047 |
 | CMP-049 | Complete NT-011: OneSignal iOS SDK integration in Xcode project | CMP-047 |
 | CMP-050 | Complete NT-016: Background Modes capability in Xcode + `Info.plist` | CMP-049 |
 | CMP-051 | Final: `./gradlew :composeApp:assembleXCFramework` + Xcode build green; full smoke test both platforms; verify `androidApp/` is thin shell | CMP-048, CMP-050 |

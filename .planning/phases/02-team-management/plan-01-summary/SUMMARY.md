@@ -6,7 +6,7 @@
     - `V4__create_teams.sql`: `teams`, `team_roles`
     - `V5__create_invites.sql`: `invite_links`
     - `V6__create_subgroups.sql`: `sub_groups`, `sub_group_members`
-- Implemented corresponding Exposed DSL table objects in `com.playbook.db.tables`:
+- Implemented corresponding Exposed DSL table objects in `ch.teamorg.db.tables`:
     - `ClubsTable`, `ClubRolesTable`
     - `TeamsTable`, `TeamRolesTable`
     - `InviteLinksTable`

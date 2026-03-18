@@ -6,9 +6,9 @@ title: "Compose UI Testing — Auth Screens"
 depends_on: ["04"]
 autonomous: true
 files_modified:
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/login/LoginScreenUiTest.kt
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/register/RegisterScreenUiTest.kt
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/emptystate/EmptyStateScreenUiTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/login/LoginScreenUiTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/register/RegisterScreenUiTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/emptystate/EmptyStateScreenUiTest.kt
 requirements:
   - AUTH-01
   - AUTH-02

@@ -6,10 +6,10 @@ title: "FileStorageService abstraction + local filesystem impl"
 depends_on: []
 autonomous: true
 files_modified:
-  - server/src/main/kotlin/com/playbook/storage/FileStorageService.kt
-  - server/src/main/kotlin/com/playbook/storage/LocalFileStorageService.kt
-  - server/src/main/kotlin/com/playbook/plugins/StaticFiles.kt
-  - server/src/main/kotlin/com/playbook/di/StorageModule.kt
+  - server/src/main/kotlin/ch/teamorg/storage/FileStorageService.kt
+  - server/src/main/kotlin/ch/teamorg/storage/LocalFileStorageService.kt
+  - server/src/main/kotlin/ch/teamorg/plugins/StaticFiles.kt
+  - server/src/main/kotlin/ch/teamorg/di/StorageModule.kt
 requirements:
   - TM-01
   - TM-20

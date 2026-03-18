@@ -33,7 +33,7 @@ Full event management backend + Android UI:
 ## Key Files
 
 ```
-backend/src/main/kotlin/com/playbook/
+backend/src/main/kotlin/ch/teamorg/
   routes/EventRoutes.kt
   routes/SubgroupRoutes.kt
   jobs/EventMaterialisationJob.kt

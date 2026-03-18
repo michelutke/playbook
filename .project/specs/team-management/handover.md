@@ -32,7 +32,7 @@ Full club and team management backend + Android UI covering:
 ## Key Files
 
 ```
-backend/src/main/kotlin/com/playbook/
+backend/src/main/kotlin/ch/teamorg/
   routes/ClubRoutes.kt
   routes/TeamRoutes.kt
   routes/MemberRoutes.kt

@@ -33,20 +33,20 @@ Completed the implementation of the Ktor server foundation including database co
 - Note: Automated test execution was skipped in this session due to missing `java` in the execution environment, but the test code is complete and follows the requirements.
 
 ## Key Files Created
-- `server/src/main/kotlin/com/playbook/Application.kt`
-- `server/src/main/kotlin/com/playbook/plugins/Auth.kt`
-- `server/src/main/kotlin/com/playbook/plugins/Routing.kt`
-- `server/src/main/kotlin/com/playbook/plugins/Serialization.kt`
-- `server/src/main/kotlin/com/playbook/plugins/Koin.kt`
-- `server/src/main/kotlin/com/playbook/infra/DatabaseFactory.kt`
-- `server/src/main/kotlin/com/playbook/db/tables/UsersTable.kt`
-- `server/src/main/kotlin/com/playbook/domain/repositories/UserRepository.kt`
-- `server/src/main/kotlin/com/playbook/routes/AuthRoutes.kt`
-- `server/src/main/kotlin/com/playbook/middleware/AuthMiddleware.kt`
+- `server/src/main/kotlin/ch/teamorg/Application.kt`
+- `server/src/main/kotlin/ch/teamorg/plugins/Auth.kt`
+- `server/src/main/kotlin/ch/teamorg/plugins/Routing.kt`
+- `server/src/main/kotlin/ch/teamorg/plugins/Serialization.kt`
+- `server/src/main/kotlin/ch/teamorg/plugins/Koin.kt`
+- `server/src/main/kotlin/ch/teamorg/infra/DatabaseFactory.kt`
+- `server/src/main/kotlin/ch/teamorg/db/tables/UsersTable.kt`
+- `server/src/main/kotlin/ch/teamorg/domain/repositories/UserRepository.kt`
+- `server/src/main/kotlin/ch/teamorg/routes/AuthRoutes.kt`
+- `server/src/main/kotlin/ch/teamorg/middleware/AuthMiddleware.kt`
 - `server/src/main/resources/application.conf`
 - `server/src/main/resources/db/migrations/V1__create_users.sql`
-- `server/src/test/kotlin/com/playbook/routes/AuthRoutesTest.kt`
-- `server/src/test/kotlin/com/playbook/test/IntegrationTestBase.kt`
+- `server/src/test/kotlin/ch/teamorg/routes/AuthRoutesTest.kt`
+- `server/src/test/kotlin/ch/teamorg/test/IntegrationTestBase.kt`
 - `local.properties.example`
 
 ## Deviations

@@ -6,10 +6,10 @@ title: "UI tests + E2E flows — Team Management"
 depends_on: ["05"]
 autonomous: true
 files_modified:
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/club/ClubSetupScreenTest.kt
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/team/TeamRosterScreenTest.kt
-  - composeApp/src/androidTest/kotlin/com/playbook/ui/invite/InviteScreenTest.kt
-  - composeApp/src/androidTest/kotlin/com/playbook/e2e/InviteE2ETest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/club/ClubSetupScreenTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/team/TeamRosterScreenTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/ui/invite/InviteScreenTest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/e2e/InviteE2ETest.kt
 requirements:
   - TM-04
   - TM-10

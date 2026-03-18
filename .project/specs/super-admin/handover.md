@@ -33,7 +33,7 @@ Web-only SuperAdmin panel (SvelteKit) + Ktor backend extension:
 ## Key Files
 
 ```
-backend/src/main/kotlin/com/playbook/
+backend/src/main/kotlin/ch/teamorg/
   routes/SuperAdminRoutes.kt
   plugins/AuditPlugin.kt     — Ktor interceptor on /api/sa/ routes
   jobs/AuditExportJob.kt

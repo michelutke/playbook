@@ -9,7 +9,7 @@
 ## Manual Action Required
 Miggi, you need to add the following GitHub Actions secrets to the repository to enable Updraft uploads:
 
-1. Go to: [https://github.com/michelutke/playbook/settings/secrets/actions](https://github.com/michelutke/playbook/settings/secrets/actions)
+1. Go to: [https://github.com/michelutke/teamorg/settings/secrets/actions](https://github.com/michelutke/teamorg/settings/secrets/actions)
 2. Add `UPDRAFT_APP_ID`: The application identifier from Updraft.
 3. Add `UPDRAFT_API_KEY`: The upload API key from Updraft.
 

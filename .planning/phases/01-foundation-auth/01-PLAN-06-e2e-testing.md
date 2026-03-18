@@ -6,7 +6,7 @@ title: "E2E Auth Flow Testing"
 depends_on: ["04"]
 autonomous: true
 files_modified:
-  - composeApp/src/androidTest/kotlin/com/playbook/e2e/AuthE2ETest.kt
+  - composeApp/src/androidTest/kotlin/ch/teamorg/e2e/AuthE2ETest.kt
 requirements:
   - AUTH-01
   - AUTH-02

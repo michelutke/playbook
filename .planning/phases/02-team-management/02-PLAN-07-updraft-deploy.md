@@ -28,7 +28,7 @@ Releases (merged to main) build a release APK and upload to Updraft separately.
 ## Tasks
 
 <task id="07-01" title="Add GitHub Actions secrets (manual step — Miggi)">
-Go to https://github.com/michelutke/playbook/settings/secrets/actions and add:
+Go to https://github.com/michelutke/teamorg/settings/secrets/actions and add:
 - `UPDRAFT_APP_ID` = the app ID
 - `UPDRAFT_API_KEY` = the API key
 
@@ -67,7 +67,7 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew :androidApp:assembleDebug
         env:
-          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api.playbook.app' }}
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api.teamorg.app' }}
 
       - name: Upload to Updraft
         run: |

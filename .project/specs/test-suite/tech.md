@@ -255,14 +255,14 @@ test: {
 All route tests share a base class:
 
 ```kotlin
-// backend/src/test/kotlin/com/playbook/test/IntegrationTestBase.kt
+// backend/src/test/kotlin/ch/teamorg/test/IntegrationTestBase.kt
 @Testcontainers
 abstract class IntegrationTestBase {
     companion object {
         @Container
         @JvmStatic
         val postgres = PostgreSQLContainer<Nothing>("postgres:16-alpine").apply {
-            withDatabaseName("playbook_test")
+            withDatabaseName("teamorg_test")
             withUsername("test")
             withPassword("test")
         }
@@ -284,8 +284,8 @@ abstract class IntegrationTestBase {
                 "smtp.host" to "localhost",
                 "smtp.port" to "1025",
                 "jwt.secret" to TEST_JWT_SECRET,
-                "jwt.issuer" to "playbook",
-                "jwt.audience" to "playbook-app",
+                "jwt.issuer" to "teamorg",
+                "jwt.audience" to "teamorg-app",
                 "jwt.expirationHours" to "1",
                 "app.baseUrl" to "http://localhost:8080",
                 "cors.allowedHost" to "localhost:3000",
@@ -299,16 +299,16 @@ abstract class IntegrationTestBase {
         block()
     }
 
-    protected fun bearerToken(userId: String, audience: String = "playbook-app"): String {
+    protected fun bearerToken(userId: String, audience: String = "teamorg-app"): String {
         return JWT.create()
-            .withIssuer("playbook")
+            .withIssuer("teamorg")
             .withAudience(audience)
             .withClaim("sub", userId)
             .withExpiresAt(Date(System.currentTimeMillis() + 3_600_000))
             .sign(Algorithm.HMAC256(TEST_JWT_SECRET))
     }
 
-    protected fun saToken(userId: String): String = bearerToken(userId, audience = "playbook-sa")
+    protected fun saToken(userId: String): String = bearerToken(userId, audience = "teamorg-sa")
 }
 ```
 
@@ -395,7 +395,7 @@ class AuthSecurityTest : IntegrationTestBase() {
 ### Shared — Domain Unit Test (commonTest)
 
 ```kotlin
-// shared/src/commonTest/kotlin/com/playbook/domain/AttendanceTest.kt
+// shared/src/commonTest/kotlin/ch/teamorg/domain/AttendanceTest.kt
 class AttendanceTest : StringSpec({
     "confirmed attendance sets status to CONFIRMED" {
         val record = Attendance(
@@ -413,16 +413,16 @@ class AttendanceTest : StringSpec({
 ### Shared — SQLDelight Query Test (jvmTest)
 
 ```kotlin
-// shared/src/jvmTest/kotlin/com/playbook/db/AttendanceDaoTest.kt
+// shared/src/jvmTest/kotlin/ch/teamorg/db/AttendanceDaoTest.kt
 class AttendanceDaoTest {
     private lateinit var driver: SqlDriver
-    private lateinit var db: PlaybookDatabase
+    private lateinit var db: TeamorgDatabase
 
     @BeforeEach
     fun setup() {
         driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
-        PlaybookDatabase.Schema.create(driver)
-        db = PlaybookDatabase(driver)
+        TeamorgDatabase.Schema.create(driver)
+        db = TeamorgDatabase(driver)
     }
 
     @AfterEach
@@ -446,7 +446,7 @@ class AttendanceDaoTest {
 ### composeApp — Robolectric Smoke Test (androidUnitTest)
 
 ```kotlin
-// composeApp/src/androidUnitTest/kotlin/com/playbook/ui/LoginScreenTest.kt
+// composeApp/src/androidUnitTest/kotlin/ch/teamorg/ui/LoginScreenTest.kt
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [34])
 class LoginScreenTest {
@@ -515,13 +515,13 @@ test('shows error on failed login', async () => {
 
 ```yaml
 # maestro/flows/coach-full-journey.yaml
-appId: com.playbook.android  # or iOS bundle ID
+appId: ch.teamorg.android  # or iOS bundle ID
 ---
 - launchApp
 - tapOn: "Anmelden"
 - inputText:
     id: "email_field"
-    text: "coach@test.playbook.com"
+    text: "coach@test.teamorg.com"
 - inputText:
     id: "password_field"
     text: "${COACH_PASSWORD}"
@@ -596,7 +596,7 @@ Schema clean+migrate takes ~100–200ms. Runs once per test class, not per test 
 
 ## Test Data Strategy
 
-Shared test fixtures live in `backend/src/test/kotlin/com/playbook/test/Fixtures.kt`:
+Shared test fixtures live in `backend/src/test/kotlin/ch/teamorg/test/Fixtures.kt`:
 
 ```kotlin
 object Fixtures {
@@ -672,4 +672,4 @@ kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" 
 | `runComposeUiTest` API changes in CMP upgrade | Medium | Pin CMP version; don't upgrade composeApp CMP independently of this flag |
 | Testcontainers cold start in CI adds ~30s per test class first run | Low | Use `testcontainers.reuse.enable=true` in `~/.testcontainers.properties` for local dev |
 | XCTest `testTag`→`accessibilityIdentifier` mapping requires `testTag` on all interactive elements | Medium | Add `testTag` during CMP migration phase (not after) — track in CMP migration implementation tasks |
-| Flyway `clean()` in tests risks running against production DB if env vars are wrong | High | Assert `jdbcUrl.contains("localhost")` or `contains("5432/playbook_test")` in `IntegrationTestBase` before allowing clean |
+| Flyway `clean()` in tests risks running against production DB if env vars are wrong | High | Assert `jdbcUrl.contains("localhost")` or `contains("5432/teamorg_test")` in `IntegrationTestBase` before allowing clean |

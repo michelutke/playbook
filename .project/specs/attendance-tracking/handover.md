@@ -32,7 +32,7 @@ Full attendance lifecycle backend + Android UI:
 ## Key Files
 
 ```
-backend/src/main/kotlin/com/playbook/
+backend/src/main/kotlin/ch/teamorg/
   routes/AttendanceRoutes.kt
   routes/AbwesenheitRoutes.kt
   routes/CheckInRoutes.kt

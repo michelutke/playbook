@@ -1,1 +1,0 @@
-ALTER TABLE teams ADD COLUMN check_in_enabled BOOLEAN NOT NULL DEFAULT false;

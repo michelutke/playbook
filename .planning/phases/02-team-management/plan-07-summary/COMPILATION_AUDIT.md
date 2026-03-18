@@ -6,28 +6,28 @@
 - **Issue:** The project was using a mix of manual backstack management and outdated Navigation3 API calls (e.g., `rememberNavWrapper`, `NavBackStackEntry` without `NavController`).
 - **Fix:** Switched to the correct `rememberNavController` and `NavHost(navController)` API from Navigation3 `alpha06`.
 - **Files Changed:** 
-    - `composeApp/src/commonMain/kotlin/com/playbook/PlaybookApp.kt`
-    - `composeApp/src/commonMain/kotlin/com/playbook/navigation/AppNavigation.kt`
+    - `composeApp/src/commonMain/kotlin/ch/teamorg/TeamorgApp.kt`
+    - `composeApp/src/commonMain/kotlin/ch/teamorg/navigation/AppNavigation.kt`
 
 ### 2. Screen Model Missing Loading State
-- **Issue:** `PlaybookApp` needed a `Loading` state for initial `AuthState` check, but it was missing from the `Screen` sealed class.
+- **Issue:** `TeamorgApp` needed a `Loading` state for initial `AuthState` check, but it was missing from the `Screen` sealed class.
 - **Fix:** Added `data object Loading` to `Screen`.
 - **Files Changed:**
-    - `composeApp/src/commonMain/kotlin/com/playbook/navigation/Screen.kt`
+    - `composeApp/src/commonMain/kotlin/ch/teamorg/navigation/Screen.kt`
 
 ### 3. ViewModel Base Class Inconsistency
 - **Issue:** `expect class KmpViewModel` in `commonMain` did not inherit from `androidx.lifecycle.ViewModel`, which is required for Koin's `viewModel {}` DSL and proper lifecycle management in Compose. The `iosMain` implementation was also missing the `ViewModel` inheritance.
 - **Fix:** Updated `KmpViewModel` to inherit from `ViewModel` in all source sets.
 - **Files Changed:**
-    - `composeApp/src/commonMain/kotlin/com/playbook/di/KmpViewModel.kt`
-    - `composeApp/src/androidMain/kotlin/com/playbook/di/KmpViewModel.android.kt`
-    - `composeApp/src/iosMain/kotlin/com/playbook/di/KmpViewModel.ios.kt`
+    - `composeApp/src/commonMain/kotlin/ch/teamorg/di/KmpViewModel.kt`
+    - `composeApp/src/androidMain/kotlin/ch/teamorg/di/KmpViewModel.android.kt`
+    - `composeApp/src/iosMain/kotlin/ch/teamorg/di/KmpViewModel.ios.kt`
 
 ### 4. Koin UI Module Platform Inconsistency
 - **Issue:** `uiModule.ios.kt` was using `factory {}` while `uiModule.android.kt` used `viewModel {}`. Navigation3 and Compose Multiplatform work best when both use `viewModel {}` for lifecycle persistence.
 - **Fix:** Changed `factory {}` to `viewModel {}` in `uiModule.ios.kt`.
 - **Files Changed:**
-    - `composeApp/src/iosMain/kotlin/com/playbook/di/UiModule.ios.kt`
+    - `composeApp/src/iosMain/kotlin/ch/teamorg/di/UiModule.ios.kt`
 
 ### 5. Missing Kotlin Serialization Plugin
 - **Issue:** `composeApp` was using `@Serializable` for its navigation screens but didn't have the `kotlinx-serialization` plugin applied in its `build.gradle.kts`.

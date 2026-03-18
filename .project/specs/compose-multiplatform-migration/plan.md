@@ -26,8 +26,8 @@ Move all Compose UI from `androidApp/` to a new `composeApp/` KMP module targeti
    - Update `libs.versions.toml` with all new versions
 
 3. **Empty entry points**
-   - `composeApp/src/commonMain/.../PlaybookApp.kt` — `@Composable fun PlaybookApp()` (empty box)
-   - `composeApp/src/iosMain/.../MainViewController.kt` — `fun MainViewController(): UIViewController = ComposeUIViewController { PlaybookApp() }`
+   - `composeApp/src/commonMain/.../TeamorgApp.kt` — `@Composable fun TeamorgApp()` (empty box)
+   - `composeApp/src/iosMain/.../MainViewController.kt` — `fun MainViewController(): UIViewController = ComposeUIViewController { TeamorgApp() }`
 
 4. **`AuthViewModel` + `AuthState` (commonMain)**
    - `sealed interface AuthState { Loading; Unauthenticated; data class Authenticated(val clubId: String) }`
@@ -48,8 +48,8 @@ Move all Compose UI from `androidApp/` to a new `composeApp/` KMP module targeti
 9. **`UiModule` Koin module** (empty, just `AuthViewModel` for now)
 
 10. **`androidApp/` thin-shell wiring**
-    - `MainActivity` calls `setContent { PlaybookApp() }`
-    - `PlaybookApp.kt` `startKoin {}` includes `SharedModule + UiModule + AndroidPlatformModule`
+    - `MainActivity` calls `setContent { TeamorgApp() }`
+    - `TeamorgApp.kt` `startKoin {}` includes `SharedModule + UiModule + AndroidPlatformModule`
     - Verify Android still builds and launches
 
 11. **Xcode project setup (iosApp/)**
@@ -59,7 +59,7 @@ Move all Compose UI from `androidApp/` to a new `composeApp/` KMP module targeti
     - Run `./gradlew :composeApp:assembleXCFramework`
     - Embed `composeApp.xcframework` in Xcode → Frameworks, Libraries, and Embedded Content
     - `ContentView.swift`: `MainViewControllerKt.MainViewController()`
-    - Add `playbook://` URL scheme to `Info.plist`
+    - Add `teamorg://` URL scheme to `Info.plist`
     - Verify iOS simulator launches to blank screen
 
 **Exit gate:** `./gradlew :androidApp:assembleDebug` succeeds; iOS simulator shows blank screen
@@ -80,16 +80,16 @@ Each hit in a screen that will move to `commonMain` must be resolved first.
 
 ### Tasks
 1. **Migrate `Screens.kt`** → `composeApp/commonMain` (serializable route objects, unchanged)
-2. **Migrate `PlaybookNavGraph.kt`** → rewrite for Navigation 3 `NavDisplay` / `BackStack`
+2. **Migrate `TeamorgNavGraph.kt`** → rewrite for Navigation 3 `NavDisplay` / `BackStack`
    - Replace `rememberNavController` → `rememberNavBackStack(Screen.Splash)`
    - Remove `runBlocking` → `AuthViewModel` drives navigation via `LaunchedEffect(authState)`
-3. **Migrate `PlaybookBottomBar`** → `composeApp/commonMain`
+3. **Migrate `TeamorgBottomBar`** → `composeApp/commonMain`
 4. **Migrate auth screens** (`LoginScreen`, `ClubSetupScreen`, `CoachFirstTeamSetupScreen`, `InviteAcceptScreen`) + their ViewModels
 5. **Coil 3 init** — `SingletonImageLoader.setSafe(context)` or `setSingletonImageLoaderFactory` in `androidMain`
 6. **Deep link handling**
-   - Android: `MainActivity.onNewIntent` → extract `playbook://invite?token=` → pass to `PlaybookApp`
+   - Android: `MainActivity.onNewIntent` → extract `teamorg://invite?token=` → pass to `TeamorgApp`
    - iOS: URL scheme handler in `SceneDelegate` or `ContentView` → pass `deepLinkToken` to `MainViewController`
-   - `PlaybookApp` `LaunchedEffect(deepLinkToken, authState)` handles auth-guard flow
+   - `TeamorgApp` `LaunchedEffect(deepLinkToken, authState)` handles auth-guard flow
 
 **Exit gate:** Login/register/invite-accept flow works on Android + iOS simulator
 
@@ -114,7 +114,7 @@ Each hit in a screen that will move to `commonMain` must be resolved first.
 ### Tasks
 1. For each screen: copy to `composeApp/commonMain`, fix any `LocalContext` hits, update imports to coil3
 2. Register all new ViewModels in `UiModule`
-3. Add routes to `PlaybookNavGraph`
+3. Add routes to `TeamorgNavGraph`
 
 **Exit gate:** Team features functional on iOS sim; Android regression clean
 
@@ -178,7 +178,7 @@ Each hit in a screen that will move to `commonMain` must be resolved first.
 
 ### Tasks
 1. **Delete all migrated screen/VM code from `androidApp/src/`**
-   - Keep: `MainActivity.kt`, `PlaybookApp.kt`, `di/AndroidPlatformModule.kt`, `push/` OneSignal wiring
+   - Keep: `MainActivity.kt`, `TeamorgApp.kt`, `di/AndroidPlatformModule.kt`, `push/` OneSignal wiring
 2. **Verify `androidApp/` is thin shell** — no `@Composable` fun except entry point
 3. **NT-011**: Add OneSignal iOS SDK via SPM in Xcode
 4. **NT-016**: Enable Background Modes → Remote notifications in Xcode
