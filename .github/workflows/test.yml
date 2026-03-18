@@ -58,3 +58,47 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - name: Run Android unit tests
         run: ./gradlew :composeApp:testDebugUnitTest
+
+  test-ios:
+    name: iOS UI Tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c "
+          import json,sys
+          d = json.load(sys.stdin)
+          for runtime, devices in d['devices'].items():
+              if 'iOS-18' in runtime:
+                  for dev in devices:
+                      if 'iPhone 16' in dev['name'] and dev['isAvailable']:
+                          print(dev['udid'])
+                          exit()
+          ")
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+      - name: Run iOS UI Tests
+        run: |
+          xcodebuild test \
+            -workspace iosApp/iosApp.xcworkspace \
+            -scheme iosApp-Workspace \
+            -destination "id=$SIMULATOR_UDID" \
+            -resultBundlePath TestResults.xcresult \
+            | xcpretty --report junit --output test-results-ios.xml || true
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: |
+            TestResults.xcresult
+            test-results-ios.xml
