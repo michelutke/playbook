@@ -88,12 +88,13 @@ jobs:
           xcrun simctl boot "$UDID"
       - name: Run iOS UI Tests
         run: |
+          set -o pipefail
           xcodebuild test \
             -workspace iosApp/iosApp.xcworkspace \
             -scheme iosApp-Workspace \
             -destination "id=$SIMULATOR_UDID" \
             -resultBundlePath TestResults.xcresult \
-            | xcpretty --report junit --output test-results-ios.xml || true
+            | xcpretty --report junit --output test-results-ios.xml
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
