@@ -16,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -45,6 +48,7 @@ fun TeamRosterScreen(
     }
 
     Scaffold(
+        modifier = Modifier.testTagsAsResourceId(),
         topBar = {
             TopAppBar(
                 title = { Text("Team Roster") },
@@ -56,7 +60,10 @@ fun TeamRosterScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showInviteDialog = true }) {
+            FloatingActionButton(
+                onClick = { showInviteDialog = true },
+                modifier = Modifier.testTag("fab_invite_player")
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Invite Player")
             }
         }
@@ -100,13 +107,17 @@ fun TeamRosterScreen(
                         viewModel.removeMember(teamId, member.userId)
                         memberToRemove = null
                     },
+                    modifier = Modifier.testTag("btn_remove_confirm"),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Remove")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { memberToRemove = null }) {
+                TextButton(
+                    onClick = { memberToRemove = null },
+                    modifier = Modifier.testTag("btn_remove_cancel")
+                ) {
                     Text("Cancel")
                 }
             }
@@ -126,7 +137,7 @@ fun TeamRosterScreen(
                             viewModel.createInvite(teamId, "player")
                             showInviteDialog = false
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("btn_invite_as_player")
                     ) {
                         Text("Invite as Player")
                     }
@@ -136,7 +147,7 @@ fun TeamRosterScreen(
                             viewModel.createInvite(teamId, "coach")
                             showInviteDialog = false
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("btn_invite_as_coach")
                     ) {
                         Text("Invite as Coach")
                     }
@@ -159,6 +170,7 @@ fun MemberItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("member_item_${member.userId}")
             .combinedClickable(onLongClick = onLongClick, onClick = {}),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {

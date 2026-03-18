@@ -55,6 +55,18 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutinesTest)
+            implementation(libs.turbine)
+            implementation(libs.kotest.assertions)
+        }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutinesTest)
+                implementation(libs.robolectric)
+                implementation(libs.androidx.test.ext.junit)
+                implementation(libs.compose.uiTestJunit4)
+            }
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -113,6 +125,12 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
 

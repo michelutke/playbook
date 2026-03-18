@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.collectLatest
@@ -40,6 +43,7 @@ fun ClubSetupScreen(
     }
 
     Scaffold(
+        modifier = Modifier.testTagsAsResourceId(),
         topBar = {
             TopAppBar(
                 title = { Text("Set Up Your Club") },
@@ -78,7 +82,10 @@ fun ClubSetupScreen(
                 } else if (state.isLogoUploading) {
                     CircularProgressIndicator(modifier = Modifier.size(40.dp))
                 } else {
-                    IconButton(onClick = { /* Launch Image Picker */ }) {
+                    IconButton(
+                        onClick = { /* Launch Image Picker */ },
+                        modifier = Modifier.testTag("btn_add_logo")
+                    ) {
                         Icon(
                             Icons.Default.AddAPhoto,
                             contentDescription = "Add Logo",
@@ -99,7 +106,7 @@ fun ClubSetupScreen(
                 value = state.name,
                 onValueChange = viewModel::onNameChange,
                 label = { Text("Club Name") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("tf_club_name"),
                 isError = state.error != null && state.name.isBlank(),
                 singleLine = true
             )
@@ -108,7 +115,7 @@ fun ClubSetupScreen(
                 value = state.sportType,
                 onValueChange = viewModel::onSportTypeChange,
                 label = { Text("Sport Type") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("tf_sport_type"),
                 singleLine = true
             )
 
@@ -116,7 +123,7 @@ fun ClubSetupScreen(
                 value = state.location,
                 onValueChange = viewModel::onLocationChange,
                 label = { Text("Location (Optional)") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("tf_location"),
                 singleLine = true
             )
 
@@ -132,7 +139,7 @@ fun ClubSetupScreen(
 
             Button(
                 onClick = viewModel::createClub,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("btn_create_club"),
                 enabled = !state.isLoading && state.name.isNotBlank(),
                 shape = MaterialTheme.shapes.medium
             ) {

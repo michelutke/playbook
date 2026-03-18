@@ -11,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -34,6 +37,7 @@ fun LoginScreen(
             .fillMaxSize()
             .background(Color(0xFF090912)) // --background from design.md
             .padding(24.dp)
+            .testTagsAsResourceId()
     ) {
         Column(
             modifier = Modifier
@@ -54,7 +58,7 @@ fun LoginScreen(
                 value = state.email,
                 onValueChange = { viewModel.onEmailChange(it) },
                 label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("tf_email"),
                 enabled = !state.isLoading,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true
@@ -64,13 +68,16 @@ fun LoginScreen(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChange(it) },
                 label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("tf_password"),
                 enabled = !state.isLoading,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    IconButton(
+                        onClick = { passwordVisible = !passwordVisible },
+                        modifier = Modifier.testTag("btn_password_visibility")
+                    ) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                             contentDescription = if (passwordVisible) "Hide password" else "Show password"
@@ -81,7 +88,7 @@ fun LoginScreen(
 
             Button(
                 onClick = { viewModel.onLoginClick() },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("btn_sign_in"),
                 enabled = !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4F8EF7) // --primary from design.md
@@ -100,7 +107,8 @@ fun LoginScreen(
 
             TextButton(
                 onClick = onNavigateToRegister,
-                enabled = !state.isLoading
+                enabled = !state.isLoading,
+                modifier = Modifier.testTag("btn_navigate_register")
             ) {
                 Text("Don't have an account? Create one", color = Color(0xFF4F8EF7))
             }

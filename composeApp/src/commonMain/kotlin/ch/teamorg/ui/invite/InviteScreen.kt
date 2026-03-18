@@ -7,6 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,6 +37,7 @@ fun InviteScreen(
     }
 
     Scaffold(
+        modifier = Modifier.testTagsAsResourceId(),
         topBar = {
             TopAppBar(title = { Text("Team Invitation") })
         }
@@ -55,7 +59,10 @@ fun InviteScreen(
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.loadInvite(token) }) {
+                    Button(
+                        onClick = { viewModel.loadInvite(token) },
+                        modifier = Modifier.testTag("btn_retry")
+                    ) {
                         Text("Retry")
                     }
                 }
@@ -106,7 +113,7 @@ fun InviteScreen(
                     if (isLoggedIn) {
                         Button(
                             onClick = { viewModel.redeemInvite(token) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("btn_join_team"),
                             enabled = !state.isRedeeming,
                             shape = MaterialTheme.shapes.medium
                         ) {
@@ -124,7 +131,7 @@ fun InviteScreen(
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Button(
                                 onClick = { onNavigateToRegister(token) },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().testTag("btn_create_account_to_join"),
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text("Create Account to Join")
@@ -134,7 +141,7 @@ fun InviteScreen(
 
                             OutlinedButton(
                                 onClick = { onNavigateToLogin(token) },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().testTag("btn_login_to_join"),
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text("Login to Join")

@@ -144,4 +144,59 @@ class AuthRoutesTest : IntegrationTestBase() {
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
+
+    @Test
+    fun `logout with valid token returns 200`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val auth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("logout@example.com", "password123", "Logout User"))
+        }.body<AuthResponse>()
+
+        val response = client.post("/auth/logout") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun `logout without token returns 401`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val response = client.post("/auth/logout")
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `login returns userId and displayName`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("profile@example.com", "password123", "Profile User"))
+        }
+
+        val response = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody(LoginRequest("profile@example.com", "password123"))
+        }.body<AuthResponse>()
+
+        assertNotNull(response.userId)
+        assertEquals("Profile User", response.displayName)
+    }
+
+    @Test
+    fun `register blank display name returns 400`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val response = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("blank@example.com", "password123", "  "))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
 }
