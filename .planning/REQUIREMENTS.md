@@ -11,7 +11,7 @@
 - [ ] **AUTH-06**: SuperAdmin role granted manually only (not via registration)
 
 ### TM — Team Management
-- [ ] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
+- [x] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
 - [x] **TM-02**: ClubManager can create, archive, and delete teams within the club
 - [x] **TM-03**: ClubManager can invite a coach by email or shareable invite link
 - [x] **TM-04**: ClubManager can remove a coach from a team

@@ -32,7 +32,7 @@
 
 **Requirements:** TM-01–19
 
-**Plans:** 2 gap closure plans
+**Plans:** 6/6 plans complete
 
 Plans:
 - [ ] 02-12-PLAN.md — Club edit UI (TM-01 gap closure)
@@ -181,6 +181,6 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | Phase | Feature | Status |
 |---|---|---|
 | 1 | Foundation + Auth | ✅ Done |
-| 2 | 4/4 | Complete   | 2026-03-19 | 3 | 8/8 | Complete   | 2026-03-19 | 4 | Attendance Tracking | 🔲 Not started |
+| 2 | 6/6 | Complete   | 2026-03-19 | 3 | 8/8 | Complete   | 2026-03-19 | 4 | Attendance Tracking | 🔲 Not started |
 | 5 | Notifications | 🔲 Not started |
 | 6 | Super Admin | 🔲 Not started |

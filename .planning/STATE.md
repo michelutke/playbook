@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T13:27:18.432Z"
+last_updated: "2026-03-19T14:08:42.602Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # STATE.md — Playbook
@@ -83,6 +83,8 @@ progress:
 - [Phase 02-team-management]: leaveTeam uses DELETE /teams/{teamId}/leave (separate from DELETE /members/{userId} which is coach-only remove)
 - [Phase 02-team-management]: SubGroup domain model moved to Event.kt by Plan 02-09; shared TeamRepository imports from ch.teamorg.domain.SubGroup (same package)
 - [Phase 02-team-management]: SubGroupResponse data class added to SubGroupRoutes — mapOf with mixed String/Long types caused kotlinx.serialization crash
+- [Phase 02-team-management]: getClub() called alongside getClubTeams() in loadTeams() — no separate trigger needed
+- [Phase 02-team-management]: ClubEditSheet added as private composable in TeamsListScreen.kt — too small for separate file
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
