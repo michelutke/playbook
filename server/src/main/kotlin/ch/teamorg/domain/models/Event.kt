@@ -1,93 +1,101 @@
 package ch.teamorg.domain.models
 
+import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
+@Serializable
 data class Event(
-    val id: UUID,
+    @Serializable(with = UUIDSerializer::class) val id: UUID,
     val title: String,
     val type: String,
-    val startAt: Instant,
-    val endAt: Instant,
-    val meetupAt: Instant?,
+    @Serializable(with = InstantSerializer::class) val startAt: Instant,
+    @Serializable(with = InstantSerializer::class) val endAt: Instant,
+    @Serializable(with = InstantSerializer::class) val meetupAt: Instant?,
     val location: String?,
     val description: String?,
     val minAttendees: Int?,
     val status: String,
-    val cancelledAt: Instant?,
-    val seriesId: UUID?,
+    @Serializable(with = InstantSerializer::class) val cancelledAt: Instant?,
+    @Serializable(with = UUIDSerializer::class) val seriesId: UUID?,
     val seriesSequence: Int?,
     val seriesOverride: Boolean,
-    val createdBy: UUID,
-    val createdAt: Instant,
-    val updatedAt: Instant,
-    val teamIds: List<UUID> = emptyList(),
-    val subgroupIds: List<UUID> = emptyList()
+    @Serializable(with = UUIDSerializer::class) val createdBy: UUID,
+    @Serializable(with = InstantSerializer::class) val createdAt: Instant,
+    @Serializable(with = InstantSerializer::class) val updatedAt: Instant,
+    val teamIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
+    val subgroupIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList()
 )
 
+@Serializable
 data class EventWithTeams(
     val event: Event,
     val matchedTeams: List<MatchedTeam>
 )
 
+@Serializable
 data class MatchedTeam(
-    val id: UUID,
+    @Serializable(with = UUIDSerializer::class) val id: UUID,
     val name: String
 )
 
+@Serializable
 data class EventSeries(
-    val id: UUID,
+    @Serializable(with = UUIDSerializer::class) val id: UUID,
     val patternType: String,
     val weekdays: List<Short>?,
     val intervalDays: Int?,
-    val seriesStartDate: LocalDate,
-    val seriesEndDate: LocalDate?,
-    val templateStartTime: LocalTime,
-    val templateEndTime: LocalTime,
-    val templateMeetupTime: LocalTime?,
+    @Serializable(with = LocalDateSerializer::class) val seriesStartDate: LocalDate,
+    @Serializable(with = LocalDateSerializer::class) val seriesEndDate: LocalDate?,
+    @Serializable(with = LocalTimeSerializer::class) val templateStartTime: LocalTime,
+    @Serializable(with = LocalTimeSerializer::class) val templateEndTime: LocalTime,
+    @Serializable(with = LocalTimeSerializer::class) val templateMeetupTime: LocalTime?,
     val templateTitle: String,
     val templateType: String,
     val templateLocation: String?,
     val templateDescription: String?,
     val templateMinAttendees: Int?,
-    val createdBy: UUID,
-    val createdAt: Instant
+    @Serializable(with = UUIDSerializer::class) val createdBy: UUID,
+    @Serializable(with = InstantSerializer::class) val createdAt: Instant
 )
 
+@Serializable
 data class CreateEventRequest(
     val title: String,
     val type: String,
-    val startAt: Instant,
-    val endAt: Instant,
-    val meetupAt: Instant?,
-    val location: String?,
-    val description: String?,
-    val minAttendees: Int?,
-    val teamIds: List<UUID>,
-    val subgroupIds: List<UUID>,
-    val recurring: RecurringPattern?
+    @Serializable(with = InstantSerializer::class) val startAt: Instant,
+    @Serializable(with = InstantSerializer::class) val endAt: Instant,
+    @Serializable(with = InstantSerializer::class) val meetupAt: Instant? = null,
+    val location: String? = null,
+    val description: String? = null,
+    val minAttendees: Int? = null,
+    val teamIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
+    val subgroupIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
+    val recurring: RecurringPattern? = null
 )
 
+@Serializable
 data class RecurringPattern(
     val patternType: String,
     val weekdays: List<Short>?,
     val intervalDays: Int?,
-    val seriesEndDate: LocalDate?
+    @Serializable(with = LocalDateSerializer::class) val seriesEndDate: LocalDate?
 )
 
+@Serializable
 data class EditEventRequest(
     val title: String?,
     val type: String?,
-    val startAt: Instant?,
-    val endAt: Instant?,
-    val meetupAt: Instant?,
+    @Serializable(with = InstantSerializer::class) val startAt: Instant?,
+    @Serializable(with = InstantSerializer::class) val endAt: Instant?,
+    @Serializable(with = InstantSerializer::class) val meetupAt: Instant?,
     val location: String?,
     val description: String?,
     val minAttendees: Int?,
-    val teamIds: List<UUID>?,
-    val subgroupIds: List<UUID>?
+    val teamIds: List<@Serializable(with = UUIDSerializer::class) UUID>?,
+    val subgroupIds: List<@Serializable(with = UUIDSerializer::class) UUID>?
 )
 
 enum class RecurringScope { this_only, this_and_future, all }
