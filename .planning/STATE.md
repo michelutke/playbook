@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T11:19:09.343Z"
+last_updated: "2026-03-19T11:26:57.998Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # STATE.md — Playbook
@@ -54,6 +54,7 @@ progress:
 - ✅ 03-03: Shared KMP contracts — Event domain models, EventRepository interface, navigation screens, kizitonwose calendar in catalog
 - ✅ 03-02: Event API routes — 7 event endpoints + GET /teams/{teamId}/subgroups + background materialisation job + 9 integration tests
 - ✅ 03-04: KMP EventRepositoryImpl (Ktor) + EventCacheManager (SQLDelight) + DatabaseDriverFactory expect/actual + Koin wiring
+- ✅ 03-05: EventListScreen + EventDetailScreen — filterable event list, full detail (7 sections), coach role detection via UserPreferences, detailRefreshTrigger in navigation
 
 ## Decisions
 - Used `kotlin.test.@Ignore` for shared/server stubs (consistent with existing test convention)
@@ -67,7 +68,10 @@ progress:
 - [Phase 03-event-scheduling]: Custom KSerializer objects for java.time types — explicit, no SerializersModule needed
 - [Phase 03-event-scheduling]: SQLDelight 2.0.2 generates CachedEvent in package ch.teamorg (not ch.teamorg.db); DatabaseDriverFactory expect/actual pattern for Android+iOS
 - [Phase 03-event-scheduling]: Offline fallback covers ConnectTimeoutException, HttpRequestTimeoutException, IOException only; ResponseException (4xx/5xx) propagates to caller
+- [Phase 03-event-scheduling]: Used UserPreferences.getUserId() for coach role detection — avoids extra getMe() API call since userId is cached at login
+- [Phase 03-event-scheduling]: kotlinx-datetime added as direct composeApp dependency — shared module uses implementation (not api) so not transitive
+- [Phase 03-event-scheduling]: Local val captures for nullable Event fields — required for Kotlin smart cast from cross-module public API
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-03-19 — Completed 03-04-PLAN.md (Event Repository + SQLDelight Cache)
+- Last session: 2026-03-19 — Completed 03-05-PLAN.md (Event List + Detail Screens)
