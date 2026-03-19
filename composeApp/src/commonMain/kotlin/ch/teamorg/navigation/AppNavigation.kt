@@ -31,6 +31,7 @@ import ch.teamorg.ui.team.PlayerProfileViewModel
 import ch.teamorg.ui.team.TeamsListScreen
 import ch.teamorg.ui.team.TeamsListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ch.teamorg.DeepLinkHandler
 import org.koin.mp.KoinPlatform
 
 @Composable
@@ -94,8 +95,14 @@ fun AppNavigation(
                     token = screen.token,
                     viewModel = viewModel,
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = { backStack.add(Screen.Login) },
-                    onNavigateToRegister = { backStack.add(Screen.Register) },
+                    onNavigateToLogin = { token ->
+                        DeepLinkHandler.pendingToken.value = token
+                        backStack.add(Screen.Login)
+                    },
+                    onNavigateToRegister = { token ->
+                        DeepLinkHandler.pendingToken.value = token
+                        backStack.add(Screen.Register)
+                    },
                     onJoinSuccess = { backStack.add(Screen.Events) }
                 )
             }

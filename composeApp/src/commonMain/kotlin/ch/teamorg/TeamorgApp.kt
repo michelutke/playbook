@@ -19,17 +19,11 @@ import org.koin.mp.KoinPlatform
 
 @Composable
 fun TeamorgApp(
-    deepLinkToken: String? = null,
     viewModel: AuthViewModel = viewModel { KoinPlatform.getKoin().get() }
 ) {
     val authState by viewModel.state.collectAsState()
     val backStack = remember { mutableStateListOf<Screen>(Screen.Loading) }
     val pendingToken by DeepLinkHandler.pendingToken
-
-    // Seed from launch-time deep link
-    LaunchedEffect(Unit) {
-        if (deepLinkToken != null) DeepLinkHandler.pendingToken.value = deepLinkToken
-    }
 
     TeamorgTheme {
         LaunchedEffect(authState, pendingToken) {

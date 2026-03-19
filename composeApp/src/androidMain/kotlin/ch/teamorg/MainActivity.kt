@@ -10,16 +10,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            TeamorgApp(deepLinkToken = intent.inviteToken())
-        }
+        // Set token before setContent so it's available on the first composition frame
+        intent.inviteToken()?.let { DeepLinkHandler.pendingToken.value = it }
+        setContent { TeamorgApp() }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.inviteToken()?.let { token ->
-            DeepLinkHandler.pendingToken.value = token
-        }
+        intent.inviteToken()?.let { DeepLinkHandler.pendingToken.value = it }
     }
 }
 
