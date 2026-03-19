@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T11:26:57.998Z"
+last_updated: "2026-03-19T11:34:14.181Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # STATE.md — Playbook
@@ -55,6 +55,7 @@ progress:
 - ✅ 03-02: Event API routes — 7 event endpoints + GET /teams/{teamId}/subgroups + background materialisation job + 9 integration tests
 - ✅ 03-04: KMP EventRepositoryImpl (Ktor) + EventCacheManager (SQLDelight) + DatabaseDriverFactory expect/actual + Koin wiring
 - ✅ 03-05: EventListScreen + EventDetailScreen — filterable event list, full detail (7 sections), coach role detection via UserPreferences, detailRefreshTrigger in navigation
+- ✅ 03-06: CreateEditEventScreen (S4) + RecurringPatternSheet (S5) + RecurringScopeSheet (S6) — full create/edit form, recurring config, scope sheet, navigation wired, Koin registered
 
 ## Decisions
 - Used `kotlin.test.@Ignore` for shared/server stubs (consistent with existing test convention)
@@ -71,7 +72,9 @@ progress:
 - [Phase 03-event-scheduling]: Used UserPreferences.getUserId() for coach role detection — avoids extra getMe() API call since userId is cached at login
 - [Phase 03-event-scheduling]: kotlinx-datetime added as direct composeApp dependency — shared module uses implementation (not api) so not transitive
 - [Phase 03-event-scheduling]: Local val captures for nullable Event fields — required for Kotlin smart cast from cross-module public API
+- [Phase 03-event-scheduling]: Local val capture for nullable RecurringPatternState required for Kotlin smart cast across module boundary
+- [Phase 03-event-scheduling]: detailRefreshTrigger incremented in EditEvent onSaved and EventDetail onCancel to cover all write paths
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-03-19 — Completed 03-05-PLAN.md (Event List + Detail Screens)
+- Last session: 2026-03-19 — Completed 03-06-PLAN.md (Create/Edit Event UI + bottom sheets)
