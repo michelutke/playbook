@@ -50,6 +50,18 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":server"))
+                implementation(libs.kotlin.testJunit)
+                implementation(libs.ktor.serverNetty)
+                implementation(libs.ktor.serverCore)
+                implementation(libs.testcontainers.postgresql)
+                implementation(libs.testcontainers.junit)
+                implementation(libs.kotlinx.coroutinesTest)
+            }
+        }
     }
 
     compilerOptions {
