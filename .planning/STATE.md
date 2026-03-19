@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T11:53:42.791Z"
+last_updated: "2026-03-19T13:09:09.665Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 12
+  completed_plans: 9
 ---
 
 # STATE.md — Playbook
@@ -76,6 +76,8 @@ progress:
 - [Phase 03-event-scheduling]: detailRefreshTrigger incremented in EditEvent onSaved and EventDetail onCancel to cover all write paths
 - [Phase 03-event-scheduling]: kizitonwose downgraded 2.10.0→2.7.0: v2.10.0 references kotlinx.datetime.YearMonth (0.7.x only) causing unlinked iOS symbols; v2.7.0 uses library own YearMonth type, iOS links cleanly
 - [Phase 03-event-scheduling]: Multi-day event spanning in CalendarViewModel (not UI): iterates startDate..endDate inclusive, adds event to each date in eventsByDate map
+- [Phase 02-team-management]: getMyRoles() replaces roster-scan: one API call, correctly detects club_manager role
+- [Phase 02-team-management]: CalendarViewModel injected with teamRepository + userPreferences for checkCoachRole()
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready

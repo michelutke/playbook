@@ -14,10 +14,10 @@
 - [ ] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
 - [ ] **TM-02**: ClubManager can create, archive, and delete teams within the club
 - [ ] **TM-03**: ClubManager can invite a coach by email or shareable invite link
-- [ ] **TM-04**: ClubManager can remove a coach from a team
-- [ ] **TM-05**: ClubManager can promote a player to coach within a team
+- [x] **TM-04**: ClubManager can remove a coach from a team
+- [x] **TM-05**: ClubManager can promote a player to coach within a team
 - [ ] **TM-06**: ClubManager can view all teams, rosters, and assigned coaches
-- [ ] **TM-07**: ClubManager can also hold the coach role on any team
+- [x] **TM-07**: ClubManager can also hold the coach role on any team
 - [ ] **TM-08**: Coach can edit team details (name, description)
 - [ ] **TM-09**: Coach can invite players by email or shareable invite link
 - [ ] **TM-10**: Coach can remove a player from the team
@@ -38,7 +38,7 @@
 - [x] **ES-04**: Coach can assign an event to one or more teams
 - [x] **ES-05**: Coach can target event at specific sub-groups
 - [x] **ES-06**: Coach can set minimum required attendees (optional)
-- [ ] **ES-07**: Coach can edit event; players notified of changes
+- [x] **ES-07**: Coach can edit event; players notified of changes
 - [x] **ES-08**: Coach can cancel event; players notified; responses preserved with cancelled marker
 - [x] **ES-09**: When editing a recurring event: this occurrence / this and future / all
 - [x] **ES-10**: Coach can duplicate an event
