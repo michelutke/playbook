@@ -16,4 +16,5 @@ interface TeamRepository {
     suspend fun removeMember(teamId: UUID, userId: UUID)
     suspend fun getUserClubRoles(userId: UUID): List<Pair<UUID, String>>
     suspend fun getUserTeamRoles(userId: UUID): List<Triple<UUID, UUID, String>>
+    suspend fun updateMemberProfile(teamId: UUID, userId: UUID, jerseyNumber: Int?, position: String?): TeamMember
 }

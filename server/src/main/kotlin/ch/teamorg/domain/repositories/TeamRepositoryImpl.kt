@@ -141,6 +141,26 @@ class TeamRepositoryImpl : TeamRepository {
             .map { Triple(it[TeamRolesTable.teamId], it[TeamsTable.clubId], it[TeamRolesTable.role]) }
     }
 
+    override suspend fun updateMemberProfile(teamId: UUID, userId: UUID, jerseyNumber: Int?, position: String?): TeamMember = transaction {
+        TeamRolesTable.update({ (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId) }) {
+            it[TeamRolesTable.jerseyNumber] = jerseyNumber
+            it[TeamRolesTable.position] = position
+        }
+        (TeamRolesTable innerJoin UsersTable).selectAll()
+            .where { (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId) }
+            .map { row ->
+                TeamMember(
+                    userId = row[UsersTable.id].toString(),
+                    displayName = row[UsersTable.displayName],
+                    avatarUrl = row[UsersTable.avatarUrl],
+                    role = row[TeamRolesTable.role],
+                    jerseyNumber = row[TeamRolesTable.jerseyNumber],
+                    position = row[TeamRolesTable.position]
+                )
+            }
+            .single()
+    }
+
     private fun rowToTeam(row: ResultRow) = Team(
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
