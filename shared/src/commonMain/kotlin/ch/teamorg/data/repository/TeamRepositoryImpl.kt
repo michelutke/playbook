@@ -1,5 +1,6 @@
 package ch.teamorg.data.repository
 
+import ch.teamorg.domain.SubGroup
 import ch.teamorg.domain.TeamMember
 import ch.teamorg.domain.UserRoles
 import ch.teamorg.repository.TeamRepository
@@ -9,6 +10,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -23,6 +25,15 @@ private data class InviteResponse(val token: String, val inviteUrl: String, val 
 
 @Serializable
 private data class UpdateRoleRequest(val role: String)
+
+@Serializable
+private data class UpdateProfileRequest(val jerseyNumber: Int? = null, val position: String? = null)
+
+@Serializable
+private data class CreateSubGroupRequest(val name: String)
+
+@Serializable
+private data class AddSubGroupMemberRequest(val userId: String)
 
 class TeamRepositoryImpl(private val client: HttpClient) : TeamRepository {
     override suspend fun getTeamRoster(teamId: String): Result<List<TeamMember>> {
@@ -90,6 +101,106 @@ class TeamRepositoryImpl(private val client: HttpClient) : TeamRepository {
                 Result.success(response.body())
             } else {
                 Result.failure(Exception("Failed to update role: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateMemberProfile(teamId: String, userId: String, jerseyNumber: Int?, position: String?): Result<TeamMember> {
+        return try {
+            val response = client.patch("/teams/$teamId/members/$userId/profile") {
+                contentType(ContentType.Application.Json)
+                setBody(UpdateProfileRequest(jerseyNumber, position))
+            }
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to update profile: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun leaveTeam(teamId: String): Result<Unit> {
+        return try {
+            val response = client.delete("/teams/$teamId/leave")
+            if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to leave team: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getSubGroups(teamId: String): Result<List<SubGroup>> {
+        return try {
+            val response = client.get("/teams/$teamId/subgroups")
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to fetch sub-groups: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createSubGroup(teamId: String, name: String): Result<SubGroup> {
+        return try {
+            val response = client.post("/teams/$teamId/subgroups") {
+                contentType(ContentType.Application.Json)
+                setBody(CreateSubGroupRequest(name))
+            }
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to create sub-group: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteSubGroup(teamId: String, subGroupId: String): Result<Unit> {
+        return try {
+            val response = client.delete("/teams/$teamId/subgroups/$subGroupId")
+            if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete sub-group: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun addSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit> {
+        return try {
+            val response = client.post("/teams/$teamId/subgroups/$subGroupId/members") {
+                contentType(ContentType.Application.Json)
+                setBody(AddSubGroupMemberRequest(userId))
+            }
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to add sub-group member: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit> {
+        return try {
+            val response = client.delete("/teams/$teamId/subgroups/$subGroupId/members/$userId")
+            if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NoContent) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to remove sub-group member: ${response.status}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
