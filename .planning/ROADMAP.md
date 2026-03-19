@@ -56,9 +56,10 @@
 
 **Requirements:** ES-01–16
 
-**Plans:** 7 plans
+**Plans:** 8 plans
 
 Plans:
+- [ ] 03-00-PLAN.md -- Wave 0 test stubs (Nyquist compliance)
 - [ ] 03-01-PLAN.md — Backend data foundation (migration, Exposed tables, EventRepository)
 - [ ] 03-02-PLAN.md — Server API routes + materialisation job + integration tests
 - [ ] 03-03-PLAN.md — Shared KMP contracts (domain models, repository interface, screen routes, calendar dep)
