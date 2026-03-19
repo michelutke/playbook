@@ -19,8 +19,8 @@
 - [x] **TM-06**: ClubManager can view all teams, rosters, and assigned coaches
 - [x] **TM-07**: ClubManager can also hold the coach role on any team
 - [x] **TM-08**: Coach can edit team details (name, description)
-- [ ] **TM-09**: Coach can invite players by email or shareable invite link
-- [ ] **TM-10**: Coach can remove a player from the team
+- [x] **TM-09**: Coach can invite players by email or shareable invite link
+- [x] **TM-10**: Coach can remove a player from the team
 - [ ] **TM-11**: Coach can view the full team roster with player profiles
 - [x] **TM-12**: Coach can assign jersey numbers and positions (optional)
 - [x] **TM-13**: Coach can create and manage sub-groups within a team
@@ -28,7 +28,7 @@
 - [x] **TM-15**: Player can leave a team themselves
 - [x] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
 - [ ] **TM-17**: Player profile shows attendance statistics summary
-- [ ] **TM-18**: Invite links expire after 7 days (configurable)
+- [x] **TM-18**: Invite links expire after 7 days (configurable)
 - [ ] **TM-19**: Removing a member preserves their historical attendance data
 
 ### ES — Event Scheduling
