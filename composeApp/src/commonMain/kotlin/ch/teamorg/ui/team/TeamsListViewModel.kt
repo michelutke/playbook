@@ -2,6 +2,7 @@ package ch.teamorg.ui.team
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ch.teamorg.domain.Club
 import ch.teamorg.domain.Team
 import ch.teamorg.repository.ClubRepository
 import ch.teamorg.repository.TeamRepository
@@ -12,10 +13,12 @@ import kotlinx.coroutines.launch
 
 data class TeamsListState(
     val teams: List<Team> = emptyList(),
+    val club: Club? = null,
     val clubId: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val showCreateSheet: Boolean = false,
+    val showEditClubSheet: Boolean = false,
     val isClubManager: Boolean = false
 )
 
@@ -42,6 +45,9 @@ class TeamsListViewModel(
                             clubId = clubRole.clubId,
                             isClubManager = clubRole.role == "club_manager"
                         )
+                    }
+                    clubRepository.getClub(clubRole.clubId).onSuccess { club ->
+                        _state.update { it.copy(club = club) }
                     }
                     clubRepository.getClubTeams(clubRole.clubId).onSuccess { teams ->
                         _state.update { it.copy(teams = teams, isLoading = false) }
@@ -75,5 +81,23 @@ class TeamsListViewModel(
 
     fun hideCreateSheet() {
         _state.update { it.copy(showCreateSheet = false) }
+    }
+
+    fun showEditClubSheet() {
+        _state.update { it.copy(showEditClubSheet = true) }
+    }
+
+    fun hideEditClubSheet() {
+        _state.update { it.copy(showEditClubSheet = false) }
+    }
+
+    fun updateClub(name: String, location: String?) {
+        val clubId = _state.value.clubId ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, showEditClubSheet = false) }
+            clubRepository.updateClub(clubId, name, location)
+                .onSuccess { club -> _state.update { it.copy(club = club, isLoading = false) } }
+                .onFailure { e -> _state.update { it.copy(error = e.message, isLoading = false) } }
+        }
     }
 }

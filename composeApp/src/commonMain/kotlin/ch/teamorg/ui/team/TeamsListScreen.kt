@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +24,16 @@ fun TeamsListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Teams") })
+            TopAppBar(
+                title = { Text(state.club?.name ?: "Teams") },
+                actions = {
+                    if (state.isClubManager) {
+                        IconButton(onClick = { viewModel.showEditClubSheet() }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Club")
+                        }
+                    }
+                }
+            )
         },
         floatingActionButton = {
             if (state.isClubManager) {
@@ -84,6 +94,70 @@ fun TeamsListScreen(
             onSave = { name, description -> viewModel.createTeam(name, description) },
             onDismiss = { viewModel.hideCreateSheet() }
         )
+    }
+
+    if (state.showEditClubSheet) {
+        ClubEditSheet(
+            currentName = state.club?.name ?: "",
+            currentLocation = state.club?.location ?: "",
+            onSave = { name, location -> viewModel.updateClub(name, location) },
+            onDismiss = { viewModel.hideEditClubSheet() }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ClubEditSheet(
+    currentName: String,
+    currentLocation: String,
+    onSave: (name: String, location: String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var location by remember { mutableStateOf(currentLocation) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Edit Club",
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Club name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Location (optional)") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onSave(name.trim(), location.trim().ifBlank { null })
+                    }
+                },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Save")
+            }
+        }
     }
 }
 
