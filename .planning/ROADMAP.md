@@ -105,10 +105,14 @@ Plans:
 - Abwesenheit: recurring weekly + period absence, auto-decline
 - Manual coach override (present/absent/excused + note)
 - Attendance list per event (all members + statuses)
-- Attendance statistics (% presence, filters)
+- Attendance statistics (% presence, filters) — including player profile stats section (TM-17 deferred from Phase 2)
 - Offline mutation queue + sync
 - Audit log for coach overrides
 - Automated tests: response flows, deadline enforcement, offline sync, Abwesenheit
+
+**Deferred from Phase 2:**
+- TM-17: Attendance stats section in PlayerProfileScreen (requires attendance table)
+- TM-19: When adding attendance table, ensure `team_roles` FK uses `SET NULL` on member removal (not CASCADE) — `TeamRepositoryImpl.removeMember()` currently hard-deletes
 
 **Success criteria:**
 1. Player can confirm/decline/unsure; coach sees response immediately
