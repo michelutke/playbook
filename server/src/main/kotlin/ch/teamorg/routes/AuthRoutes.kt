@@ -5,7 +5,10 @@ import com.auth0.jwt.algorithms.Algorithm
 import ch.teamorg.domain.repositories.TeamRepository
 import ch.teamorg.domain.repositories.UserRepository
 import ch.teamorg.middleware.authenticateUser
+import ch.teamorg.storage.FileStorageService
+import ch.teamorg.storage.FileType
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -37,6 +40,7 @@ data class AuthResponse(val token: String, val userId: String, val displayName: 
 fun Route.authRoutes() {
     val userRepository by inject<UserRepository>()
     val teamRepository by inject<TeamRepository>()
+    val fileStorageService by inject<FileStorageService>()
 
     val jwtSecret = application.environment.config.property("jwt.secret").getString()
     val jwtIssuer = application.environment.config.property("jwt.issuer").getString()
@@ -111,6 +115,41 @@ fun Route.authRoutes() {
                         clubRoles = clubRoles.map { ClubRoleEntry(it.first.toString(), it.second) },
                         teamRoles = teamRoles.map { TeamRoleEntry(it.first.toString(), it.second.toString(), it.third) }
                     ))
+                }
+            }
+
+            post("/me/avatar") {
+                call.authenticateUser(userRepository) { user ->
+                    val multipart = call.receiveMultipart()
+                    var fileBytes: ByteArray? = null
+                    var extension: String? = null
+
+                    multipart.forEachPart { part ->
+                        if (part is PartData.FileItem) {
+                            val contentType = part.contentType
+                            if (contentType != null && listOf("image/jpeg", "image/png", "image/webp").contains(contentType.toString())) {
+                                extension = when (contentType.toString()) {
+                                    "image/jpeg" -> "jpg"
+                                    "image/png" -> "png"
+                                    "image/webp" -> "webp"
+                                    else -> "bin"
+                                }
+                                fileBytes = part.streamProvider().readBytes()
+                            }
+                        }
+                        part.dispose()
+                    }
+
+                    if (fileBytes == null) {
+                        return@authenticateUser call.respond(HttpStatusCode.BadRequest, "Avatar file required (jpg/png/webp)")
+                    }
+                    if (fileBytes!!.size > 2 * 1024 * 1024) {
+                        return@authenticateUser call.respond(HttpStatusCode.BadRequest, "Avatar must be less than 2MB")
+                    }
+
+                    val path = fileStorageService.save(fileBytes!!, FileType.AVATAR, extension!!)
+                    val updatedUser = userRepository.updateAvatarUrl(UUID.fromString(user.id), "/uploads/$path")
+                    call.respond(updatedUser)
                 }
             }
         }
