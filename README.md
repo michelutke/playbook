@@ -1,67 +1,85 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM), Server.
+# teamorg
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+Sports team management platform. Create clubs, manage teams, invite members, and assign roles, jerseys, and positions — across Android, iOS, and the web.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## Tech Stack
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+| Layer | Technology |
+|---|---|
+| Server | Ktor 3.3.3 · Netty · JWT · Exposed ORM · PostgreSQL · Flyway · Koin |
+| Shared | Kotlin Multiplatform · Ktor Client · SQLDelight 2 · Kotlinx Serialization |
+| Android | Compose Multiplatform 1.10.1 · Navigation3 · Coil3 · Koin |
+| iOS | SwiftUI · shared KMP framework |
 
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+Kotlin 2.3.10 · JVM 21 · Android API 34–36
 
-### Build and Run Android Application
+## Architecture
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+```
+Server (Ktor + PostgreSQL)
+        │  HTTP/REST + JWT
+        ▼
+Shared (KMP) — domain, repositories, Ktor client, SQLDelight cache
+        │
+   ┌────┴────┐
+   ▼         ▼
+composeApp  iosApp
+(Android/   (SwiftUI,
+ Desktop)    native)
+```
 
-### Build and Run Desktop (JVM) Application
+## Local Development
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+### Prerequisites
 
-### Build and Run Server
+- JDK 21
+- Android SDK (for Android target)
+- Xcode 16+ (for iOS target)
+- PostgreSQL running locally
 
-To build and run the development version of the server, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :server:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :server:run
-  ```
+### Environment Variables
 
-### Build and Run iOS Application
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL JDBC URL, e.g. `jdbc:postgresql://localhost:5432/teamorg` |
+| `JWT_SECRET` | Secret string for signing JWT tokens |
+| `API_BASE_URL` | Server base URL used by clients (default: `https://api.teamorg.app`) |
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+### Run
 
----
+```bash
+# Server
+./gradlew :server:run
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+# Android app (debug APK)
+./gradlew :composeApp:assembleDebug
+
+# Desktop (JVM)
+./gradlew :composeApp:run
+
+# iOS — open in Xcode
+open iosApp/iosApp.xcworkspace
+```
+
+## Running Tests
+
+```bash
+# Server (H2 in-memory DB, no PostgreSQL needed)
+./gradlew :server:test
+
+# Shared KMP
+./gradlew :shared:allTests
+
+# Android unit tests
+./gradlew :composeApp:testDebugUnitTest
+
+# iOS UI tests (requires a simulator UDID)
+xcodebuild test \
+  -workspace iosApp/iosApp.xcworkspace \
+  -scheme iosApp-Workspace \
+  -destination "id=$SIMULATOR_UDID"
+```
+
+## License
+
+See [LICENSE](./LICENSE).

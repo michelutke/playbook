@@ -17,3 +17,9 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Server uploads (real user data)
+server/uploads/
+
+# Release keystore
+composeApp/release.jks
