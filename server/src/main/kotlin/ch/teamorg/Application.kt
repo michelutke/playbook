@@ -1,6 +1,7 @@
 package ch.teamorg
 
 import ch.teamorg.infra.DatabaseFactory
+import ch.teamorg.infra.startMaterialisationJob
 import ch.teamorg.plugins.*
 import io.ktor.server.application.*
 
@@ -14,4 +15,5 @@ fun Application.module() {
     configureStaticFiles()
     configureAuth()
     configureRouting()
+    startMaterialisationJob()
 }
