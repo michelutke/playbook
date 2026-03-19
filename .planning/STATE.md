@@ -11,7 +11,7 @@
 |---|---|---|---|
 | 1 — Foundation + Auth | ✅ Done | 2026-03-11 | 2026-03-19 |
 | 2 — Team Management | ✅ Done | 2026-03-11 | 2026-03-19 |
-| 3 — Event Scheduling | 🔲 Not started | — | — |
+| 3 — Event Scheduling | 🔄 In progress | 2026-03-19 | — |
 | 4 — Attendance Tracking | 🔲 Not started | — | — |
 | 5 — Notifications | 🔲 Not started | — | — |
 | 6 — Super Admin | 🔲 Not started | — | — |
@@ -35,5 +35,14 @@
 - ✅ GitHub Actions: CI build check + Updraft deploy workflow
 - ⚠️ Updraft deploy needs `UPDRAFT_APP_ID` + `UPDRAFT_API_KEY` secrets added to GitHub
 
+### Phase 3 — Event Scheduling (in progress)
+- ✅ 03-00: Wave 0 test stubs — 9 stub files across shared/server/composeApp
+
+## Decisions
+- Used `kotlin.test.@Ignore` for shared/server stubs (consistent with existing test convention)
+- Used `org.junit.@Ignore` for androidTest stubs (JUnit 4 standard for Android instrumented tests)
+- Created `composeApp/src/androidTest/` with `androidInstrumentedTest` source set (VALIDATION.md targets `connectedAndroidTest`)
+
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
+- Last session: 2026-03-19 — Completed 03-00-PLAN.md (Wave 0 test stubs)
