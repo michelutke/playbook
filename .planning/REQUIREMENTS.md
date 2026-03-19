@@ -37,7 +37,7 @@
 - [x] **ES-03**: Coach can create recurring events (daily, weekly on selected weekdays, custom interval, optional end date)
 - [x] **ES-04**: Coach can assign an event to one or more teams
 - [x] **ES-05**: Coach can target event at specific sub-groups
-- [ ] **ES-06**: Coach can set minimum required attendees (optional)
+- [x] **ES-06**: Coach can set minimum required attendees (optional)
 - [ ] **ES-07**: Coach can edit event; players notified of changes
 - [x] **ES-08**: Coach can cancel event; players notified; responses preserved with cancelled marker
 - [x] **ES-09**: When editing a recurring event: this occurrence / this and future / all
@@ -46,8 +46,8 @@
 - [x] **ES-12**: Player can view event details (location, time, description, attendance summary)
 - [x] **ES-13**: Player can filter events by team and event type
 - [x] **ES-14**: Player sees calendar view (month/week)
-- [ ] **ES-15**: Recurring event expansion handled server-side
-- [ ] **ES-16**: Events stored UTC, displayed in user's local timezone
+- [x] **ES-15**: Recurring event expansion handled server-side
+- [x] **ES-16**: Events stored UTC, displayed in user's local timezone
 
 ### AT — Attendance Tracking
 - [ ] **AT-01**: Player can confirm, decline (optional reason), or mark unsure (mandatory Begründung) for an event
