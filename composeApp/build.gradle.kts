@@ -53,6 +53,7 @@ kotlin {
             implementation(libs.coil3.compose)
             implementation(projects.shared)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kizitonwose.calendar.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
