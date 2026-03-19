@@ -325,9 +325,9 @@ fun CreateEditEventScreen(
                         onCheckedChange = viewModel::setRecurringEnabled
                     )
                 }
-                if (state.recurringEnabled && state.recurringPattern != null) {
-                    val p = state.recurringPattern
-                    val summary = buildRecurringSummary(p)
+                val recurringPattern = state.recurringPattern
+                if (state.recurringEnabled && recurringPattern != null) {
+                    val summary = buildRecurringSummary(recurringPattern)
                     FilterChip(
                         selected = true,
                         onClick = { showRecurringSheet = true },
