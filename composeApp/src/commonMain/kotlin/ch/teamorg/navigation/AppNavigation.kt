@@ -26,6 +26,8 @@ import ch.teamorg.ui.register.RegisterScreen
 import ch.teamorg.ui.register.RegisterViewModel
 import ch.teamorg.ui.team.TeamRosterScreen
 import ch.teamorg.ui.team.TeamRosterViewModel
+import ch.teamorg.ui.team.TeamsListScreen
+import ch.teamorg.ui.team.TeamsListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.koin.mp.KoinPlatform
 
@@ -146,7 +148,13 @@ fun AppNavigation(
                     onCreateClick = { backStack.add(Screen.CreateEvent) }
                 )
             }
-            Screen.Teams -> PlaceholderScreen("Teams")
+            Screen.Teams -> {
+                val viewModel: TeamsListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                TeamsListScreen(
+                    viewModel = viewModel,
+                    onTeamClick = { teamId -> backStack.add(Screen.TeamRoster(teamId)) }
+                )
+            }
             Screen.Inbox -> PlaceholderScreen("Inbox")
             Screen.Profile -> PlaceholderScreen("Profile")
         }

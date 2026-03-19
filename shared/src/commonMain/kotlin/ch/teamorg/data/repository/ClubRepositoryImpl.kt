@@ -8,6 +8,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Headers
@@ -17,6 +18,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 private data class CreateClubRequest(val name: String, val sportType: String, val location: String?)
+
+@Serializable
+private data class CreateTeamRequest(val name: String, val description: String? = null)
+
+@Serializable
+private data class UpdateTeamRequest(val name: String? = null, val description: String? = null)
 
 class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
     override suspend fun createClub(name: String, sportType: String, location: String?): Result<Club> {
@@ -62,6 +69,36 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
                 Result.success(response.body())
             } else {
                 Result.failure(Exception("Failed to fetch teams: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createTeam(clubId: String, name: String, description: String?): Result<Team> {
+        return try {
+            val response = client.post("/clubs/$clubId/teams") {
+                setBody(CreateTeamRequest(name, description))
+            }
+            if (response.status == HttpStatusCode.Created) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to create team: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateTeam(teamId: String, name: String?, description: String?): Result<Team> {
+        return try {
+            val response = client.patch("/teams/$teamId") {
+                setBody(UpdateTeamRequest(name, description))
+            }
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to update team: ${response.status}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
