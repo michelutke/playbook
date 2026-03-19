@@ -3,7 +3,6 @@ package ch.teamorg.ui.events
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.teamorg.domain.EventWithTeams
-import ch.teamorg.domain.MatchedTeam
 import ch.teamorg.preferences.UserPreferences
 import ch.teamorg.repository.EventRepository
 import ch.teamorg.repository.TeamRepository
@@ -34,7 +33,7 @@ class EventDetailViewModel(
             eventRepository.getEventDetail(eventId)
                 .onSuccess { ewt ->
                     _state.update { it.copy(event = ewt, isLoading = false) }
-                    loadCoachRole(ewt.matchedTeams)
+                    checkCoachRole()
                 }
                 .onFailure { e ->
                     _state.update { it.copy(error = e.message, isLoading = false) }
@@ -42,18 +41,12 @@ class EventDetailViewModel(
         }
     }
 
-    private fun loadCoachRole(teams: List<MatchedTeam>) {
-        if (teams.isEmpty()) return
-        val currentUserId = userPreferences.getUserId() ?: return
+    private fun checkCoachRole() {
         viewModelScope.launch {
-            for (team in teams) {
-                teamRepository.getTeamRoster(team.id).onSuccess { roster ->
-                    val member = roster.firstOrNull { it.userId == currentUserId }
-                    if (member != null && member.role == "coach") {
-                        _state.update { it.copy(isCoach = true) }
-                        return@launch
-                    }
-                }
+            teamRepository.getMyRoles().onSuccess { roles ->
+                val isCoachOrManager = roles.teamRoles.any { it.role == "coach" } ||
+                    roles.clubRoles.any { it.role == "club_manager" }
+                _state.update { it.copy(isCoach = isCoachOrManager) }
             }
         }
     }

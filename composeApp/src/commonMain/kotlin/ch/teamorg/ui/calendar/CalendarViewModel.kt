@@ -3,7 +3,9 @@ package ch.teamorg.ui.calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.teamorg.domain.EventWithTeams
+import ch.teamorg.preferences.UserPreferences
 import ch.teamorg.repository.EventRepository
+import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,7 +29,9 @@ data class CalendarState(
 enum class CalendarViewMode { MONTH, WEEK }
 
 class CalendarViewModel(
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val teamRepository: TeamRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
     private val _state = MutableStateFlow(CalendarState())
     val state = _state.asStateFlow()
@@ -52,8 +56,19 @@ class CalendarViewModel(
                     }
                 }
                 _state.update { it.copy(eventsByDate = byDate, isLoading = false) }
+                checkCoachRole()
             }.onFailure {
                 _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    private fun checkCoachRole() {
+        viewModelScope.launch {
+            teamRepository.getMyRoles().onSuccess { roles ->
+                val isCoachOrManager = roles.teamRoles.any { it.role == "coach" } ||
+                    roles.clubRoles.any { it.role == "club_manager" }
+                _state.update { it.copy(isCoach = isCoachOrManager) }
             }
         }
     }
