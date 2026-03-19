@@ -71,4 +71,13 @@ class PlayerProfileViewModel(
                 .onFailure { e -> _state.update { it.copy(error = e.message ?: "Failed to leave team") } }
         }
     }
+
+    fun uploadAvatar(teamId: String, userId: String, imageBytes: ByteArray, extension: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            teamRepository.uploadAvatar(imageBytes, extension)
+                .onSuccess { loadProfile(teamId, userId) }
+                .onFailure { e -> _state.update { it.copy(isLoading = false, error = e.message ?: "Failed to upload avatar") } }
+        }
+    }
 }

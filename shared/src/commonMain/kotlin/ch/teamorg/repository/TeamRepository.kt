@@ -17,4 +17,5 @@ interface TeamRepository {
     suspend fun deleteSubGroup(teamId: String, subGroupId: String): Result<Unit>
     suspend fun addSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit>
     suspend fun removeSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit>
+    suspend fun uploadAvatar(imageBytes: ByteArray, extension: String): Result<Unit>
 }

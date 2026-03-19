@@ -1,6 +1,7 @@
 package ch.teamorg.ui.team
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -8,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import ch.teamorg.domain.TeamMember
+import ch.teamorg.ui.util.rememberImagePickerLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,27 +73,53 @@ fun PlayerProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // Avatar
+                        val pickImage = rememberImagePickerLauncher { bytes, ext ->
+                            viewModel.uploadAvatar(teamId, userId, bytes, ext)
+                        }
                         Box(
-                            modifier = Modifier
-                                .size(96.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                            modifier = Modifier.size(96.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (member.avatarUrl != null) {
-                                AsyncImage(
-                                    model = member.avatarUrl,
-                                    contentDescription = member.displayName,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
+                                    .then(if (state.isOwnProfile) Modifier.clickable { pickImage() } else Modifier),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (member.avatarUrl != null) {
+                                    AsyncImage(
+                                        model = member.avatarUrl,
+                                        contentDescription = member.displayName,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(48.dp),
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                            if (state.isOwnProfile) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .align(Alignment.BottomEnd)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.CameraAlt,
+                                        contentDescription = "Upload avatar",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
 
