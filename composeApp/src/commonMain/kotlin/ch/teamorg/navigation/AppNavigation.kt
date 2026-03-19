@@ -9,6 +9,8 @@ import ch.teamorg.ui.club.ClubSetupScreen
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.emptystate.EmptyStateScreen
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
+import ch.teamorg.ui.calendar.CalendarScreen
+import ch.teamorg.ui.calendar.CalendarViewModel
 import ch.teamorg.ui.events.CreateEditEventScreen
 import ch.teamorg.ui.events.CreateEditEventViewModel
 import ch.teamorg.ui.events.EventDetailScreen
@@ -136,7 +138,14 @@ fun AppNavigation(
                     }
                 )
             }
-            Screen.Calendar -> PlaceholderScreen("Calendar")
+            Screen.Calendar -> {
+                val viewModel: CalendarViewModel = viewModel { KoinPlatform.getKoin().get() }
+                CalendarScreen(
+                    viewModel = viewModel,
+                    onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                    onCreateClick = { backStack.add(Screen.CreateEvent) }
+                )
+            }
             Screen.Teams -> PlaceholderScreen("Teams")
             Screen.Inbox -> PlaceholderScreen("Inbox")
             Screen.Profile -> PlaceholderScreen("Profile")

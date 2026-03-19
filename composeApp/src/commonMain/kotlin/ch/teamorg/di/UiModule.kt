@@ -1,6 +1,7 @@
 package ch.teamorg.di
 
 import ch.teamorg.auth.AuthViewModel
+import ch.teamorg.ui.calendar.CalendarViewModel
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.events.CreateEditEventViewModel
 import ch.teamorg.ui.events.EventDetailViewModel
@@ -23,4 +24,5 @@ val uiModule = module {
     factory { EventListViewModel(get(), get(), get()) }
     factory { EventDetailViewModel(get(), get(), get()) }
     factory { CreateEditEventViewModel(get()) }
+    factory { CalendarViewModel(get()) }
 }
