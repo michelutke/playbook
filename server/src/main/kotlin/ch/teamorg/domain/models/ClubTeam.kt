@@ -8,7 +8,7 @@ data class Club(
     val name: String,
     val sportType: String,
     val location: String?,
-    val logoPath: String?,
+    val logoUrl: String?,
     val createdAt: String,
     val updatedAt: String
 )

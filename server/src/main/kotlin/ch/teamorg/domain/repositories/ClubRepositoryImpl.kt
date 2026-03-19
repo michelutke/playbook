@@ -34,11 +34,11 @@ class ClubRepositoryImpl : ClubRepository {
             .singleOrNull()
     }
 
-    override suspend fun update(id: UUID, name: String?, location: String?, logoPath: String?): Club = transaction {
+    override suspend fun update(id: UUID, name: String?, location: String?, logoUrl: String?): Club = transaction {
         ClubsTable.update({ ClubsTable.id eq id }) {
             if (name != null) it[ClubsTable.name] = name
             if (location != null) it[ClubsTable.location] = location
-            if (logoPath != null) it[ClubsTable.logoPath] = logoPath
+            if (logoUrl != null) it[ClubsTable.logoPath] = logoUrl
             it[ClubsTable.updatedAt] = java.time.Instant.now()
         }
 
@@ -65,7 +65,7 @@ class ClubRepositoryImpl : ClubRepository {
         name = row[ClubsTable.name],
         sportType = row[ClubsTable.sportType],
         location = row[ClubsTable.location],
-        logoPath = row[ClubsTable.logoPath],
+        logoUrl = row[ClubsTable.logoPath],
         createdAt = row[ClubsTable.createdAt].toString(),
         updatedAt = row[ClubsTable.updatedAt].toString()
     )

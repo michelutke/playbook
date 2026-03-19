@@ -162,8 +162,8 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 
 | Phase | Feature | Status |
 |---|---|---|
-| 1 | Foundation + Auth | 🔲 Not started |
-| 2 | Team Management | 🔲 Not started |
+| 1 | Foundation + Auth | ✅ Done |
+| 2 | Team Management | ✅ Done |
 | 3 | Event Scheduling | 🔲 Not started |
 | 4 | Attendance Tracking | 🔲 Not started |
 | 5 | Notifications | 🔲 Not started |
