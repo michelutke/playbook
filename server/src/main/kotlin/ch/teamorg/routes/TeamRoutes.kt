@@ -18,6 +18,9 @@ data class CreateTeamRequest(val name: String, val description: String? = null)
 @Serializable
 data class UpdateTeamRequest(val name: String? = null, val description: String? = null)
 
+@Serializable
+data class UpdateRoleRequest(val role: String)
+
 fun Route.teamRoutes() {
     val teamRepository by inject<TeamRepository>()
 
@@ -56,6 +59,23 @@ fun Route.teamRoutes() {
                     val teamId = UUID.fromString(call.parameters["teamId"])
                     val members = teamRepository.listMembers(teamId)
                     call.respond(members)
+                }
+
+                patch("/members/{userId}/role") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    if (!call.requireTeamRole(teamId, "club_manager", teamRepository = teamRepository)) return@patch
+                    val userId = UUID.fromString(call.parameters["userId"])
+                    val request = call.receive<UpdateRoleRequest>()
+                    val member = teamRepository.updateMemberRole(teamId, userId, request.role)
+                    call.respond(member)
+                }
+
+                delete("/members/{userId}") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    if (!call.requireTeamRole(teamId, "club_manager", teamRepository = teamRepository)) return@delete
+                    val userId = UUID.fromString(call.parameters["userId"])
+                    teamRepository.removeMember(teamId, userId)
+                    call.respond(HttpStatusCode.NoContent)
                 }
             }
         }

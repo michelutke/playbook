@@ -2,6 +2,7 @@ package ch.teamorg.routes
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import ch.teamorg.domain.repositories.TeamRepository
 import ch.teamorg.domain.repositories.UserRepository
 import ch.teamorg.middleware.authenticateUser
 import io.ktor.http.*
@@ -16,6 +17,15 @@ import org.koin.ktor.ext.inject
 import java.util.*
 
 @Serializable
+data class UserRolesResponse(val clubRoles: List<ClubRoleEntry>, val teamRoles: List<TeamRoleEntry>)
+
+@Serializable
+data class ClubRoleEntry(val clubId: String, val role: String)
+
+@Serializable
+data class TeamRoleEntry(val teamId: String, val clubId: String, val role: String)
+
+@Serializable
 data class RegisterRequest(val email: String, val password: String, val displayName: String)
 
 @Serializable
@@ -26,6 +36,7 @@ data class AuthResponse(val token: String, val userId: String, val displayName: 
 
 fun Route.authRoutes() {
     val userRepository by inject<UserRepository>()
+    val teamRepository by inject<TeamRepository>()
 
     val jwtSecret = application.environment.config.property("jwt.secret").getString()
     val jwtIssuer = application.environment.config.property("jwt.issuer").getString()
@@ -88,6 +99,18 @@ fun Route.authRoutes() {
             get("/me") {
                 call.authenticateUser(userRepository) { user ->
                     call.respond(user)
+                }
+            }
+
+            get("/me/roles") {
+                call.authenticateUser(userRepository) { user ->
+                    val userId = UUID.fromString(user.id)
+                    val clubRoles = teamRepository.getUserClubRoles(userId)
+                    val teamRoles = teamRepository.getUserTeamRoles(userId)
+                    call.respond(UserRolesResponse(
+                        clubRoles = clubRoles.map { ClubRoleEntry(it.first.toString(), it.second) },
+                        teamRoles = teamRoles.map { TeamRoleEntry(it.first.toString(), it.second.toString(), it.third) }
+                    ))
                 }
             }
         }

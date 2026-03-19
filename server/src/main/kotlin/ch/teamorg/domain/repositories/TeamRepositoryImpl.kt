@@ -98,6 +98,49 @@ class TeamRepositoryImpl : TeamRepository {
             .singleOrNull()
     }
 
+    override suspend fun updateMemberRole(teamId: UUID, userId: UUID, newRole: String): TeamMember {
+        require(newRole in listOf("coach", "player")) { "Invalid role: $newRole" }
+        return transaction {
+            TeamRolesTable.update({
+                (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId)
+            }) {
+                it[TeamRolesTable.role] = newRole
+            }
+            (TeamRolesTable innerJoin UsersTable).selectAll().where {
+                (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId)
+            }.map { row ->
+                TeamMember(
+                    userId = row[UsersTable.id].toString(),
+                    displayName = row[UsersTable.displayName],
+                    avatarUrl = row[UsersTable.avatarUrl],
+                    role = row[TeamRolesTable.role],
+                    jerseyNumber = row[TeamRolesTable.jerseyNumber],
+                    position = row[TeamRolesTable.position]
+                )
+            }.single()
+        }
+    }
+
+    override suspend fun removeMember(teamId: UUID, userId: UUID) {
+        transaction {
+            TeamRolesTable.deleteWhere {
+                Op.build {
+                    (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId eq userId)
+                }
+            }
+        }
+    }
+
+    override suspend fun getUserClubRoles(userId: UUID): List<Pair<UUID, String>> = transaction {
+        ClubRolesTable.selectAll().where { ClubRolesTable.userId eq userId }
+            .map { Pair(it[ClubRolesTable.clubId], it[ClubRolesTable.role]) }
+    }
+
+    override suspend fun getUserTeamRoles(userId: UUID): List<Triple<UUID, UUID, String>> = transaction {
+        (TeamRolesTable innerJoin TeamsTable).selectAll().where { TeamRolesTable.userId eq userId }
+            .map { Triple(it[TeamRolesTable.teamId], it[TeamsTable.clubId], it[TeamRolesTable.role]) }
+    }
+
     private fun rowToTeam(row: ResultRow) = Team(
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
