@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T14:08:42.602Z"
+last_updated: "2026-03-19T14:08:49.756Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -85,7 +85,9 @@ progress:
 - [Phase 02-team-management]: SubGroupResponse data class added to SubGroupRoutes — mapOf with mixed String/Long types caused kotlinx.serialization crash
 - [Phase 02-team-management]: getClub() called alongside getClubTeams() in loadTeams() — no separate trigger needed
 - [Phase 02-team-management]: ClubEditSheet added as private composable in TeamsListScreen.kt — too small for separate file
+- [Phase 02-team-management]: uploadAvatar placed in TeamRepository (not a new repo) — user-scoped but TeamRepo already has getMyRoles() pattern
+- [Phase 02-team-management]: expect/actual rememberImagePickerLauncher: Android GetContent, iOS UIImagePickerController — avoids peekaboo/mpfilepicker dependency
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-03-19 — Completed 03-06-PLAN.md (Create/Edit Event UI + bottom sheets)
+- Last session: 2026-03-19 — Completed 02-13-PLAN.md (Avatar Upload — POST /me/avatar, image picker, PlayerProfileScreen)

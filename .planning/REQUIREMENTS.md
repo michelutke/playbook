@@ -21,7 +21,7 @@
 - [x] **TM-08**: Coach can edit team details (name, description)
 - [x] **TM-09**: Coach can invite players by email or shareable invite link
 - [x] **TM-10**: Coach can remove a player from the team
-- [ ] **TM-11**: Coach can view the full team roster with player profiles
+- [x] **TM-11**: Coach can view the full team roster with player profiles
 - [x] **TM-12**: Coach can assign jersey numbers and positions (optional)
 - [x] **TM-13**: Coach can create and manage sub-groups within a team
 - [ ] **TM-14**: Player can belong to multiple teams
