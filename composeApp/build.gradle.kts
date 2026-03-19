@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.compose.navigation3)
             implementation(libs.coil3.compose)
             implementation(projects.shared)
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

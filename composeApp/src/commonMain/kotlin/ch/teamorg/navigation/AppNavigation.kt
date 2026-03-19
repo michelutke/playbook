@@ -4,11 +4,15 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import ch.teamorg.ui.club.ClubSetupScreen
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.emptystate.EmptyStateScreen
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
+import ch.teamorg.ui.events.EventDetailScreen
+import ch.teamorg.ui.events.EventDetailViewModel
+import ch.teamorg.ui.events.EventListScreen
+import ch.teamorg.ui.events.EventListViewModel
 import ch.teamorg.ui.invite.InviteScreen
 import ch.teamorg.ui.invite.InviteViewModel
 import ch.teamorg.ui.login.LoginScreen
@@ -26,6 +30,7 @@ fun AppNavigation(
     backStack: MutableList<Screen>,
     isLoggedIn: Boolean
 ) {
+    var detailRefreshTrigger by remember { mutableIntStateOf(0) }
     val currentScreen = backStack.lastOrNull() ?: Screen.Loading
     AnimatedContent(
         targetState = currentScreen,
@@ -85,7 +90,29 @@ fun AppNavigation(
                     onJoinSuccess = { backStack.add(Screen.Events) }
                 )
             }
-            Screen.Events -> PlaceholderScreen("Events List")
+            Screen.Events -> {
+                val viewModel: EventListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                EventListScreen(
+                    viewModel = viewModel,
+                    onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                    onCreateClick = { backStack.add(Screen.CreateEvent) }
+                )
+            }
+            is Screen.EventDetail -> {
+                val viewModel: EventDetailViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId, detailRefreshTrigger) {
+                    viewModel.loadEvent(screen.eventId)
+                }
+                EventDetailScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onEdit = { backStack.add(Screen.EditEvent(screen.eventId)) },
+                    onDuplicate = { /* navigate to create with pre-fill -- Plan 06 */ },
+                    onCancel = { /* show cancel dialog, then detailRefreshTrigger++ -- Plan 06 */ }
+                )
+            }
+            Screen.CreateEvent -> PlaceholderScreen("Create Event")
+            is Screen.EditEvent -> PlaceholderScreen("Edit Event")
             Screen.Calendar -> PlaceholderScreen("Calendar")
             Screen.Teams -> PlaceholderScreen("Teams")
             Screen.Inbox -> PlaceholderScreen("Inbox")
