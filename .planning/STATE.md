@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T13:09:09.665Z"
+last_updated: "2026-03-19T13:17:01.903Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # STATE.md — Playbook
@@ -78,6 +78,8 @@ progress:
 - [Phase 03-event-scheduling]: Multi-day event spanning in CalendarViewModel (not UI): iterates startDate..endDate inclusive, adds event to each date in eventsByDate map
 - [Phase 02-team-management]: getMyRoles() replaces roster-scan: one API call, correctly detects club_manager role
 - [Phase 02-team-management]: CalendarViewModel injected with teamRepository + userPreferences for checkCoachRole()
+- [Phase 02]: TeamsListViewModel derives clubId from getMyRoles() clubRoles — avoids storing clubId separately
+- [Phase 02]: TeamEditSheet reused for both create (TeamsListScreen) and edit (TeamRosterScreen)
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
