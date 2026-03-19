@@ -31,25 +31,23 @@ fun TeamorgApp(
         if (deepLinkToken != null) DeepLinkHandler.pendingToken.value = deepLinkToken
     }
 
-    // Navigate to invite screen once auth state is known
-    LaunchedEffect(authState, pendingToken) {
-        val token = pendingToken
-        if (token != null && authState !is AuthState.Loading) {
-            DeepLinkHandler.pendingToken.value = null
-            backStack.add(Screen.Invite(token))
-        }
-    }
-
     TeamorgTheme {
-        LaunchedEffect(authState) {
+        LaunchedEffect(authState, pendingToken) {
+            val token = pendingToken
             when (val state = authState) {
                 is AuthState.Loading -> Unit
                 is AuthState.Unauthenticated -> {
                     backStack.clear()
                     backStack.add(Screen.Login)
+                    // token stays in DeepLinkHandler until after login/register
                 }
                 is AuthState.Authenticated -> {
-                    if (backStack.none { it is Screen.Invite }) {
+                    if (token != null) {
+                        DeepLinkHandler.pendingToken.value = null
+                        backStack.clear()
+                        backStack.add(if (!state.hasTeam) Screen.EmptyState else Screen.Events)
+                        backStack.add(Screen.Invite(token))
+                    } else if (backStack.none { it is Screen.Invite }) {
                         backStack.clear()
                         backStack.add(if (!state.hasTeam) Screen.EmptyState else Screen.Events)
                     }
