@@ -17,8 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import ch.teamorg.ui.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,7 @@ fun TeamRosterScreen(
     onMemberClick: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
+    val clipboardManager = LocalClipboardManager.current
     var memberToRemove by remember { mutableStateOf<TeamMember?>(null) }
     var memberToPromote by remember { mutableStateOf<TeamMember?>(null) }
     var memberAction by remember { mutableStateOf<TeamMember?>(null) }
@@ -42,13 +45,6 @@ fun TeamRosterScreen(
 
     LaunchedEffect(teamId) {
         viewModel.loadRoster(teamId)
-    }
-
-    LaunchedEffect(state.inviteUrl) {
-        state.inviteUrl?.let { url ->
-            onShareInvite(url)
-            viewModel.resetInvite()
-        }
     }
 
     Scaffold(
@@ -247,6 +243,39 @@ fun TeamRosterScreen(
                 TextButton(onClick = { showInviteDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    // Invite URL Dialog
+    state.inviteUrl?.let { url ->
+        AlertDialog(
+            onDismissRequest = { viewModel.resetInvite() },
+            title = { Text("Invite Link Created") },
+            text = {
+                Column {
+                    Text("Share this link to invite someone to the team:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = url,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(url))
+                        viewModel.resetInvite()
+                    },
+                    modifier = Modifier.testTag("btn_copy_invite_link")
+                ) {
+                    Text("Copy Link")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.resetInvite() }) { Text("Close") }
             }
         )
     }

@@ -69,6 +69,7 @@ class TeamRepositoryImpl(private val client: HttpClient) : TeamRepository {
     override suspend fun createInvite(teamId: String, role: String, email: String?): Result<String> {
         return try {
             val response = client.post("/teams/$teamId/invites") {
+                contentType(ContentType.Application.Json)
                 setBody(CreateInviteRequest(role, email))
             }
             if (response.status == HttpStatusCode.Created) {

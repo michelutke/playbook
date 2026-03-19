@@ -34,10 +34,11 @@ class InviteRepositoryImpl : InviteRepository {
     override suspend fun getInviteDetails(token: String): InviteDetails? = transaction {
         (InviteLinksTable innerJoin TeamsTable innerJoin ClubsTable)
             .join(UsersTable, JoinType.INNER, InviteLinksTable.invitedByUserId, UsersTable.id)
-            .select(TeamsTable.name, ClubsTable.name, InviteLinksTable.role, UsersTable.displayName, InviteLinksTable.expiresAt, InviteLinksTable.redeemedAt)
+            .select(InviteLinksTable.token, TeamsTable.name, ClubsTable.name, InviteLinksTable.role, UsersTable.displayName, InviteLinksTable.expiresAt, InviteLinksTable.redeemedAt)
             .where { InviteLinksTable.token eq token }
             .map {
                 InviteDetails(
+                    token = it[InviteLinksTable.token],
                     teamName = it[TeamsTable.name],
                     clubName = it[ClubsTable.name],
                     role = it[InviteLinksTable.role],
