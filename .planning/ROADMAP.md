@@ -32,6 +32,12 @@
 
 **Requirements:** TM-01–19
 
+**Plans:** 2 gap closure plans
+
+Plans:
+- [ ] 02-12-PLAN.md — Club edit UI (TM-01 gap closure)
+- [ ] 02-13-PLAN.md — Avatar upload for player profiles (TM-11 gap closure)
+
 **Deliverables:**
 - Club setup flow (ClubManager creates club, logo upload)
 - Team creation + editing
