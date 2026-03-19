@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-19T13:17:01.903Z"
+last_updated: "2026-03-19T13:18:18.360Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # STATE.md — Playbook
@@ -80,6 +80,8 @@ progress:
 - [Phase 02-team-management]: CalendarViewModel injected with teamRepository + userPreferences for checkCoachRole()
 - [Phase 02]: TeamsListViewModel derives clubId from getMyRoles() clubRoles — avoids storing clubId separately
 - [Phase 02]: TeamEditSheet reused for both create (TeamsListScreen) and edit (TeamRosterScreen)
+- [Phase 02-team-management]: leaveTeam uses DELETE /teams/{teamId}/leave (separate from DELETE /members/{userId} which is coach-only remove)
+- [Phase 02-team-management]: SubGroup domain model moved to Event.kt by Plan 02-09; shared TeamRepository imports from ch.teamorg.domain.SubGroup (same package)
 
 ## Notes
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready

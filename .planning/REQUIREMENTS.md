@@ -22,11 +22,11 @@
 - [ ] **TM-09**: Coach can invite players by email or shareable invite link
 - [ ] **TM-10**: Coach can remove a player from the team
 - [ ] **TM-11**: Coach can view the full team roster with player profiles
-- [ ] **TM-12**: Coach can assign jersey numbers and positions (optional)
-- [ ] **TM-13**: Coach can create and manage sub-groups within a team
+- [x] **TM-12**: Coach can assign jersey numbers and positions (optional)
+- [x] **TM-13**: Coach can create and manage sub-groups within a team
 - [ ] **TM-14**: Player can belong to multiple teams
-- [ ] **TM-15**: Player can leave a team themselves
-- [ ] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
+- [x] **TM-15**: Player can leave a team themselves
+- [x] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
 - [ ] **TM-17**: Player profile shows attendance statistics summary
 - [ ] **TM-18**: Invite links expire after 7 days (configurable)
 - [ ] **TM-19**: Removing a member preserves their historical attendance data
