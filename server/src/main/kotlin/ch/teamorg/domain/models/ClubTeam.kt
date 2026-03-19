@@ -18,6 +18,7 @@ data class Team(
     val id: String,
     val clubId: String,
     val name: String,
+    val memberCount: Int,
     val description: String?,
     val archivedAt: String?,
     val createdAt: String,

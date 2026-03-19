@@ -2,6 +2,7 @@ package ch.teamorg.domain.repositories
 
 import ch.teamorg.db.tables.ClubRolesTable
 import ch.teamorg.db.tables.ClubsTable
+import ch.teamorg.db.tables.TeamRolesTable
 import ch.teamorg.db.tables.TeamsTable
 import ch.teamorg.domain.models.Club
 import ch.teamorg.domain.models.Team
@@ -48,8 +49,13 @@ class ClubRepositoryImpl : ClubRepository {
     }
 
     override suspend fun listTeams(clubId: UUID): List<Team> = transaction {
+        val memberCounts = TeamRolesTable
+            .select(TeamRolesTable.teamId, TeamRolesTable.teamId.count())
+            .groupBy(TeamRolesTable.teamId)
+            .associate { it[TeamRolesTable.teamId] to it[TeamRolesTable.teamId.count()].toInt() }
+
         TeamsTable.selectAll().where { (TeamsTable.clubId eq clubId) and TeamsTable.archivedAt.isNull() }
-            .map(::rowToTeam)
+            .map { row -> rowToTeam(row, memberCounts[row[TeamsTable.id]] ?: 0) }
     }
 
     override suspend fun hasRole(userId: UUID, clubId: UUID, role: String): Boolean = transaction {
@@ -70,10 +76,11 @@ class ClubRepositoryImpl : ClubRepository {
         updatedAt = row[ClubsTable.updatedAt].toString()
     )
 
-    private fun rowToTeam(row: ResultRow) = Team(
+    private fun rowToTeam(row: ResultRow, memberCount: Int = 0) = Team(
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
         name = row[TeamsTable.name],
+        memberCount = memberCount,
         description = row[TeamsTable.description],
         archivedAt = row[TeamsTable.archivedAt]?.toString(),
         createdAt = row[TeamsTable.createdAt].toString(),

@@ -165,6 +165,7 @@ class TeamRepositoryImpl : TeamRepository {
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
         name = row[TeamsTable.name],
+        memberCount = 0,
         description = row[TeamsTable.description],
         archivedAt = row[TeamsTable.archivedAt]?.toString(),
         createdAt = row[TeamsTable.createdAt].toString(),

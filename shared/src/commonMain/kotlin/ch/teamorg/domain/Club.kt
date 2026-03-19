@@ -28,7 +28,7 @@ data class Team(
     val id: String,
     val clubId: String,
     val name: String,
-    val memberCount: Int
+    val memberCount: Int = 0
 )
 
 @Serializable
