@@ -20,6 +20,9 @@ import kotlinx.serialization.Serializable
 private data class CreateClubRequest(val name: String, val sportType: String, val location: String?)
 
 @Serializable
+private data class UpdateClubRequest(val name: String? = null, val location: String? = null)
+
+@Serializable
 private data class CreateTeamRequest(val name: String, val description: String? = null)
 
 @Serializable
@@ -62,6 +65,19 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
         }
     }
 
+    override suspend fun getClub(clubId: String): Result<Club> {
+        return try {
+            val response = client.get("/clubs/$clubId")
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to fetch club: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getClubTeams(clubId: String): Result<List<Team>> {
         return try {
             val response = client.get("/clubs/$clubId/teams")
@@ -84,6 +100,21 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
                 Result.success(response.body())
             } else {
                 Result.failure(Exception("Failed to create team: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateClub(clubId: String, name: String?, location: String?): Result<Club> {
+        return try {
+            val response = client.patch("/clubs/$clubId") {
+                setBody(UpdateClubRequest(name, location))
+            }
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.failure(Exception("Failed to update club: ${response.status}"))
             }
         } catch (e: Exception) {
             Result.failure(e)

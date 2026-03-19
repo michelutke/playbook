@@ -19,7 +19,8 @@ data class Club(
     val id: String,
     val name: String,
     val logoUrl: String?,
-    val sportType: String
+    val sportType: String,
+    val location: String? = null
 )
 
 @Serializable
