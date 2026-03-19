@@ -9,6 +9,8 @@ import ch.teamorg.ui.club.ClubSetupScreen
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.emptystate.EmptyStateScreen
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
+import ch.teamorg.ui.events.CreateEditEventScreen
+import ch.teamorg.ui.events.CreateEditEventViewModel
 import ch.teamorg.ui.events.EventDetailScreen
 import ch.teamorg.ui.events.EventDetailViewModel
 import ch.teamorg.ui.events.EventListScreen
@@ -107,12 +109,33 @@ fun AppNavigation(
                     viewModel = viewModel,
                     onBack = { backStack.removeAt(backStack.lastIndex) },
                     onEdit = { backStack.add(Screen.EditEvent(screen.eventId)) },
-                    onDuplicate = { /* navigate to create with pre-fill -- Plan 06 */ },
-                    onCancel = { /* show cancel dialog, then detailRefreshTrigger++ -- Plan 06 */ }
+                    onDuplicate = { backStack.add(Screen.CreateEvent) },
+                    onCancel = {
+                        detailRefreshTrigger++
+                        backStack.removeAt(backStack.lastIndex)
+                    }
                 )
             }
-            Screen.CreateEvent -> PlaceholderScreen("Create Event")
-            is Screen.EditEvent -> PlaceholderScreen("Edit Event")
+            Screen.CreateEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
+            is Screen.EditEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId) { viewModel.loadForEdit(screen.eventId) }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = {
+                        detailRefreshTrigger++
+                        backStack.removeAt(backStack.lastIndex)
+                    }
+                )
+            }
             Screen.Calendar -> PlaceholderScreen("Calendar")
             Screen.Teams -> PlaceholderScreen("Teams")
             Screen.Inbox -> PlaceholderScreen("Inbox")
