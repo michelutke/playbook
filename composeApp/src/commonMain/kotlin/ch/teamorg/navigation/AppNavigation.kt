@@ -26,6 +26,8 @@ import ch.teamorg.ui.register.RegisterScreen
 import ch.teamorg.ui.register.RegisterViewModel
 import ch.teamorg.ui.team.TeamRosterScreen
 import ch.teamorg.ui.team.TeamRosterViewModel
+import ch.teamorg.ui.team.PlayerProfileScreen
+import ch.teamorg.ui.team.PlayerProfileViewModel
 import ch.teamorg.ui.team.TeamsListScreen
 import ch.teamorg.ui.team.TeamsListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -82,7 +84,8 @@ fun AppNavigation(
                     teamId = screen.teamId,
                     viewModel = viewModel,
                     onBack = { backStack.removeAt(backStack.lastIndex) },
-                    onShareInvite = { }
+                    onShareInvite = { },
+                    onMemberClick = { userId -> backStack.add(Screen.PlayerProfile(screen.teamId, userId)) }
                 )
             }
             is Screen.Invite -> {
@@ -157,6 +160,17 @@ fun AppNavigation(
             }
             Screen.Inbox -> PlaceholderScreen("Inbox")
             Screen.Profile -> PlaceholderScreen("Profile")
+            is Screen.PlayerProfile -> {
+                val viewModel: PlayerProfileViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.teamId, screen.userId) { viewModel.loadProfile(screen.teamId, screen.userId) }
+                PlayerProfileScreen(
+                    teamId = screen.teamId,
+                    userId = screen.userId,
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onLeftTeam = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
         }
     }
 }

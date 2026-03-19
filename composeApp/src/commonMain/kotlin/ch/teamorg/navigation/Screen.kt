@@ -49,4 +49,7 @@ sealed class Screen(val route: String) {
 
     @Serializable
     data class EditEvent(val eventId: String) : Screen("edit_event/{eventId}")
+
+    @Serializable
+    data class PlayerProfile(val teamId: String, val userId: String) : Screen("player_profile/{teamId}/{userId}")
 }

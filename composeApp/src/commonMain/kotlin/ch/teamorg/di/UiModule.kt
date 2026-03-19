@@ -7,6 +7,7 @@ import ch.teamorg.ui.events.CreateEditEventViewModel
 import ch.teamorg.ui.events.EventDetailViewModel
 import ch.teamorg.ui.events.EventListViewModel
 import ch.teamorg.ui.invite.InviteViewModel
+import ch.teamorg.ui.team.PlayerProfileViewModel
 import ch.teamorg.ui.team.TeamRosterViewModel
 import ch.teamorg.ui.team.TeamsListViewModel
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
@@ -20,8 +21,9 @@ val uiModule = module {
     factory { RegisterViewModel(get()) }
     factory { EmptyStateViewModel(get()) }
     factory { ClubSetupViewModel(get()) }
-    factory { TeamRosterViewModel(get()) }
+    factory { TeamRosterViewModel(get(), get()) }
     factory { TeamsListViewModel(get(), get()) }
+    factory { PlayerProfileViewModel(get(), get()) }
     factory { InviteViewModel(get()) }
     factory { EventListViewModel(get(), get(), get()) }
     factory { EventDetailViewModel(get(), get(), get()) }
