@@ -29,6 +29,9 @@ data class UpdateSubGroupRequest(val name: String)
 @Serializable
 data class AddSubGroupMemberRequest(val userId: String)
 
+@Serializable
+data class SubGroupResponse(val id: String, val teamId: String, val name: String, val memberCount: Long)
+
 fun Route.subGroupRoutes() {
     val teamRepository by inject<TeamRepository>()
 
@@ -44,12 +47,11 @@ fun Route.subGroupRoutes() {
                         .groupBy { it[SubGroupsTable.id] }
                         .map { (groupId, rows) ->
                             val first = rows.first()
-                            mapOf(
-                                "id" to groupId.toString(),
-                                "teamId" to first[SubGroupsTable.teamId].toString(),
-                                "name" to first[SubGroupsTable.name],
-                                "createdAt" to first[SubGroupsTable.createdAt].toString(),
-                                "memberCount" to rows.count { it.getOrNull(SubGroupMembersTable.userId) != null }.toLong()
+                            SubGroupResponse(
+                                id = groupId.toString(),
+                                teamId = first[SubGroupsTable.teamId].toString(),
+                                name = first[SubGroupsTable.name],
+                                memberCount = rows.count { it.getOrNull(SubGroupMembersTable.userId) != null }.toLong()
                             )
                         }
                 }
@@ -65,7 +67,7 @@ fun Route.subGroupRoutes() {
                         it[SubGroupsTable.teamId] = teamId
                         it[name] = request.name
                     } get SubGroupsTable.id
-                    mapOf("id" to id.toString(), "teamId" to teamId.toString(), "name" to request.name, "memberCount" to 0L)
+                    SubGroupResponse(id = id.toString(), teamId = teamId.toString(), name = request.name, memberCount = 0L)
                 }
                 call.respond(HttpStatusCode.Created, subGroup)
             }
