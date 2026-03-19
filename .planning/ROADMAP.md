@@ -56,6 +56,17 @@
 
 **Requirements:** ES-01–16
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Backend data foundation (migration, Exposed tables, EventRepository)
+- [ ] 03-02-PLAN.md — Server API routes + materialisation job + integration tests
+- [ ] 03-03-PLAN.md — Shared KMP contracts (domain models, repository interface, screen routes, calendar dep)
+- [ ] 03-04-PLAN.md — Shared KMP repository impl + SQLDelight offline cache
+- [ ] 03-05-PLAN.md — Event list screen + event detail screen + navigation wiring
+- [ ] 03-06-PLAN.md — Create/edit event form + recurring/scope bottom sheets
+- [ ] 03-07-PLAN.md — Calendar screen with kizitonwose month + week views
+
 **Deliverables:**
 - Event creation form (all types, multi-day, recurring)
 - Recurring event server-side expansion
