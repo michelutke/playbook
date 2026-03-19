@@ -69,13 +69,26 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v3
+      - name: Create simulator
+        run: |
+          RUNTIME=$(xcrun simctl list runtimes available -j | python3 -c "
+          import json, sys
+          rts = json.load(sys.stdin)['runtimes']
+          ios = [r for r in rts if 'iOS' in r.get('name','') and r.get('isAvailable', False)]
+          print(sorted(ios, key=lambda r: r['version'])[-1]['identifier'])
+          ")
+          echo "Runtime: $RUNTIME"
+          UDID=$(xcrun simctl create 'CI-iPhone' 'iPhone 16' "$RUNTIME" 2>/dev/null || \
+                 xcrun simctl create 'CI-iPhone' 'iPhone 15' "$RUNTIME")
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
       - name: Run iOS UI Tests
         run: |
           set -o pipefail
           xcodebuild test \
             -workspace iosApp/iosApp.xcworkspace \
             -scheme iosApp-Workspace \
-            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -destination "id=$SIMULATOR_UDID" \
             -resultBundlePath TestResults.xcresult \
             | xcpretty --report junit --output test-results-ios.xml
       - name: Upload test results
