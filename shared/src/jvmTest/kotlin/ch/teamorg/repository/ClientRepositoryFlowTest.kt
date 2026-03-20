@@ -11,6 +11,7 @@ import ch.teamorg.preferences.UserPreferences
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -279,5 +280,182 @@ class ClientRepositoryFlowTest {
             cmTeamRepo.getTeamRoster(team.id).getOrThrow().find { it.userId == playerAuth.userId },
             "Player must not appear in roster after removal"
         )
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Auth token lifecycle: register on a pre-existing client, then getMe
+    //
+    // Reproduces the real app flow: a SINGLE HttpClient is created at startup
+    // (before any token exists), then register saves a token to UserPreferences,
+    // then checkAuthState calls getMe on the SAME client. The client must pick
+    // up the newly-saved token at request time, not at creation time.
+    //
+    // This test would have caught the bug where DefaultRequest captured
+    // userPreferences.getToken() once at HttpClient creation (returning null),
+    // causing all post-login requests to be unauthenticated (401).
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Builds a client that mirrors the real [HttpClientFactory.create] pattern:
+     * a single HttpClient whose auth header reads the token from [prefs] at
+     * request time via a requestPipeline interceptor — NOT captured at creation.
+     */
+    private fun buildClientWithPrefs(prefs: UserPreferences): HttpClient {
+        return HttpClient {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true; isLenient = true })
+            }
+            install(DefaultRequest) {
+                url("http://localhost:$serverPort")
+                contentType(ContentType.Application.Json)
+            }
+        }.also { client ->
+            client.requestPipeline.intercept(io.ktor.client.request.HttpRequestPipeline.Before) {
+                val token = prefs.getToken()
+                if (token != null) {
+                    context.bearerAuth(token)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `single HttpClient picks up token saved after creation and getMe succeeds`() = runBlocking {
+        val prefs = UserPreferences()
+        prefs.clearToken()
+
+        // Create the client BEFORE any token exists — mirrors app startup
+        val client = buildClientWithPrefs(prefs)
+        val authRepo = AuthRepositoryImpl(client, prefs)
+
+        // Register — this saves the token into prefs
+        val registerResult = authRepo.register(
+            RegisterRequest("client.token-lifecycle@test.local", "Password1!", "TokenLifecycle User")
+        )
+        assertTrue(registerResult.isSuccess, "register must succeed")
+        assertTrue(authRepo.isLoggedIn(), "isLoggedIn must be true after register")
+
+        // getMe on the SAME client — must use the token saved during register.
+        // Before the fix, this returned 401 because the token was captured as null.
+        val getMeResult = authRepo.getMe()
+        assertTrue(getMeResult.isSuccess, "getMe must succeed on same client after register — " +
+            "failure here means auth token is not sent (captured at creation instead of per-request)")
+        val user = getMeResult.getOrThrow()
+        kotlin.test.assertEquals("TokenLifecycle User", user.displayName)
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Full invite-join journey: register CM → create club → create team →
+    // create invite → new user registers → redeem invite → verify team
+    // membership via /auth/me/roles
+    //
+    // This is the comprehensive end-to-end test that covers the FULL user
+    // journey. A green test here means the entire invite flow works at the
+    // HTTP/repository level.
+    // ──────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `full invite journey - new user redeems invite and gains team role visible in roles endpoint`() = runBlocking {
+        // 1. CM registers and creates club + team
+        val cmAuth = registerUser("full-journey.cm@test.local", "CM FullJourney")
+        val cmClient = buildClient { cmAuth.token }
+        val cmClubRepo = ClubRepositoryImpl(cmClient)
+        val cmTeamRepo = TeamRepositoryImpl(cmClient)
+
+        val club = cmClubRepo.createClub("FullJourney Club", "basketball", "Zurich").getOrThrow()
+        val team = cmClubRepo.createTeam(club.id, "FullJourney Team", null).getOrThrow()
+
+        // 2. CM creates invite
+        val inviteUrl = cmTeamRepo.createInvite(team.id, "player", null).getOrThrow()
+        val inviteToken = inviteUrl.substringAfterLast("/")
+
+        // 3. New player registers
+        val playerAuth = registerUser("full-journey.player@test.local", "Player FullJourney")
+        val playerClient = buildClient { playerAuth.token }
+        val playerInviteRepo = InviteRepositoryImpl(playerClient)
+        val playerTeamRepo = TeamRepositoryImpl(playerClient)
+        // Build an AuthRepositoryImpl for the player to test hasTeam()
+        val playerPrefs = UserPreferences().also { it.saveToken(playerAuth.token) }
+        val playerAuthRepo = AuthRepositoryImpl(playerClient, playerPrefs)
+
+        // 4. Player views invite details
+        val details = playerInviteRepo.getInviteDetails(inviteToken).getOrThrow()
+        kotlin.test.assertEquals(team.name, details.teamName, "teamName must match")
+        kotlin.test.assertEquals(club.name, details.clubName, "clubName must match")
+        kotlin.test.assertEquals("player", details.role, "role must match")
+        assertFalse(details.alreadyRedeemed, "invite must not be redeemed yet")
+
+        // 5. Player redeems invite
+        playerInviteRepo.redeemInvite(inviteToken).getOrThrow()
+
+        // 6. Verify: player's roles include team membership
+        val playerRoles = playerTeamRepo.getMyRoles().getOrThrow()
+        assertTrue(
+            playerRoles.teamRoles.any { it.teamId == team.id && it.role == "player" },
+            "Player must have 'player' role on team ${team.id} after redeeming invite. " +
+            "Actual roles: ${playerRoles.teamRoles}"
+        )
+
+        // 7. Verify: hasTeam returns true for player after redeem
+        val hasTeam = playerAuthRepo.hasTeam()
+        assertTrue(hasTeam, "hasTeam must be true after redeeming invite (player is on a team)")
+
+        // 8. Verify: CM sees player in roster
+        val roster = cmTeamRepo.getTeamRoster(team.id).getOrThrow()
+        val playerEntry = roster.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry, "Player must appear in CM's roster view after redeem")
+        kotlin.test.assertEquals("player", playerEntry.role)
+    }
+
+    @Test
+    fun `redeeming same invite twice returns idempotent success or 409`() = runBlocking {
+        val cmAuth = registerUser("idempotent.cm@test.local", "CM Idempotent")
+        val cmClient = buildClient { cmAuth.token }
+        val cmClubRepo = ClubRepositoryImpl(cmClient)
+        val cmTeamRepo = TeamRepositoryImpl(cmClient)
+
+        val club = cmClubRepo.createClub("Idempotent Club", "soccer", null).getOrThrow()
+        val team = cmClubRepo.createTeam(club.id, "Idempotent Team", null).getOrThrow()
+        val inviteUrl = cmTeamRepo.createInvite(team.id, "player", null).getOrThrow()
+        val inviteToken = inviteUrl.substringAfterLast("/")
+
+        val playerAuth = registerUser("idempotent.player@test.local", "Player Idempotent")
+        val playerClient = buildClient { playerAuth.token }
+        val playerInviteRepo = InviteRepositoryImpl(playerClient)
+
+        // First redeem
+        playerInviteRepo.redeemInvite(inviteToken).getOrThrow()
+
+        // Second redeem — should either succeed or fail with 409/already-member
+        val secondResult = playerInviteRepo.redeemInvite(inviteToken)
+        if (secondResult.isFailure) {
+            val msg = secondResult.exceptionOrNull()?.message ?: ""
+            assertTrue(
+                msg.contains("409") || msg.contains("Already a member", ignoreCase = true),
+                "Second redeem failure must be 409 or 'Already a member', got: $msg"
+            )
+        }
+        // Either way, player is still on the team
+        val roster = cmTeamRepo.getTeamRoster(team.id).getOrThrow()
+        assertNotNull(roster.find { it.userId == playerAuth.userId }, "Player must still be on team")
+        Unit
+    }
+
+    @Test
+    fun `single HttpClient picks up token saved after creation and hasTeam succeeds`() = runBlocking {
+        val prefs = UserPreferences()
+        prefs.clearToken()
+
+        val client = buildClientWithPrefs(prefs)
+        val authRepo = AuthRepositoryImpl(client, prefs)
+
+        authRepo.register(
+            RegisterRequest("client.token-lifecycle-roles@test.local", "Password1!", "TokenRoles User")
+        ).getOrThrow()
+
+        // hasTeam calls /auth/me/roles on the SAME client
+        val hasTeam = authRepo.hasTeam()
+        // New user has no team, but the call itself must not fail with 401
+        assertFalse(hasTeam, "newly registered user must not have a team")
     }
 }

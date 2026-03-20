@@ -112,10 +112,22 @@ class EventRepositoryImpl : EventRepository {
         type: String?,
         teamId: UUID?
     ): List<EventWithTeams> = transaction {
-        // Find all team IDs for this user
-        val userTeamIds = TeamRolesTable.select(TeamRolesTable.teamId)
+        // Find all team IDs for this user (direct team roles)
+        val directTeamIds = TeamRolesTable.select(TeamRolesTable.teamId)
             .where { TeamRolesTable.userId eq userId }
             .map { it[TeamRolesTable.teamId] }
+
+        // Also include teams from clubs where user is club_manager
+        val managedClubIds = ClubRolesTable.select(ClubRolesTable.clubId)
+            .where { (ClubRolesTable.userId eq userId) and (ClubRolesTable.role eq "club_manager") }
+            .map { it[ClubRolesTable.clubId] }
+        val clubTeamIds = if (managedClubIds.isNotEmpty()) {
+            TeamsTable.select(TeamsTable.id)
+                .where { (TeamsTable.clubId inList managedClubIds) and TeamsTable.archivedAt.isNull() }
+                .map { it[TeamsTable.id] }
+        } else emptyList()
+
+        val userTeamIds = (directTeamIds + clubTeamIds).distinct()
 
         if (userTeamIds.isEmpty()) return@transaction emptyList()
 

@@ -19,13 +19,13 @@ class TeamRepositoryImpl : TeamRepository {
         } get TeamsTable.id
 
         TeamsTable.selectAll().where { TeamsTable.id eq teamId }
-            .map(::rowToTeam)
+            .map { rowToTeam(it, countMembers(teamId)) }
             .single()
     }
 
     override suspend fun findById(id: UUID): Team? = transaction {
         TeamsTable.selectAll().where { TeamsTable.id eq id }
-            .map(::rowToTeam)
+            .map { rowToTeam(it, countMembers(id)) }
             .singleOrNull()
     }
 
@@ -37,7 +37,7 @@ class TeamRepositoryImpl : TeamRepository {
         }
 
         TeamsTable.selectAll().where { TeamsTable.id eq id }
-            .map(::rowToTeam)
+            .map { rowToTeam(it, countMembers(id)) }
             .single()
     }
 
@@ -48,7 +48,7 @@ class TeamRepositoryImpl : TeamRepository {
         }
 
         TeamsTable.selectAll().where { TeamsTable.id eq id }
-            .map(::rowToTeam)
+            .map { rowToTeam(it, countMembers(id)) }
             .single()
     }
 
@@ -161,11 +161,15 @@ class TeamRepositoryImpl : TeamRepository {
             .single()
     }
 
-    private fun rowToTeam(row: ResultRow) = Team(
+    /** Count team members inside an existing transaction. */
+    private fun countMembers(teamId: UUID): Int =
+        TeamRolesTable.selectAll().where { TeamRolesTable.teamId eq teamId }.count().toInt()
+
+    private fun rowToTeam(row: ResultRow, memberCount: Int = 0) = Team(
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
         name = row[TeamsTable.name],
-        memberCount = 0,
+        memberCount = memberCount,
         description = row[TeamsTable.description],
         archivedAt = row[TeamsTable.archivedAt]?.toString(),
         createdAt = row[TeamsTable.createdAt].toString(),

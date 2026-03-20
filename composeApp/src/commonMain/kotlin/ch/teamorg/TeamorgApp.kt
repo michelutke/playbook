@@ -52,7 +52,7 @@ fun TeamorgApp(
         val currentScreen = backStack.lastOrNull() ?: Screen.Loading
         val showBottomBar = currentScreen !in listOf(
             Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading
-        )
+        ) && currentScreen !is Screen.Invite
 
         Scaffold(
             contentWindowInsets = WindowInsets(0),

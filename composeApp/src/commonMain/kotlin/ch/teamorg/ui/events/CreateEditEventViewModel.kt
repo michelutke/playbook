@@ -7,7 +7,9 @@ import ch.teamorg.domain.EditEventRequest
 import ch.teamorg.domain.MatchedTeam
 import ch.teamorg.domain.RecurringPattern
 import ch.teamorg.domain.SubGroup
+import ch.teamorg.repository.ClubRepository
 import ch.teamorg.repository.EventRepository
+import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -73,7 +75,9 @@ sealed class FormEvent {
 }
 
 class CreateEditEventViewModel(
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val clubRepository: ClubRepository,
+    private val teamRepository: TeamRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateEditEventState())
@@ -81,6 +85,26 @@ class CreateEditEventViewModel(
 
     private val _events = MutableSharedFlow<FormEvent>()
     val events = _events.asSharedFlow()
+
+    init {
+        loadAvailableTeams()
+    }
+
+    private fun loadAvailableTeams() {
+        viewModelScope.launch {
+            teamRepository.getMyRoles().onSuccess { roles ->
+                val clubIds = (roles.clubRoles.map { it.clubId } +
+                    roles.teamRoles.map { it.clubId }).distinct()
+                val teams = mutableListOf<MatchedTeam>()
+                for (clubId in clubIds) {
+                    clubRepository.getClubTeams(clubId).onSuccess { clubTeams ->
+                        teams.addAll(clubTeams.map { MatchedTeam(it.id, it.name) })
+                    }
+                }
+                _state.update { it.copy(availableTeams = teams.distinctBy { t -> t.id }) }
+            }
+        }
+    }
 
     fun setTitle(title: String) {
         _state.update { it.copy(title = title, titleError = null) }

@@ -104,11 +104,18 @@ fun AppNavigation(
                         DeepLinkHandler.pendingToken.value = token
                         backStack.add(Screen.Register)
                     },
-                    onJoinSuccess = { onAuthSuccess() }
+                    onJoinSuccess = {
+                        // Remove Invite screen from backStack BEFORE triggering
+                        // checkAuthState so the LaunchedEffect guard in TeamorgApp
+                        // allows navigation to proceed.
+                        backStack.removeAll { it is Screen.Invite }
+                        onAuthSuccess()
+                    }
                 )
             }
             Screen.Events -> {
                 val viewModel: EventListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(backStack.size) { viewModel.loadEvents() }
                 EventListScreen(
                     viewModel = viewModel,
                     onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
@@ -161,6 +168,7 @@ fun AppNavigation(
             }
             Screen.Teams -> {
                 val viewModel: TeamsListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(backStack.size) { viewModel.loadTeams() }
                 TeamsListScreen(
                     viewModel = viewModel,
                     onTeamClick = { teamId -> backStack.add(Screen.TeamRoster(teamId)) }

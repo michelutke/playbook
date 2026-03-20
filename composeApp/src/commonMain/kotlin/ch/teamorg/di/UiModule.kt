@@ -27,6 +27,6 @@ val uiModule = module {
     factory { InviteViewModel(get()) }
     factory { EventListViewModel(get(), get(), get()) }
     factory { EventDetailViewModel(get(), get(), get()) }
-    factory { CreateEditEventViewModel(get()) }
+    factory { CreateEditEventViewModel(get(), get(), get()) }
     factory { CalendarViewModel(get(), get(), get()) }
 }

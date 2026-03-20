@@ -39,17 +39,19 @@ class TeamsListViewModel(
             _state.update { it.copy(isLoading = true, error = null) }
             teamRepository.getMyRoles().onSuccess { roles ->
                 val clubRole = roles.clubRoles.firstOrNull()
-                if (clubRole != null) {
+                // Derive clubId from club roles first, fall back to team roles
+                val clubId = clubRole?.clubId
+                    ?: roles.teamRoles.firstOrNull()?.clubId
+                val isManager = clubRole?.role == "club_manager"
+
+                if (clubId != null) {
                     _state.update {
-                        it.copy(
-                            clubId = clubRole.clubId,
-                            isClubManager = clubRole.role == "club_manager"
-                        )
+                        it.copy(clubId = clubId, isClubManager = isManager)
                     }
-                    clubRepository.getClub(clubRole.clubId).onSuccess { club ->
+                    clubRepository.getClub(clubId).onSuccess { club ->
                         _state.update { it.copy(club = club) }
                     }
-                    clubRepository.getClubTeams(clubRole.clubId).onSuccess { teams ->
+                    clubRepository.getClubTeams(clubId).onSuccess { teams ->
                         _state.update { it.copy(teams = teams, isLoading = false) }
                     }.onFailure { e ->
                         _state.update { it.copy(error = e.message, isLoading = false) }

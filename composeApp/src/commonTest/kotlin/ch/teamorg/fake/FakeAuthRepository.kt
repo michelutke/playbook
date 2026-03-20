@@ -43,16 +43,19 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun login(request: LoginRequest): Result<AuthResponse> {
         lastLoginRequest = request
+        loginResult.onSuccess { loggedIn = true }
         return loginResult
     }
 
     override suspend fun register(request: RegisterRequest): Result<AuthResponse> {
         lastRegisterRequest = request
+        registerResult.onSuccess { loggedIn = true }
         return registerResult
     }
 
     override fun logout() {
         logoutCalled = true
+        loggedIn = false
     }
 
     override fun isLoggedIn(): Boolean = loggedIn

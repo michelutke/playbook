@@ -312,4 +312,50 @@ class EventRoutesTest : IntegrationTestBase() {
         val events = response.body<List<Event>>()
         assertNotNull(events)
     }
+
+    @Test
+    fun `club manager sees events via GET users me events for teams they manage`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        // Register club manager and create club + team
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("mgr_event@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Event Mgr Club"))
+        }.body<ch.teamorg.domain.models.Club>().id
+
+        val teamId = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Event Mgr Team"))
+        }.body<ch.teamorg.domain.models.Team>().id
+
+        // Manager creates event targeting the team
+        val createResponse = client.post("/events") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateEventPayload(
+                title = "Manager Training",
+                type = "training",
+                startAt = "2026-04-10T10:00:00Z",
+                endAt = "2026-04-10T12:00:00Z",
+                teamIds = listOf(teamId)
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, createResponse.status)
+
+        // Manager (who has NO team_role, only club_role) should still see the event
+        val listResponse = client.get("/users/me/events") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+        }
+        assertEquals(HttpStatusCode.OK, listResponse.status)
+        val events = listResponse.body<List<EventWithTeams>>()
+        assertEquals(1, events.size)
+        assertEquals("Manager Training", events[0].event.title)
+    }
 }

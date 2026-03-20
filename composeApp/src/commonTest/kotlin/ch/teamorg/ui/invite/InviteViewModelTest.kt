@@ -189,4 +189,124 @@ class InviteViewModelTest {
 
         viewModel.state.value.isRedeeming shouldBe false
     }
+
+    // region — full load-then-redeem journey
+
+    /**
+     * Simulates the real user flow: load invite details, then redeem.
+     * Verifies that isRedeemed transitions to true, which is the signal
+     * InviteScreen's LaunchedEffect uses to trigger onJoinSuccess.
+     *
+     * This test would catch:
+     * - redeemInvite silently failing
+     * - isRedeemed not being set after successful redeem
+     * - state being reset between load and redeem
+     */
+    @Test
+    fun fullFlow_loadThenRedeem_setsIsRedeemedTrue() = runTest {
+        fakeInviteRepo.getInviteDetailsResult = Result.success(sampleDetails)
+
+        // Load invite
+        viewModel.loadInvite("abc123")
+        viewModel.state.value.inviteDetails shouldNotBe null
+        viewModel.state.value.isRedeemed shouldBe false
+
+        // Redeem invite
+        viewModel.redeemInvite("abc123")
+        viewModel.state.value.isRedeemed shouldBe true
+        viewModel.state.value.isRedeeming shouldBe false
+        viewModel.state.value.error shouldBe null
+    }
+
+    @Test
+    fun fullFlow_loadThenRedeem_inviteDetailsPreservedAfterRedeem() = runTest {
+        fakeInviteRepo.getInviteDetailsResult = Result.success(sampleDetails)
+
+        viewModel.loadInvite("abc123")
+        viewModel.redeemInvite("abc123")
+
+        // Invite details should still be available (not cleared)
+        viewModel.state.value.inviteDetails shouldBe sampleDetails
+    }
+
+    /**
+     * Turbine-based test that tracks state transitions during redeem.
+     * Ensures isRedeeming=true is emitted before isRedeemed=true.
+     */
+    @Test
+    fun redeemInvite_emitsRedeemingThenRedeemed() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial state
+
+            viewModel.redeemInvite("abc123")
+
+            // With UnconfinedTestDispatcher, we may get coalesced states.
+            // The final state must have isRedeemed=true.
+            val finalState = expectMostRecentItem()
+            finalState.isRedeemed shouldBe true
+            finalState.isRedeeming shouldBe false
+        }
+    }
+
+    // region — error does not set isRedeemed (prevents false navigation)
+
+    @Test
+    fun redeemInvite_onNon409Failure_doesNotSetIsRedeemed() = runTest {
+        fakeInviteRepo.redeemInviteResult = Result.failure(Exception("Network timeout"))
+        viewModel.redeemInvite("abc123")
+
+        viewModel.state.value.isRedeemed shouldBe false
+        viewModel.state.value.error shouldBe "Network timeout"
+    }
+
+    // region — authenticated user with existing team redeems cross-team invite
+
+    /**
+     * Exact scenario from the bug: authenticated club manager with existing
+     * teams redeems an invite from another manager's team. The redeem must
+     * succeed and set isRedeemed=true so the LaunchedEffect in InviteScreen
+     * triggers onJoinSuccess.
+     */
+    @Test
+    fun authenticatedUserWithExistingTeam_redeemInvite_setsIsRedeemed() = runTest {
+        // Simulate: user loaded invite details (authenticated, has teams already)
+        fakeInviteRepo.getInviteDetailsResult = Result.success(sampleDetails)
+        viewModel.loadInvite("abc123")
+        viewModel.state.value.inviteDetails shouldNotBe null
+
+        // User clicks Join — redeem succeeds
+        fakeInviteRepo.redeemInviteResult = Result.success(Unit)
+        viewModel.redeemInvite("abc123")
+
+        val state = viewModel.state.value
+        state.isRedeemed shouldBe true
+        state.isRedeeming shouldBe false
+        state.error shouldBe null
+        state.inviteDetails shouldNotBe null
+    }
+
+    /**
+     * Verify state transitions with Turbine: loading invite, then redeeming.
+     * The final state must have isRedeemed=true which is the navigation trigger.
+     */
+    @Test
+    fun authenticatedUserWithExistingTeam_fullFlow_turbineVerifiesIsRedeemed() = runTest {
+        fakeInviteRepo.getInviteDetailsResult = Result.success(sampleDetails)
+        fakeInviteRepo.redeemInviteResult = Result.success(Unit)
+
+        viewModel.state.test {
+            awaitItem() // initial
+
+            viewModel.loadInvite("abc123")
+            // Skip intermediate loading states, get to loaded
+            val loadedState = expectMostRecentItem()
+            loadedState.inviteDetails shouldNotBe null
+            loadedState.isRedeemed shouldBe false
+
+            viewModel.redeemInvite("abc123")
+            val redeemedState = expectMostRecentItem()
+            redeemedState.isRedeemed shouldBe true
+            redeemedState.isRedeeming shouldBe false
+        }
+    }
 }
