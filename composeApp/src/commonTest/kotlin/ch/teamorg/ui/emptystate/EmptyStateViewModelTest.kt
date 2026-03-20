@@ -82,23 +82,34 @@ class EmptyStateViewModelTest {
         }
     }
 
-    // region — onJoinTeamClick (Phase 2 stub)
+    // region — onJoinTeamClick
 
     @Test
-    fun onJoinTeamClick_setsInfoMessageAboutPhase2() = runTest {
+    fun onJoinTeamClick_withBlankLink_setsError() = runTest {
         createViewModel()
         viewModel.onJoinTeamClick()
 
-        viewModel.state.value.infoMessage shouldBe "Team joining will be available in Phase 2"
+        viewModel.state.value.error shouldBe "Please paste an invite link"
     }
 
     @Test
-    fun onJoinTeamClick_doesNotEmitNavigateEvent() = runTest {
+    fun onJoinTeamClick_withValidLink_emitsNavigateToInvite() = runTest {
         createViewModel()
+        viewModel.onInviteLinkChange("teamorg://invite/team/abc123")
         viewModel.events.test {
             viewModel.onJoinTeamClick()
-            // No event should be emitted (early return in Phase 2 stub)
-            expectNoEvents()
+            awaitItem() shouldBe EmptyStateEvent.NavigateToInvite("abc123")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onJoinTeamClick_withPlainToken_emitsNavigateToInvite() = runTest {
+        createViewModel()
+        viewModel.onInviteLinkChange("abc123")
+        viewModel.events.test {
+            viewModel.onJoinTeamClick()
+            awaitItem() shouldBe EmptyStateEvent.NavigateToInvite("abc123")
             cancelAndIgnoreRemainingEvents()
         }
     }

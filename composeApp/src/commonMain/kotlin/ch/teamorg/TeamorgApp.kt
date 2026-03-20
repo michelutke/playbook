@@ -71,7 +71,8 @@ fun TeamorgApp(
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 AppNavigation(
                     backStack = backStack,
-                    isLoggedIn = authState is AuthState.Authenticated
+                    isLoggedIn = authState is AuthState.Authenticated,
+                    onAuthSuccess = { viewModel.checkAuthState() }
                 )
             }
         }

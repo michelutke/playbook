@@ -23,4 +23,5 @@ class FakeAuthRepository : AuthRepository {
     override fun logout() {}
     override fun isLoggedIn(): Boolean = false
     override suspend fun getMe(): Result<AuthUser> = getMeResult
+    override suspend fun hasTeam(): Boolean = false
 }

@@ -21,11 +21,12 @@ class AuthViewModel(
 
     fun checkAuthState() {
         viewModelScope.launch {
+            _state.value = AuthState.Loading
             if (authRepository.isLoggedIn()) {
                 authRepository.getMe().fold(
                     onSuccess = { user ->
-                        // In Phase 1, hasTeam is always false as team check is Phase 2
-                        _state.value = AuthState.Authenticated(user, hasTeam = false)
+                        val hasTeam = authRepository.hasTeam()
+                        _state.value = AuthState.Authenticated(user, hasTeam = hasTeam)
                     },
                     onFailure = {
                         _state.value = AuthState.Unauthenticated

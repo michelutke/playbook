@@ -37,7 +37,8 @@ import org.koin.mp.KoinPlatform
 @Composable
 fun AppNavigation(
     backStack: MutableList<Screen>,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    onAuthSuccess: () -> Unit
 ) {
     var detailRefreshTrigger by remember { mutableIntStateOf(0) }
     val currentScreen = backStack.lastOrNull() ?: Screen.Loading
@@ -51,7 +52,7 @@ fun AppNavigation(
                 val viewModel: LoginViewModel = viewModel { KoinPlatform.getKoin().get() }
                 LoginScreen(
                     viewModel = viewModel,
-                    onLoginSuccess = { backStack.add(Screen.Events) },
+                    onLoginSuccess = { onAuthSuccess() },
                     onNavigateToRegister = { backStack.add(Screen.Register) }
                 )
             }
@@ -59,7 +60,7 @@ fun AppNavigation(
                 val viewModel: RegisterViewModel = viewModel { KoinPlatform.getKoin().get() }
                 RegisterScreen(
                     viewModel = viewModel,
-                    onRegisterSuccess = { backStack.add(Screen.EmptyState) },
+                    onRegisterSuccess = { onAuthSuccess() },
                     onNavigateToLogin = { backStack.add(Screen.Login) }
                 )
             }
@@ -103,7 +104,7 @@ fun AppNavigation(
                         DeepLinkHandler.pendingToken.value = token
                         backStack.add(Screen.Register)
                     },
-                    onJoinSuccess = { backStack.add(Screen.Events) }
+                    onJoinSuccess = { onAuthSuccess() }
                 )
             }
             Screen.Events -> {

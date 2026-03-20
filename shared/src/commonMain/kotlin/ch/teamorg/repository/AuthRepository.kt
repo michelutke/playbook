@@ -11,4 +11,5 @@ interface AuthRepository {
     fun logout()
     fun isLoggedIn(): Boolean
     suspend fun getMe(): Result<AuthUser>
+    suspend fun hasTeam(): Boolean
 }

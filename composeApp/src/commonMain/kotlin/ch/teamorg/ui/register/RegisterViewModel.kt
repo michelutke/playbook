@@ -47,6 +47,7 @@ class RegisterViewModel(
 
     fun onRegisterClick() {
         val currentState = _state.value
+        if (currentState.isLoading) return
 
         if (currentState.displayName.isBlank() || currentState.email.isBlank() ||
             currentState.password.isBlank() || currentState.confirmPassword.isBlank()) {
@@ -64,8 +65,8 @@ class RegisterViewModel(
             return
         }
 
+        _state.value = currentState.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true, error = null)
             authRepository.register(
                 RegisterRequest(
                     email = currentState.email,

@@ -37,13 +37,15 @@ class LoginViewModel(
 
     fun onLoginClick() {
         val currentState = _state.value
+        if (currentState.isLoading) return
+
         if (currentState.email.isBlank() || currentState.password.isBlank()) {
             _state.value = currentState.copy(error = "Please fill in all fields")
             return
         }
 
+        _state.value = currentState.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true, error = null)
             authRepository.login(LoginRequest(currentState.email, currentState.password)).fold(
                 onSuccess = {
                     _state.value = _state.value.copy(isLoading = false)
