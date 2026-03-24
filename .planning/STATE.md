@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T15:07:06.552Z"
+last_updated: "2026-03-24T15:07:39.304Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # STATE.md — Playbook
@@ -103,6 +103,8 @@ progress:
 - [Phase 04]: AttendanceCacheManager.deleteRule() added (not in plan spec) for AbwesenheitRepositoryImpl cache consistency
 - [Phase 04-05]: EventListItem compact RSVP buttons read-only — user taps card to navigate to detail to respond
 - [Phase 04-05]: loadAttendanceCounts fetches per-event serially — acceptable for MVP list size
+- [Phase 04-attendance-tracking]: Icons.Outlined.MenuBook kept (not AutoMirrored) — deprecation warning only, consistent with codebase
+- [Phase 04-attendance-tracking]: BodyPartGrid uses two Rows (not LazyVerticalGrid) — simpler for fixed 2x5 layout
 
 ## Notes
 
