@@ -13,6 +13,8 @@ val appModule = module {
     single<TeamRepository> { TeamRepositoryImpl() }
     single<InviteRepository> { InviteRepositoryImpl() }
     single<EventRepository> { EventRepositoryImpl() }
+    single<AttendanceRepository> { AttendanceRepositoryImpl() }
+    single<AbwesenheitRepository> { AbwesenheitRepositoryImpl() }
 }
 
 fun Application.configureKoin() {
