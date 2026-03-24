@@ -1,0 +1,43 @@
+package ch.teamorg.routes
+
+import ch.teamorg.domain.repositories.AttendanceRepository
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+import org.koin.ktor.ext.inject
+import java.util.UUID
+
+@Serializable
+private data class CheckInRequest(val status: String, val note: String? = null)
+
+fun Route.checkInRoutes() {
+    val attendanceRepo by inject<AttendanceRepository>()
+
+    authenticate("jwt") {
+        get("/events/{id}/check-in") {
+            val eventId = UUID.fromString(call.parameters["id"])
+            val records = attendanceRepo.getCheckIn(eventId)
+            call.respond(records)
+        }
+
+        put("/events/{id}/check-in/{userId}") {
+            val eventId = UUID.fromString(call.parameters["id"])
+            val targetUserId = UUID.fromString(call.parameters["userId"])
+            val coachId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
+            val body = call.receive<CheckInRequest>()
+
+            val record = attendanceRepo.upsertCheckIn(
+                eventId = eventId,
+                userId = targetUserId,
+                status = body.status,
+                note = body.note,
+                setBy = coachId
+            )
+            call.respond(record)
+        }
+    }
+}
