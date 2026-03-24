@@ -65,17 +65,8 @@ fun Route.eventRoutes() {
         post("/events") {
             val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val request = call.receive<CreateEventRequest>()
-            if (request.recurring != null) {
-                val series = eventRepository.createSeries(request, userId)
-                eventRepository.materialiseUpcomingOccurrences()
-                val events = eventRepository.findEventsForUser(
-                    userId, from = request.startAt, to = null, type = null, teamId = null
-                )
-                call.respond(HttpStatusCode.Created, events.firstOrNull() ?: mapOf("seriesId" to series.id.toString()))
-            } else {
-                val event = eventRepository.create(request, userId)
-                call.respond(HttpStatusCode.Created, event)
-            }
+            val event = eventRepository.create(request, userId)
+            call.respond(HttpStatusCode.Created, event)
         }
 
         patch("/events/{id}") {
@@ -107,22 +98,12 @@ fun Route.eventRoutes() {
                 }
                 RecurringScope.this_and_future -> {
                     if (existing.seriesId != null && existing.seriesSequence != null) {
-                        eventRepository.cancelFutureInSeries(existing.seriesId, existing.seriesSequence)
-                        val newRequest = CreateEventRequest(
-                            title = editRequest.title ?: existing.title,
-                            type = editRequest.type ?: existing.type,
-                            startAt = editRequest.startAt ?: existing.startAt,
-                            endAt = editRequest.endAt ?: existing.endAt,
-                            meetupAt = editRequest.meetupAt ?: existing.meetupAt,
-                            location = editRequest.location ?: existing.location,
-                            description = editRequest.description ?: existing.description,
-                            minAttendees = editRequest.minAttendees ?: existing.minAttendees,
-                            teamIds = editRequest.teamIds ?: existing.teamIds,
-                            subgroupIds = editRequest.subgroupIds ?: existing.subgroupIds,
-                            recurring = null
+                        // Update current event + all future events in the series
+                        eventRepository.update(id, editRequest)
+                        eventRepository.updateFutureInSeries(
+                            existing.seriesId, existing.seriesSequence + 1, editRequest
                         )
-                        val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
-                        eventRepository.create(newRequest, userId)
+                        eventRepository.updateSeriesTemplate(existing.seriesId, editRequest)
                     } else {
                         eventRepository.update(id, editRequest)
                     }
@@ -170,6 +151,38 @@ fun Route.eventRoutes() {
                         eventRepository.cancelFutureInSeries(existing.seriesId, 0)
                     }
                     eventRepository.cancel(id)
+                }
+            }
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/events/{id}/uncancel") {
+            val id = UUID.fromString(call.parameters["id"])
+            val body = call.receive<CancelScopeRequest>()
+            val scope = RecurringScope.valueOf(body.scope ?: "this_only")
+
+            val existing = eventRepository.findById(id)
+            if (existing == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@post
+            }
+
+            when (scope) {
+                RecurringScope.this_only -> eventRepository.uncancel(id)
+                RecurringScope.this_and_future -> {
+                    if (existing.seriesId != null && existing.seriesSequence != null) {
+                        eventRepository.uncancel(id)
+                        eventRepository.uncancelFutureInSeries(existing.seriesId, existing.seriesSequence + 1)
+                    } else {
+                        eventRepository.uncancel(id)
+                    }
+                }
+                RecurringScope.all -> {
+                    if (existing.seriesId != null) {
+                        eventRepository.uncancelFutureInSeries(existing.seriesId, 0)
+                    }
+                    eventRepository.uncancel(id)
                 }
             }
 

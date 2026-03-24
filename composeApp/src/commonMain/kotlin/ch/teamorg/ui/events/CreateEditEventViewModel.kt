@@ -90,8 +90,14 @@ class CreateEditEventViewModel(
         loadAvailableTeams()
     }
 
+    fun resetForm() {
+        _state.value = CreateEditEventState()
+        loadAvailableTeams()
+    }
+
     private fun loadAvailableTeams() {
         viewModelScope.launch {
+            var loaded = false
             teamRepository.getMyRoles().onSuccess { roles ->
                 val clubIds = (roles.clubRoles.map { it.clubId } +
                     roles.teamRoles.map { it.clubId }).distinct()
@@ -101,7 +107,19 @@ class CreateEditEventViewModel(
                         teams.addAll(clubTeams.map { MatchedTeam(it.id, it.name) })
                     }
                 }
-                _state.update { it.copy(availableTeams = teams.distinctBy { t -> t.id }) }
+                if (teams.isNotEmpty()) {
+                    _state.update { it.copy(availableTeams = teams.distinctBy { t -> t.id }) }
+                    loaded = true
+                }
+            }
+            // Fallback: derive teams from cached events
+            if (!loaded) {
+                eventRepository.getMyEvents().onSuccess { cached ->
+                    val teams = cached.flatMap { it.matchedTeams }.distinctBy { it.id }
+                    if (_state.value.availableTeams.isEmpty()) {
+                        _state.update { it.copy(availableTeams = teams) }
+                    }
+                }
             }
         }
     }
@@ -150,7 +168,12 @@ class CreateEditEventViewModel(
     }
 
     fun toggleMinAttendees(enabled: Boolean) {
-        _state.update { it.copy(minAttendeesEnabled = enabled) }
+        _state.update {
+            it.copy(
+                minAttendeesEnabled = enabled,
+                minAttendees = if (enabled && it.minAttendees < 1) 6 else it.minAttendees
+            )
+        }
     }
 
     fun setMinAttendees(count: Int) {
@@ -254,7 +277,10 @@ class CreateEditEventViewModel(
                     scope = scope
                 )
                 eventRepository.editEvent(s.editEventId, request)
-                    .onSuccess { _events.emit(FormEvent.SaveSuccess) }
+                    .onSuccess {
+                        _state.update { st -> st.copy(isSaving = false) }
+                        _events.emit(FormEvent.SaveSuccess)
+                    }
                     .onFailure { err -> _state.update { st -> st.copy(saveError = err.message, isSaving = false) } }
             } else {
                 val recurring = if (s.recurringEnabled && s.recurringPattern != null) {
@@ -280,7 +306,10 @@ class CreateEditEventViewModel(
                     recurring = recurring
                 )
                 eventRepository.createEvent(request)
-                    .onSuccess { _events.emit(FormEvent.SaveSuccess) }
+                    .onSuccess {
+                        _state.update { st -> st.copy(isSaving = false) }
+                        _events.emit(FormEvent.SaveSuccess)
+                    }
                     .onFailure { err -> _state.update { st -> st.copy(saveError = err.message, isSaving = false) } }
             }
         }

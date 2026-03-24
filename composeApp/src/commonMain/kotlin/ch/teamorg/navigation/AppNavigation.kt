@@ -17,6 +17,7 @@ import ch.teamorg.ui.events.EventDetailScreen
 import ch.teamorg.ui.events.EventDetailViewModel
 import ch.teamorg.ui.events.EventListScreen
 import ch.teamorg.ui.events.EventListViewModel
+import ch.teamorg.ui.events.EventViewMode
 import ch.teamorg.ui.invite.InviteScreen
 import ch.teamorg.ui.invite.InviteViewModel
 import ch.teamorg.ui.login.LoginScreen
@@ -131,7 +132,7 @@ fun AppNavigation(
                     viewModel = viewModel,
                     onBack = { backStack.removeAt(backStack.lastIndex) },
                     onEdit = { backStack.add(Screen.EditEvent(screen.eventId)) },
-                    onDuplicate = { backStack.add(Screen.CreateEvent) },
+                    onDuplicate = { backStack.add(Screen.DuplicateEvent(screen.eventId)) },
                     onCancel = {
                         detailRefreshTrigger++
                         backStack.removeAt(backStack.lastIndex)
@@ -140,6 +141,7 @@ fun AppNavigation(
             }
             Screen.CreateEvent -> {
                 val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(Unit) { viewModel.resetForm() }
                 CreateEditEventScreen(
                     viewModel = viewModel,
                     onBack = { backStack.removeAt(backStack.lastIndex) },
@@ -158,9 +160,23 @@ fun AppNavigation(
                     }
                 )
             }
+            is Screen.DuplicateEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId) { viewModel.loadForDuplicate(screen.eventId) }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
             Screen.Calendar -> {
-                val viewModel: CalendarViewModel = viewModel { KoinPlatform.getKoin().get() }
-                CalendarScreen(
+                // Calendar is now integrated into Events screen
+                val viewModel: EventListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(Unit) {
+                    viewModel.setViewMode(EventViewMode.CALENDAR)
+                }
+                LaunchedEffect(backStack.size) { viewModel.loadEvents() }
+                EventListScreen(
                     viewModel = viewModel,
                     onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
                     onCreateClick = { backStack.add(Screen.CreateEvent) }

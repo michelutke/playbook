@@ -56,6 +56,10 @@ class EventCacheManager(private val database: TeamorgDb) {
         }
     }
 
+    fun getEventById(id: String): EventWithTeams? {
+        return queries.getEventById(id).executeAsOneOrNull()?.let { rowToEventWithTeams(it) }
+    }
+
     fun cleanup() {
         val cutoff = Clock.System.now()
             .minus(7, DateTimeUnit.DAY, TimeZone.UTC)

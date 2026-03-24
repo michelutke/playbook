@@ -24,5 +24,7 @@ interface EventRepository {
     suspend fun updateSeriesTemplate(seriesId: UUID, request: EditEventRequest)
     suspend fun materialiseUpcomingOccurrences(): Int
     suspend fun cancelFutureInSeries(seriesId: UUID, fromSequence: Int): Int
+    suspend fun uncancel(id: UUID): Event?
+    suspend fun uncancelFutureInSeries(seriesId: UUID, fromSequence: Int): Int
     suspend fun updateFutureInSeries(seriesId: UUID, fromSequence: Int, request: EditEventRequest): Int
 }

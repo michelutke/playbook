@@ -17,14 +17,10 @@ class EventRepositoryImpl : EventRepository {
     override suspend fun create(request: CreateEventRequest, createdBy: UUID): Event = transaction {
         if (request.recurring != null) {
             val series = createSeriesInternal(request, createdBy)
+            // Create a seed event with team/subgroup associations so materialisation can copy them
+            val seedEvent = insertSingleEvent(request, createdBy, seriesId = series.id, seriesSequence = 0)
             materialiseUpcomingOccurrencesInternal()
-            val firstEvent = EventsTable.selectAll()
-                .where { EventsTable.seriesId eq series.id }
-                .orderBy(EventsTable.seriesSequence)
-                .limit(1)
-                .map(::rowToEvent)
-                .firstOrNull()
-            firstEvent ?: insertSingleEvent(request, createdBy, seriesId = series.id, seriesSequence = 0)
+            seedEvent
         } else {
             insertSingleEvent(request, createdBy, seriesId = null, seriesSequence = null)
         }
@@ -152,7 +148,7 @@ class EventRepositoryImpl : EventRepository {
             .map { it[SubGroupMembersTable.subGroupId] }
 
         val eventsWithSubgroups = EventSubgroupsTable
-            .select(EventSubgroupsTable.eventId)
+            .select(EventSubgroupsTable.eventId, EventSubgroupsTable.subgroupId)
             .where { EventSubgroupsTable.eventId inList uniqueEventIds }
             .groupBy { it[EventSubgroupsTable.eventId] }
 
@@ -249,6 +245,28 @@ class EventRepositoryImpl : EventRepository {
         }
         if (updated == 0) null
         else rowToEventWithRelations(id)
+    }
+
+    override suspend fun uncancel(id: UUID): Event? = transaction {
+        val updated = EventsTable.update({ EventsTable.id eq id }) {
+            it[EventsTable.status] = EventStatus.active
+            it[EventsTable.cancelledAt] = null
+            it[EventsTable.updatedAt] = Instant.now()
+        }
+        if (updated == 0) null
+        else rowToEventWithRelations(id)
+    }
+
+    override suspend fun uncancelFutureInSeries(seriesId: UUID, fromSequence: Int): Int = transaction {
+        EventsTable.update({
+            (EventsTable.seriesId eq seriesId) and
+            (EventsTable.seriesSequence greaterEq fromSequence) and
+            (EventsTable.status eq EventStatus.cancelled)
+        }) {
+            it[EventsTable.status] = EventStatus.active
+            it[EventsTable.cancelledAt] = null
+            it[EventsTable.updatedAt] = Instant.now()
+        }
     }
 
     override suspend fun duplicate(id: UUID, createdBy: UUID): Event? = transaction {
@@ -355,6 +373,25 @@ class EventRepositoryImpl : EventRepository {
 
             // Skip already materialised by taking only those after maxSeq
             val toCreate = occurrenceDates.drop(maxSeq + 1)
+            if (toCreate.isEmpty()) continue
+
+            // Copy team/subgroup associations from the first event in the series
+            val referenceEventId = EventsTable.select(EventsTable.id)
+                .where { EventsTable.seriesId eq series.id }
+                .orderBy(EventsTable.seriesSequence)
+                .limit(1)
+                .map { it[EventsTable.id] }
+                .firstOrNull()
+            val seriesTeamIds = if (referenceEventId != null) {
+                EventTeamsTable.select(EventTeamsTable.teamId)
+                    .where { EventTeamsTable.eventId eq referenceEventId }
+                    .map { it[EventTeamsTable.teamId] }
+            } else emptyList()
+            val seriesSubgroupIds = if (referenceEventId != null) {
+                EventSubgroupsTable.select(EventSubgroupsTable.subgroupId)
+                    .where { EventSubgroupsTable.eventId eq referenceEventId }
+                    .map { it[EventSubgroupsTable.subgroupId] }
+            } else emptyList()
 
             for ((seq, date) in toCreate.withIndex()) {
                 val actualSeq = maxSeq + 1 + seq
@@ -362,7 +399,7 @@ class EventRepositoryImpl : EventRepository {
                 val endInstant = date.atTime(series.templateEndTime).toInstant(ZoneOffset.UTC)
                 val meetupInstant = series.templateMeetupTime?.let { date.atTime(it).toInstant(ZoneOffset.UTC) }
 
-                EventsTable.insert {
+                val newEventId = EventsTable.insert {
                     it[EventsTable.title] = series.templateTitle
                     it[EventsTable.type] = EventType.valueOf(series.templateType)
                     it[EventsTable.startAt] = startInstant
@@ -374,6 +411,19 @@ class EventRepositoryImpl : EventRepository {
                     it[EventsTable.seriesId] = series.id
                     it[EventsTable.seriesSequence] = actualSeq
                     it[EventsTable.createdBy] = series.createdBy
+                } get EventsTable.id
+
+                for (teamId in seriesTeamIds) {
+                    EventTeamsTable.insert {
+                        it[EventTeamsTable.eventId] = newEventId
+                        it[EventTeamsTable.teamId] = teamId
+                    }
+                }
+                for (subgroupId in seriesSubgroupIds) {
+                    EventSubgroupsTable.insert {
+                        it[EventSubgroupsTable.eventId] = newEventId
+                        it[EventSubgroupsTable.subgroupId] = subgroupId
+                    }
                 }
 
                 created++

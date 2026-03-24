@@ -68,7 +68,7 @@ class AuthRepositoryImpl(
             val response = client.get("/auth/me/roles")
             if (response.status == HttpStatusCode.OK) {
                 val roles = response.body<UserRoles>()
-                roles.teamRoles.isNotEmpty()
+                roles.teamRoles.isNotEmpty() || roles.clubRoles.isNotEmpty()
             } else {
                 false
             }

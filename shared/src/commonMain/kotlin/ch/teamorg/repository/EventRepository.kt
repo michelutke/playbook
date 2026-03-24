@@ -22,6 +22,8 @@ interface EventRepository {
 
     suspend fun cancelEvent(id: String, scope: String = "this_only"): Result<Unit>
 
+    suspend fun uncancelEvent(id: String, scope: String = "this_only"): Result<Unit>
+
     suspend fun duplicateEvent(id: String): Result<Event>
 
     suspend fun getSubGroups(teamId: String): Result<List<SubGroup>>

@@ -14,6 +14,7 @@ import ch.teamorg.navigation.AppNavigation
 import ch.teamorg.navigation.Screen
 import ch.teamorg.ui.components.TeamorgBottomBar
 import ch.teamorg.ui.theme.TeamorgTheme
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.koin.mp.KoinPlatform
 
@@ -51,8 +52,16 @@ fun TeamorgApp(
 
         val currentScreen = backStack.lastOrNull() ?: Screen.Loading
         val showBottomBar = currentScreen !in listOf(
-            Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading
+            Screen.Login, Screen.Register, Screen.EmptyState, Screen.Loading,
+            Screen.CreateEvent
         ) && currentScreen !is Screen.Invite
+          && currentScreen !is Screen.EventDetail
+          && currentScreen !is Screen.EditEvent
+          && currentScreen !is Screen.DuplicateEvent
+
+        BackHandler(enabled = backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        }
 
         Scaffold(
             contentWindowInsets = WindowInsets(0),

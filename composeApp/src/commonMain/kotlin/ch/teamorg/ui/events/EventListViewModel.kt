@@ -11,15 +11,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
+
+enum class EventViewMode { LIST, CALENDAR }
 
 data class EventListState(
+    val allEvents: List<EventWithTeams> = emptyList(),
     val events: List<EventWithTeams> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val selectedTeamId: String? = null,
-    val selectedType: String? = null,
+    val selectedTeamIds: Set<String> = emptySet(),
+    val selectedTypes: Set<String> = emptySet(),
     val isCoach: Boolean = false,
-    val teams: List<MatchedTeam> = emptyList()
+    val teams: List<MatchedTeam> = emptyList(),
+    val viewMode: EventViewMode = EventViewMode.LIST,
+    val eventsByDate: Map<LocalDate, List<EventWithTeams>> = emptyMap(),
+    val selectedDate: LocalDate? = null,
+    val selectedDayEvents: List<EventWithTeams> = emptyList()
 )
 
 class EventListViewModel(
@@ -38,17 +50,52 @@ class EventListViewModel(
     fun loadEvents() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            eventRepository.getMyEvents(
-                type = _state.value.selectedType,
-                teamId = _state.value.selectedTeamId
-            ).onSuccess { events ->
-                val teams = events.flatMap { it.matchedTeams }.distinctBy { it.id }
-                _state.update { it.copy(events = events, isLoading = false, teams = teams) }
+            eventRepository.getMyEvents().onSuccess { events ->
+                val sorted = events.sortedBy { it.event.startAt }
+                val teams = sorted.flatMap { it.matchedTeams }.distinctBy { it.id }
+                _state.update { it.copy(allEvents = sorted, isLoading = false, teams = teams) }
+                applyFilters()
                 checkCoachRole()
             }.onFailure { e ->
                 _state.update { it.copy(error = e.message, isLoading = false) }
             }
         }
+    }
+
+    private fun applyFilters() {
+        val current = _state.value
+        val filtered = current.allEvents.filter { ewt ->
+            val matchesTeam = current.selectedTeamIds.isEmpty() ||
+                ewt.matchedTeams.any { it.id in current.selectedTeamIds }
+            val matchesType = current.selectedTypes.isEmpty() ||
+                ewt.event.type in current.selectedTypes
+            matchesTeam && matchesType
+        }
+        val byDate = buildDateMap(filtered)
+        _state.update {
+            it.copy(
+                events = filtered,
+                eventsByDate = byDate,
+                selectedDayEvents = if (it.selectedDate != null)
+                    byDate[it.selectedDate] ?: emptyList()
+                else emptyList()
+            )
+        }
+    }
+
+    private fun buildDateMap(events: List<EventWithTeams>): Map<LocalDate, List<EventWithTeams>> {
+        val tz = TimeZone.currentSystemDefault()
+        val byDate = mutableMapOf<LocalDate, MutableList<EventWithTeams>>()
+        events.forEach { ewt ->
+            val startDate = ewt.event.startAt.toLocalDateTime(tz).date
+            val endDate = ewt.event.endAt.toLocalDateTime(tz).date
+            var date = startDate
+            while (date <= endDate) {
+                byDate.getOrPut(date) { mutableListOf() }.add(ewt)
+                date = date.plus(1, DateTimeUnit.DAY)
+            }
+        }
+        return byDate
     }
 
     private fun checkCoachRole() {
@@ -61,13 +108,44 @@ class EventListViewModel(
         }
     }
 
-    fun setTeamFilter(teamId: String?) {
-        _state.update { it.copy(selectedTeamId = teamId) }
-        loadEvents()
+    fun toggleTeamFilter(teamId: String) {
+        _state.update {
+            val newSet = if (teamId in it.selectedTeamIds)
+                it.selectedTeamIds - teamId
+            else
+                it.selectedTeamIds + teamId
+            it.copy(selectedTeamIds = newSet)
+        }
+        applyFilters()
     }
 
-    fun setTypeFilter(type: String?) {
-        _state.update { it.copy(selectedType = type) }
-        loadEvents()
+    fun clearTeamFilters() {
+        _state.update { it.copy(selectedTeamIds = emptySet()) }
+        applyFilters()
+    }
+
+    fun toggleTypeFilter(type: String) {
+        _state.update {
+            val newSet = if (type in it.selectedTypes)
+                it.selectedTypes - type
+            else
+                it.selectedTypes + type
+            it.copy(selectedTypes = newSet)
+        }
+        applyFilters()
+    }
+
+    fun clearTypeFilters() {
+        _state.update { it.copy(selectedTypes = emptySet()) }
+        applyFilters()
+    }
+
+    fun setViewMode(mode: EventViewMode) {
+        _state.update { it.copy(viewMode = mode) }
+    }
+
+    fun selectDate(date: LocalDate) {
+        val events = _state.value.eventsByDate[date] ?: emptyList()
+        _state.update { it.copy(selectedDate = date, selectedDayEvents = events) }
     }
 }

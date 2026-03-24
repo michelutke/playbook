@@ -62,22 +62,56 @@ class EventRepositoryImpl(
         return Result.success(cacheManager.getFilteredOfflineEvents(now, threeMonths, type, teamId))
     }
 
-    override suspend fun getEventDetail(id: String): Result<EventWithTeams> = runCatching {
-        httpClient.get("/events/$id").body()
+    override suspend fun getEventDetail(id: String): Result<EventWithTeams> {
+        return try {
+            val ewt: EventWithTeams = httpClient.get("/events/$id").body()
+            cacheManager.saveEvents(listOf(ewt))
+            Result.success(ewt)
+        } catch (e: ConnectTimeoutException) {
+            eventDetailOfflineFallback(id)
+        } catch (e: HttpRequestTimeoutException) {
+            eventDetailOfflineFallback(id)
+        } catch (e: IOException) {
+            eventDetailOfflineFallback(id)
+        }
     }
 
-    override suspend fun createEvent(request: CreateEventRequest): Result<Event> = runCatching {
-        httpClient.post("/events") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
+    private fun eventDetailOfflineFallback(id: String): Result<EventWithTeams> {
+        val cached = cacheManager.getEventById(id)
+        return if (cached != null) Result.success(cached)
+        else Result.failure(Exception("Event not available offline"))
     }
 
-    override suspend fun editEvent(id: String, request: EditEventRequest): Result<Event> = runCatching {
-        httpClient.patch("/events/$id") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
+    override suspend fun createEvent(request: CreateEventRequest): Result<Event> {
+        return try {
+            val event: Event = httpClient.post("/events") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body()
+            Result.success(event)
+        } catch (e: ConnectTimeoutException) {
+            Result.failure(Exception("You're offline. Connect to create events."))
+        } catch (e: HttpRequestTimeoutException) {
+            Result.failure(Exception("You're offline. Connect to create events."))
+        } catch (e: IOException) {
+            Result.failure(Exception("You're offline. Connect to create events."))
+        }
+    }
+
+    override suspend fun editEvent(id: String, request: EditEventRequest): Result<Event> {
+        return try {
+            val response: EventWithTeams = httpClient.patch("/events/$id") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body()
+            Result.success(response.event)
+        } catch (e: ConnectTimeoutException) {
+            Result.failure(Exception("You're offline. Connect to save changes."))
+        } catch (e: HttpRequestTimeoutException) {
+            Result.failure(Exception("You're offline. Connect to save changes."))
+        } catch (e: IOException) {
+            Result.failure(Exception("You're offline. Connect to save changes."))
+        }
     }
 
     override suspend fun cancelEvent(id: String, scope: String): Result<Unit> = runCatching {
@@ -88,11 +122,27 @@ class EventRepositoryImpl(
         Unit
     }
 
+    override suspend fun uncancelEvent(id: String, scope: String): Result<Unit> = runCatching {
+        httpClient.post("/events/$id/uncancel") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("scope" to scope))
+        }
+        Unit
+    }
+
     override suspend fun duplicateEvent(id: String): Result<Event> = runCatching {
         httpClient.post("/events/$id/duplicate").body()
     }
 
-    override suspend fun getSubGroups(teamId: String): Result<List<SubGroup>> = runCatching {
-        httpClient.get("/teams/$teamId/subgroups").body()
+    override suspend fun getSubGroups(teamId: String): Result<List<SubGroup>> {
+        return try {
+            Result.success(httpClient.get("/teams/$teamId/subgroups").body())
+        } catch (e: ConnectTimeoutException) {
+            Result.success(emptyList())
+        } catch (e: HttpRequestTimeoutException) {
+            Result.success(emptyList())
+        } catch (e: IOException) {
+            Result.success(emptyList())
+        }
     }
 }

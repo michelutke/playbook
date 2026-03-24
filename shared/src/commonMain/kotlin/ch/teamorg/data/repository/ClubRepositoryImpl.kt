@@ -65,29 +65,41 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
         }
     }
 
+    private var cachedClub: Pair<String, Club>? = null
+
     override suspend fun getClub(clubId: String): Result<Club> {
         return try {
             val response = client.get("/clubs/$clubId")
             if (response.status == HttpStatusCode.OK) {
-                Result.success(response.body())
+                val club: Club = response.body()
+                cachedClub = clubId to club
+                Result.success(club)
             } else {
                 Result.failure(Exception("Failed to fetch club: ${response.status}"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            val cached = cachedClub
+            if (cached != null && cached.first == clubId) Result.success(cached.second)
+            else Result.failure(Exception("You're offline. Club data not available."))
         }
     }
+
+    private val cachedTeams = mutableMapOf<String, List<Team>>()
 
     override suspend fun getClubTeams(clubId: String): Result<List<Team>> {
         return try {
             val response = client.get("/clubs/$clubId/teams")
             if (response.status == HttpStatusCode.OK) {
-                Result.success(response.body())
+                val teams: List<Team> = response.body()
+                cachedTeams[clubId] = teams
+                Result.success(teams)
             } else {
                 Result.failure(Exception("Failed to fetch teams: ${response.status}"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            val cached = cachedTeams[clubId]
+            if (cached != null) Result.success(cached)
+            else Result.failure(Exception("You're offline. Teams not available."))
         }
     }
 

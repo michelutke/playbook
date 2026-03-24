@@ -38,13 +38,7 @@ fun TeamorgBottomBar(
         BottomNavItem(
             screen = Screen.Events,
             icon = Icons.Default.Event,
-            selected = currentRoute == Screen.Events.route,
-            onNavigate = onNavigate
-        )
-        BottomNavItem(
-            screen = Screen.Calendar,
-            icon = Icons.Default.DateRange,
-            selected = currentRoute == Screen.Calendar.route,
+            selected = currentRoute == Screen.Events.route || currentRoute == Screen.Calendar.route,
             onNavigate = onNavigate
         )
         BottomNavItem(

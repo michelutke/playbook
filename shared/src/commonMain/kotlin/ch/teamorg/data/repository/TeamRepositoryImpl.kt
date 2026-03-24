@@ -83,16 +83,23 @@ class TeamRepositoryImpl(private val client: HttpClient) : TeamRepository {
         }
     }
 
+    private var cachedRoles: UserRoles? = null
+
     override suspend fun getMyRoles(): Result<UserRoles> {
         return try {
             val response = client.get("/auth/me/roles")
             if (response.status == HttpStatusCode.OK) {
-                Result.success(response.body())
+                val roles: UserRoles = response.body()
+                cachedRoles = roles
+                Result.success(roles)
             } else {
                 Result.failure(Exception("Failed to fetch roles: ${response.status}"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            // Offline fallback: return cached roles if available
+            val cached = cachedRoles
+            if (cached != null) Result.success(cached)
+            else Result.failure(Exception("You're offline. Team data not available."))
         }
     }
 
