@@ -191,7 +191,35 @@ fun AppNavigation(
                 )
             }
             Screen.Inbox -> PlaceholderScreen("Inbox")
-            Screen.Profile -> PlaceholderScreen("Profile")
+            Screen.Profile -> {
+                val viewModel: PlayerProfileViewModel = viewModel { KoinPlatform.getKoin().get() }
+                val userPreferences = remember { KoinPlatform.getKoin().get<ch.teamorg.preferences.UserPreferences>() }
+                val userId = remember { userPreferences.getUserId() ?: "" }
+                val teamRepository = remember { KoinPlatform.getKoin().get<ch.teamorg.repository.TeamRepository>() }
+                var teamId by remember { mutableStateOf("") }
+
+                LaunchedEffect(userId) {
+                    if (userId.isNotEmpty()) {
+                        teamRepository.getMyRoles().onSuccess { roles ->
+                            teamId = roles.teamRoles.firstOrNull()?.teamId ?: ""
+                            if (teamId.isNotEmpty()) {
+                                viewModel.loadProfile(teamId, userId)
+                            }
+                        }
+                    }
+                }
+
+                PlayerProfileScreen(
+                    teamId = teamId,
+                    userId = userId,
+                    viewModel = viewModel,
+                    onBack = { },
+                    onLeftTeam = {
+                        backStack.removeAll { it == Screen.Profile }
+                        backStack.add(Screen.Teams)
+                    }
+                )
+            }
             is Screen.PlayerProfile -> {
                 val viewModel: PlayerProfileViewModel = viewModel { KoinPlatform.getKoin().get() }
                 LaunchedEffect(screen.teamId, screen.userId) { viewModel.loadProfile(screen.teamId, screen.userId) }
