@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T17:03:04.273Z"
+last_updated: "2026-03-24T17:28:41.876Z"
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 3
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 23
+  completed_plans: 22
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** Completed 04-07-PLAN.md — all 7 plans in phase 04 done
+- **Last session:** 2026-03-24T17:28:41.872Z
 
 ## Phase Status
 
@@ -118,6 +118,8 @@ progress:
 - [Phase 04-attendance-tracking]: BodyPartGrid uses two Rows (not LazyVerticalGrid) — simpler for fixed 2x5 layout
 - [Phase 04-07]: Coach role enforcement added to PUT /events/{id}/check-in/{userId}
 - [Phase 04-07]: onOverrideTap opens CoachOverrideSheet via state pattern instead of calling submitOverride directly
+- [Phase 04.1-02]: EventRepository injected as 5th param to PlayerProfileViewModel; eventTypes map built at loadStats time from getMyEvents()
+- [Phase 04.1-02]: Profile tab resolves teamId via getMyRoles().teamRoles.firstOrNull() — consistent with CalendarViewModel pattern
 
 ## Notes
 

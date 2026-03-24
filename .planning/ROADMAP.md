@@ -141,7 +141,7 @@ Plans:
 
 **Requirements:** AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 04.1-01-PLAN.md — Server fixes: CheckInEntry shape mismatch + TeamRolesTable nullable alignment
@@ -227,6 +227,5 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 2 | Team Management | Done |
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Complete | 2026-03-24 |
-| 4.1 | Attendance Integration Fixes | Not started |
-| 5 | Notifications | Not started |
+| 4.1 | 1/2 | In Progress|  | 5 | Notifications | Not started |
 | 6 | Super Admin | Not started |
