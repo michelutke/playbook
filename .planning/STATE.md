@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T17:28:41.876Z"
+last_updated: "2026-03-24T17:29:52.510Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-24T17:28:41.872Z
+- **Last session:** 2026-03-24T17:29:46.623Z
 
 ## Phase Status
 
@@ -120,6 +120,9 @@ progress:
 - [Phase 04-07]: onOverrideTap opens CoachOverrideSheet via state pattern instead of calling submitOverride directly
 - [Phase 04.1-02]: EventRepository injected as 5th param to PlayerProfileViewModel; eventTypes map built at loadStats time from getMyEvents()
 - [Phase 04.1-02]: Profile tab resolves teamId via getMyRoles().teamRoles.firstOrNull() — consistent with CalendarViewModel pattern
+- [Phase 04.1-01]: Server-side DTOs for CheckInEntry defined in AttendanceRepository.kt co-located with domain contracts
+- [Phase 04.1-01]: getCheckInEntries uses three separate queries merged in memory (simpler than multi-table LEFT JOIN with alias collisions)
+- [Phase 04.1-01]: kotlinx-datetime added to server build.gradle.kts for @Serializable Instant fields in response DTOs
 
 ## Notes
 
