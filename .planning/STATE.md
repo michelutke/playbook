@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T14:59:00.328Z"
+last_updated: "2026-03-24T15:07:06.552Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # STATE.md — Playbook
@@ -101,6 +101,8 @@ progress:
 - [Phase 04-attendance-tracking]: AbwesenheitBackfillJob.enqueue() is non-suspend — takes Application scope, launches coroutine internally
 - [Phase 04-attendance-tracking]: AutoPresentJob checks existing records before insert to preserve coach overrides (no ON CONFLICT needed)
 - [Phase 04]: AttendanceCacheManager.deleteRule() added (not in plan spec) for AbwesenheitRepositoryImpl cache consistency
+- [Phase 04-05]: EventListItem compact RSVP buttons read-only — user taps card to navigate to detail to respond
+- [Phase 04-05]: loadAttendanceCounts fetches per-event serially — acceptable for MVP list size
 
 ## Notes
 
