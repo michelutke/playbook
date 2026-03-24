@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T14:49:54.528Z"
+last_updated: "2026-03-24T14:54:35.194Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # STATE.md — Playbook
@@ -98,6 +98,8 @@ progress:
 - [Phase 04-attendance-tracking]: pending_mutation table uses AUTOINCREMENT id for stable ordering and deletion
 - [Phase 04-attendance-tracking]: Used text() column for attendance_responses.status — declined-auto and no-response have hyphens, invalid Kotlin enum identifiers
 - [Phase 04-attendance-tracking]: team_roles.user_id FK changed CASCADE -> SET NULL (TM-19): column made nullable to preserve historical attendance data
+- [Phase 04-attendance-tracking]: AbwesenheitBackfillJob.enqueue() is non-suspend — takes Application scope, launches coroutine internally
+- [Phase 04-attendance-tracking]: AutoPresentJob checks existing records before insert to preserve coach overrides (no ON CONFLICT needed)
 
 ## Notes
 
