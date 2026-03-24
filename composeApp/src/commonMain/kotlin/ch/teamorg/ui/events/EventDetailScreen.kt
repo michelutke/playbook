@@ -23,7 +23,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.teamorg.domain.CheckInEntry
 import ch.teamorg.domain.EventWithTeams
+import ch.teamorg.ui.attendance.AttendanceRsvpButtons
+import ch.teamorg.ui.attendance.BegrundungSheet
+import ch.teamorg.ui.attendance.MemberResponseList
+import ch.teamorg.ui.attendance.ResponseDeadlineLabel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -76,6 +81,7 @@ fun EventDetailScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showCancelScopeSheet by remember { mutableStateOf(false) }
     var showUncancelScopeSheet by remember { mutableStateOf(false) }
+    var showBegrundung by remember { mutableStateOf(false) }
 
     val isCancelled = state.event?.event?.status == "cancelled"
     val isSeries = state.event?.event?.seriesId != null
@@ -180,13 +186,54 @@ fun EventDetailScreen(
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.error ?: "Error", color = ColorError)
             }
-            state.event != null -> EventDetailBody(ewt = state.event!!)
+            state.event != null -> EventDetailBody(
+                ewt = state.event!!,
+                myResponse = state.myResponse,
+                confirmedCount = state.confirmedCount,
+                maybeCount = state.maybeCount,
+                declinedCount = state.declinedCount,
+                responseDeadline = state.responseDeadline,
+                deadlinePassed = state.deadlinePassed,
+                checkInEntries = state.checkInEntries,
+                isCoach = state.isCoach,
+                onRsvpSelect = { status ->
+                    if (status == "unsure") {
+                        showBegrundung = true
+                    } else {
+                        viewModel.submitResponse(status, null)
+                    }
+                },
+                onOverrideTap = { entry, status ->
+                    viewModel.submitOverride(entry.userId, status, null)
+                }
+            )
         }
+
+        BegrundungSheet(
+            visible = showBegrundung,
+            onDismiss = { showBegrundung = false },
+            onConfirm = { reason ->
+                showBegrundung = false
+                viewModel.submitResponse("unsure", reason)
+            }
+        )
     }
 }
 
 @Composable
-private fun EventDetailBody(ewt: EventWithTeams) {
+private fun EventDetailBody(
+    ewt: EventWithTeams,
+    myResponse: String?,
+    confirmedCount: Int,
+    maybeCount: Int,
+    declinedCount: Int,
+    responseDeadline: Instant?,
+    deadlinePassed: Boolean,
+    checkInEntries: List<CheckInEntry>,
+    isCoach: Boolean,
+    onRsvpSelect: (String) -> Unit,
+    onOverrideTap: (CheckInEntry, String) -> Unit
+) {
     val event = ewt.event
     val isCancelled = event.status == "cancelled"
     val startLocal = event.startAt.toLocalDateTime(TimeZone.currentSystemDefault())
@@ -228,34 +275,32 @@ private fun EventDetailBody(ewt: EventWithTeams) {
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerColor))
 
         // RSVP buttons
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            RsvpButton(symbol = "✓", label = "Going", bgColor = BtnGoingBg, textColor = ColorConfirmed, modifier = Modifier.weight(1f))
-            RsvpButton(symbol = "?", label = "Maybe", bgColor = BtnInactiveBg, textColor = InactiveText, modifier = Modifier.weight(1f))
-            RsvpButton(symbol = "✗", label = "Can't Go", bgColor = BtnInactiveBg, textColor = InactiveText, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp)) {
+            AttendanceRsvpButtons(
+                currentResponse = myResponse,
+                confirmedCount = confirmedCount,
+                maybeCount = maybeCount,
+                declinedCount = declinedCount,
+                deadlinePassed = deadlinePassed,
+                compact = false,
+                onSelect = onRsvpSelect
+            )
+            if (responseDeadline != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                ResponseDeadlineLabel(deadline = responseDeadline)
+            }
         }
 
         // Divider
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerColor))
 
-        // Member list (placeholder — real data comes in Phase 4)
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            // Confirmed section
-            SectionHeader(label = "CONFIRMED", count = "–", color = ColorConfirmed)
-            Text("Attendance tracking coming in Phase 4", color = TextMuted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
-
-            // Maybe section
-            SectionHeader(label = "MAYBE", count = "–", color = ColorMaybe)
-
-            // Declined section
-            SectionHeader(label = "DECLINED", count = "–", color = ColorDeclined)
-
-            Spacer(modifier = Modifier.height(24.dp))
+        // Member response list
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+            MemberResponseList(
+                entries = checkInEntries,
+                isCoach = isCoach,
+                onOverrideTap = onOverrideTap
+            )
         }
     }
 }

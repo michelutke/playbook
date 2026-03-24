@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.teamorg.domain.EventWithTeams
 import ch.teamorg.domain.MatchedTeam
+import ch.teamorg.ui.attendance.AttendanceRsvpButtons
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -263,8 +264,13 @@ private fun EventListContent(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(state.events, key = { it.event.id }) { ewt ->
+                    val counts = state.attendanceCounts[ewt.event.id]
                     EventListItem(
                         ewt = ewt,
+                        confirmedCount = counts?.confirmedCount ?: 0,
+                        maybeCount = counts?.maybeCount ?: 0,
+                        declinedCount = counts?.declinedCount ?: 0,
+                        myResponse = counts?.myResponse,
                         onClick = { onEventClick(ewt.event.id) }
                     )
                 }
@@ -304,106 +310,142 @@ private fun EmptyEventsList(
     }
 }
 
+private val AutoDeclinedBadgeBg = Color(0xFF6B7280)
+
 @Composable
 private fun EventListItem(
     ewt: EventWithTeams,
+    confirmedCount: Int,
+    maybeCount: Int,
+    declinedCount: Int,
+    myResponse: String?,
     onClick: () -> Unit
 ) {
     val event = ewt.event
     val isCancelled = event.status == "cancelled"
+    val isAutoDeclined = myResponse == "declined-auto"
     val typeColor = eventTypeColor(event.type)
     val startLocal = event.startAt.toLocalDateTime(TimeZone.currentSystemDefault())
     val endLocal = event.endAt.toLocalDateTime(TimeZone.currentSystemDefault())
     val isMultiDay = startLocal.date != endLocal.date
 
-    val rowModifier = if (isCancelled) {
-        Modifier.fillMaxWidth().alpha(0.4f)
-    } else {
-        Modifier.fillMaxWidth()
+    val cardAlpha = when {
+        isAutoDeclined -> 0.6f
+        isCancelled -> 0.4f
+        else -> 1f
     }
 
     Card(
         onClick = onClick,
-        modifier = rowModifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(cardAlpha)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(4.dp, 40.dp)
-                    .padding(end = 0.dp),
-            )
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = eventTypeLabel(event.type),
-                tint = typeColor,
-                modifier = Modifier.size(24.dp)
-            )
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(4.dp, 40.dp)
+                        .padding(end = 0.dp),
+                )
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = eventTypeLabel(event.type),
+                    tint = typeColor,
+                    modifier = Modifier.size(24.dp)
+                )
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = event.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (isCancelled) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = ColorCancelled.copy(alpha = 0.15f),
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = "Cancelled",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = ColorCancelled,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        if (isAutoDeclined) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = AutoDeclinedBadgeBg.copy(alpha = 0.3f),
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = "Auto-declined",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
                     Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f, fill = false)
+                        text = if (isMultiDay) formatDateRange(event.startAt, event.endAt)
+                               else formatDate(event.startAt),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (isCancelled) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    if (ewt.matchedTeams.size > 1) {
                         Surface(
-                            color = ColorCancelled.copy(alpha = 0.15f),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = MaterialTheme.shapes.small
                         ) {
                             Text(
-                                text = "Cancelled",
+                                text = "${ewt.matchedTeams.size} teams",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = ColorCancelled,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                }
 
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = if (isMultiDay) formatDateRange(event.startAt, event.endAt)
-                           else formatDate(event.startAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.End) {
-                if (ewt.matchedTeams.size > 1) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = "${ewt.matchedTeams.size} teams",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    if (event.seriesId != null) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Recurring",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                if (event.seriesId != null) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Recurring",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
+
+            // Compact RSVP buttons row
+            Spacer(modifier = Modifier.height(8.dp))
+            AttendanceRsvpButtons(
+                currentResponse = myResponse,
+                confirmedCount = confirmedCount,
+                maybeCount = maybeCount,
+                declinedCount = declinedCount,
+                deadlinePassed = false,
+                compact = true,
+                onSelect = {}  // list cards are read-only; tap card to go to detail
+            )
         }
     }
 }

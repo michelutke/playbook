@@ -2,8 +2,12 @@ package ch.teamorg.ui.events
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ch.teamorg.domain.CheckInEntry
 import ch.teamorg.domain.EventWithTeams
+import ch.teamorg.domain.SubmitCheckInRequest
+import ch.teamorg.domain.SubmitResponseRequest
 import ch.teamorg.preferences.UserPreferences
+import ch.teamorg.repository.AttendanceRepository
 import ch.teamorg.repository.EventRepository
 import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,12 +16,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
 
 data class EventDetailState(
     val event: EventWithTeams? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isCoach: Boolean = false
+    val isCoach: Boolean = false,
+    val myResponse: String? = null,
+    val confirmedCount: Int = 0,
+    val maybeCount: Int = 0,
+    val declinedCount: Int = 0,
+    val responseDeadline: Instant? = null,
+    val deadlinePassed: Boolean = false,
+    val checkInEntries: List<CheckInEntry> = emptyList()
 )
 
 sealed class DetailEvent {
@@ -28,7 +40,8 @@ sealed class DetailEvent {
 class EventDetailViewModel(
     private val eventRepository: EventRepository,
     private val teamRepository: TeamRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val attendanceRepository: AttendanceRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EventDetailState())
@@ -44,9 +57,65 @@ class EventDetailViewModel(
                 .onSuccess { ewt ->
                     _state.update { it.copy(event = ewt, isLoading = false) }
                     checkCoachRole()
+                    loadAttendance(eventId)
                 }
                 .onFailure { e ->
                     _state.update { it.copy(error = e.message, isLoading = false) }
+                }
+        }
+    }
+
+    fun loadAttendance(eventId: String) {
+        viewModelScope.launch {
+            // Load my response
+            attendanceRepository.getMyResponse(eventId).onSuccess { response ->
+                _state.update { it.copy(myResponse = response?.status) }
+            }
+
+            // Load check-in entries (includes all members + their responses)
+            attendanceRepository.getCheckIn(eventId).onSuccess { entries ->
+                val confirmed = entries.count { it.response?.status == "confirmed" }
+                val maybe = entries.count { it.response?.status == "unsure" }
+                val declined = entries.count {
+                    it.response?.status == "declined" || it.response?.status == "declined-auto"
+                }
+                _state.update {
+                    it.copy(
+                        checkInEntries = entries,
+                        confirmedCount = confirmed,
+                        maybeCount = maybe,
+                        declinedCount = declined
+                    )
+                }
+            }
+        }
+    }
+
+    fun submitResponse(status: String, reason: String?) {
+        val eventId = _state.value.event?.event?.id ?: return
+        // Optimistic update
+        _state.update { it.copy(myResponse = status) }
+        viewModelScope.launch {
+            val request = SubmitResponseRequest(status = status, reason = reason)
+            attendanceRepository.submitResponse(eventId, request)
+                .onSuccess { response ->
+                    _state.update { it.copy(myResponse = response.status) }
+                    loadAttendance(eventId)
+                }
+                .onFailure {
+                    // Revert optimistic update on failure
+                    _state.update { it.copy(myResponse = null) }
+                }
+        }
+    }
+
+    fun submitOverride(userId: String, status: String, note: String?) {
+        val eventId = _state.value.event?.event?.id ?: return
+        viewModelScope.launch {
+            val request = SubmitCheckInRequest(status = status, note = note)
+            attendanceRepository.submitCheckIn(eventId, userId, request)
+                .onSuccess {
+                    loadAttendance(eventId)
                 }
         }
     }
@@ -56,7 +125,6 @@ class EventDetailViewModel(
         viewModelScope.launch {
             eventRepository.cancelEvent(eventId, scope)
                 .onSuccess {
-                    // Reload to reflect cancelled state
                     loadEvent(eventId)
                     _events.emit(DetailEvent.Cancelled)
                 }
