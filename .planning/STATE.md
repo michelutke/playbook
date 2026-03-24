@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: active
-last_updated: "2026-03-24T00:00:00.000Z"
+status: unknown
+last_updated: "2026-03-24T14:48:37.214Z"
 progress:
-  total_phases: 6
-  completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
+  total_phases: 4
+  completed_phases: 2
+  total_plans: 21
+  completed_plans: 15
 ---
 
 # STATE.md — Playbook
 
 ## Current State
+
 - **Active phase:** Phase 4 — Attendance Tracking
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
@@ -32,6 +33,7 @@ progress:
 ## What's Actually Done
 
 ### Phase 1 — Foundation + Auth ✅
+
 - ✅ KMP monorepo scaffolded (shared, composeApp, androidApp, iosApp, server, admin)
 - ✅ Ktor server: DB (PostgreSQL + Flyway), JWT auth, register/login/logout
 - ✅ Role system in DB (Coach, Player, ClubManager, SuperAdmin)
@@ -41,6 +43,7 @@ progress:
 - ✅ CI/CD: Test Suite + Deploy Android pipelines, iOS XCTest smoke tests
 
 ### Phase 2 — Team Management ✅
+
 - ✅ Backend: clubs, teams, invite system, role assignments, sub-groups (DB + API)
 - ✅ Flyway migrations V1–V6
 - ✅ Android UI: EmptyState, ClubSetup, TeamRoster, Invite screens + ViewModels
@@ -49,6 +52,7 @@ progress:
 - ⚠️ Updraft deploy needs `UPDRAFT_APP_ID` + `UPDRAFT_API_KEY` secrets added to GitHub
 
 ### Phase 3 — Event Scheduling ✅
+
 - ✅ 03-00: Wave 0 test stubs — 9 stub files across shared/server/composeApp
 - ✅ 03-01: Event DB foundation — V7 migration + Exposed tables + EventRepository (interface + impl)
 - ✅ 03-03: Shared KMP contracts — Event domain models, EventRepository interface, navigation screens, kizitonwose calendar in catalog
@@ -59,6 +63,7 @@ progress:
 - ✅ 03-07: Calendar screen with kizitonwose month + week views
 
 ## Decisions
+
 - Used `kotlin.test.@Ignore` for shared/server stubs (consistent with existing test convention)
 - Used `org.junit.@Ignore` for androidTest stubs (JUnit 4 standard for Android instrumented tests)
 - Created `composeApp/src/androidTest/` with `androidInstrumentedTest` source set (VALIDATION.md targets `connectedAndroidTest`)
@@ -88,7 +93,11 @@ progress:
 - [Phase 02-team-management]: ClubEditSheet added as private composable in TeamsListScreen.kt — too small for separate file
 - [Phase 02-team-management]: uploadAvatar placed in TeamRepository (not a new repo) — user-scoped but TeamRepo already has getMyRoles() pattern
 - [Phase 02-team-management]: expect/actual rememberImagePickerLauncher: Android GetContent, iOS UIImagePickerController — avoids peekaboo/mpfilepicker dependency
+- [Phase 04-attendance-tracking]: AttendanceStats not @Serializable — client-side computed only (ADR-007)
+- [Phase 04-attendance-tracking]: AbwesenheitRule uses String for date fields to avoid kotlinx-datetime LocalDate serialization complexity
+- [Phase 04-attendance-tracking]: pending_mutation table uses AUTOINCREMENT id for stable ordering and deletion
 
 ## Notes
+
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
 - Last session: 2026-03-24 — Phase 3 complete, starting Phase 4 (Attendance Tracking)
