@@ -298,4 +298,106 @@ class TeamRoutesTest : IntegrationTestBase() {
         assertEquals("Player User", members[0].displayName)
         assertEquals("player", members[0].role)
     }
+
+    @Test
+    fun `team memberCount reflects actual members after invite redeem`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("mctmgr@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Count Club"))
+        }.body<Club>().id
+
+        val team = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Count Team"))
+        }.body<Team>()
+
+        // Freshly created team has 0 members
+        assertEquals(0, team.memberCount)
+
+        // Create invite + redeem
+        val inviteToken = client.post("/teams/${team.id}/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        val playerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("mctplayer@example.com", "password123", "Player"))
+        }.body<AuthResponse>()
+
+        client.post("/invites/$inviteToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        // GET /teams/{id} should now report memberCount = 1
+        val teamAfter = client.get("/teams/${team.id}") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+        }.body<Team>()
+        assertEquals(1, teamAfter.memberCount)
+
+        // GET /clubs/{id}/teams should also report memberCount = 1
+        val clubTeams = client.get("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+        }.body<List<Team>>()
+        assertEquals(1, clubTeams.size)
+        assertEquals(1, clubTeams[0].memberCount)
+    }
+
+    @Test
+    fun `player sees team role in me-roles after invite redeem`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+
+        val managerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("rolemgr@example.com", "password123", "Manager"))
+        }.body<AuthResponse>()
+
+        val clubId = client.post("/clubs") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateClubRequest("Role Club"))
+        }.body<Club>().id
+
+        val teamId = client.post("/clubs/$clubId/teams") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateTeamRequest("Role Team"))
+        }.body<Team>().id
+
+        val inviteToken = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${managerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        val playerAuth = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(RegisterRequest("roleplayer@example.com", "password123", "Player"))
+        }.body<AuthResponse>()
+
+        client.post("/invites/$inviteToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        // Player should see a team role with the correct clubId
+        val roles = client.get("/auth/me/roles") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }.body<UserRolesResponse>()
+
+        assertEquals(0, roles.clubRoles.size) // player has no club role
+        assertEquals(1, roles.teamRoles.size)
+        assertEquals(teamId, roles.teamRoles[0].teamId)
+        assertEquals(clubId, roles.teamRoles[0].clubId)
+        assertEquals("player", roles.teamRoles[0].role)
+    }
 }

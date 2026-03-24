@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.ktor.serverAuth)
     implementation(libs.ktor.serverAuthJwt)
     implementation(libs.ktor.serverContentNegotiation)
+    implementation(libs.ktor.serverStatusPages)
     implementation(libs.ktor.serializationKotlinxJson)
     implementation(libs.koin.ktor)
     implementation(libs.exposed.core)
@@ -43,5 +44,6 @@ dependencies {
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.ktor.clientContentNegotiation)
     testImplementation(libs.kotlin.testJunit)
-    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.junit)
 }

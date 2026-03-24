@@ -32,6 +32,12 @@
 
 **Requirements:** TM-01–19
 
+**Plans:** 6/6 plans complete
+
+Plans:
+- [ ] 02-12-PLAN.md — Club edit UI (TM-01 gap closure)
+- [ ] 02-13-PLAN.md — Avatar upload for player profiles (TM-11 gap closure)
+
 **Deliverables:**
 - Club setup flow (ClubManager creates club, logo upload)
 - Team creation + editing
@@ -55,6 +61,18 @@
 **Goal:** Coaches can create, edit, and cancel events. Players see and filter their schedule.
 
 **Requirements:** ES-01–16
+
+**Plans:** 4/4 plans complete
+
+Plans:
+- [ ] 03-00-PLAN.md -- Wave 0 test stubs (Nyquist compliance)
+- [ ] 03-01-PLAN.md — Backend data foundation (migration, Exposed tables, EventRepository)
+- [ ] 03-02-PLAN.md — Server API routes + materialisation job + integration tests
+- [ ] 03-03-PLAN.md — Shared KMP contracts (domain models, repository interface, screen routes, calendar dep)
+- [ ] 03-04-PLAN.md — Shared KMP repository impl + SQLDelight offline cache
+- [ ] 03-05-PLAN.md — Event list screen + event detail screen + navigation wiring
+- [ ] 03-06-PLAN.md — Create/edit event form + recurring/scope bottom sheets
+- [ ] 03-07-PLAN.md — Calendar screen with kizitonwose month + week views
 
 **Deliverables:**
 - Event creation form (all types, multi-day, recurring)
@@ -87,10 +105,14 @@
 - Abwesenheit: recurring weekly + period absence, auto-decline
 - Manual coach override (present/absent/excused + note)
 - Attendance list per event (all members + statuses)
-- Attendance statistics (% presence, filters)
+- Attendance statistics (% presence, filters) — including player profile stats section (TM-17 deferred from Phase 2)
 - Offline mutation queue + sync
 - Audit log for coach overrides
 - Automated tests: response flows, deadline enforcement, offline sync, Abwesenheit
+
+**Deferred from Phase 2:**
+- TM-17: Attendance stats section in PlayerProfileScreen (requires attendance table)
+- TM-19: When adding attendance table, ensure `team_roles` FK uses `SET NULL` on member removal (not CASCADE) — `TeamRepositoryImpl.removeMember()` currently hard-deletes
 
 **Success criteria:**
 1. Player can confirm/decline/unsure; coach sees response immediately
@@ -162,9 +184,7 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 
 | Phase | Feature | Status |
 |---|---|---|
-| 1 | Foundation + Auth | 🔲 Not started |
-| 2 | Team Management | 🔲 Not started |
-| 3 | Event Scheduling | 🔲 Not started |
-| 4 | Attendance Tracking | 🔲 Not started |
+| 1 | Foundation + Auth | ✅ Done |
+| 2 | 6/6 | Complete   | 2026-03-19 | 3 | 8/8 | Complete   | 2026-03-19 | 4 | Attendance Tracking | 🔲 Not started |
 | 5 | Notifications | 🔲 Not started |
 | 6 | Super Admin | 🔲 Not started |

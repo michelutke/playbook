@@ -18,6 +18,7 @@ data class InviteLink(
 
 @Serializable
 data class InviteDetails(
+    val token: String,
     val teamName: String,
     val clubName: String,
     val role: String,

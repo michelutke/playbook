@@ -52,6 +52,8 @@ kotlin {
             implementation(libs.compose.navigation3)
             implementation(libs.coil3.compose)
             implementation(projects.shared)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kizitonwose.calendar.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -64,6 +66,12 @@ kotlin {
                 implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutinesTest)
                 implementation(libs.robolectric)
+                implementation(libs.androidx.test.ext.junit)
+                implementation(libs.compose.uiTestJunit4)
+            }
+        }
+        val androidInstrumentedTest by getting {
+            dependencies {
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.compose.uiTestJunit4)
             }

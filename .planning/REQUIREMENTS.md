@@ -11,43 +11,43 @@
 - [ ] **AUTH-06**: SuperAdmin role granted manually only (not via registration)
 
 ### TM — Team Management
-- [ ] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
-- [ ] **TM-02**: ClubManager can create, archive, and delete teams within the club
-- [ ] **TM-03**: ClubManager can invite a coach by email or shareable invite link
-- [ ] **TM-04**: ClubManager can remove a coach from a team
-- [ ] **TM-05**: ClubManager can promote a player to coach within a team
-- [ ] **TM-06**: ClubManager can view all teams, rosters, and assigned coaches
-- [ ] **TM-07**: ClubManager can also hold the coach role on any team
-- [ ] **TM-08**: Coach can edit team details (name, description)
-- [ ] **TM-09**: Coach can invite players by email or shareable invite link
-- [ ] **TM-10**: Coach can remove a player from the team
-- [ ] **TM-11**: Coach can view the full team roster with player profiles
-- [ ] **TM-12**: Coach can assign jersey numbers and positions (optional)
-- [ ] **TM-13**: Coach can create and manage sub-groups within a team
+- [x] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
+- [x] **TM-02**: ClubManager can create, archive, and delete teams within the club
+- [x] **TM-03**: ClubManager can invite a coach by email or shareable invite link
+- [x] **TM-04**: ClubManager can remove a coach from a team
+- [x] **TM-05**: ClubManager can promote a player to coach within a team
+- [x] **TM-06**: ClubManager can view all teams, rosters, and assigned coaches
+- [x] **TM-07**: ClubManager can also hold the coach role on any team
+- [x] **TM-08**: Coach can edit team details (name, description)
+- [x] **TM-09**: Coach can invite players by email or shareable invite link
+- [x] **TM-10**: Coach can remove a player from the team
+- [x] **TM-11**: Coach can view the full team roster with player profiles
+- [x] **TM-12**: Coach can assign jersey numbers and positions (optional)
+- [x] **TM-13**: Coach can create and manage sub-groups within a team
 - [ ] **TM-14**: Player can belong to multiple teams
-- [ ] **TM-15**: Player can leave a team themselves
-- [ ] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
+- [x] **TM-15**: Player can leave a team themselves
+- [x] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
 - [ ] **TM-17**: Player profile shows attendance statistics summary
-- [ ] **TM-18**: Invite links expire after 7 days (configurable)
+- [x] **TM-18**: Invite links expire after 7 days (configurable)
 - [ ] **TM-19**: Removing a member preserves their historical attendance data
 
 ### ES — Event Scheduling
-- [ ] **ES-01**: Coach can create an event: title, type (training/match/other), start/end datetime, location, description
-- [ ] **ES-02**: Events can span multiple days
-- [ ] **ES-03**: Coach can create recurring events (daily, weekly on selected weekdays, custom interval, optional end date)
-- [ ] **ES-04**: Coach can assign an event to one or more teams
-- [ ] **ES-05**: Coach can target event at specific sub-groups
-- [ ] **ES-06**: Coach can set minimum required attendees (optional)
-- [ ] **ES-07**: Coach can edit event; players notified of changes
-- [ ] **ES-08**: Coach can cancel event; players notified; responses preserved with cancelled marker
-- [ ] **ES-09**: When editing a recurring event: this occurrence / this and future / all
-- [ ] **ES-10**: Coach can duplicate an event
-- [ ] **ES-11**: Player sees chronological list of upcoming events for all teams
-- [ ] **ES-12**: Player can view event details (location, time, description, attendance summary)
-- [ ] **ES-13**: Player can filter events by team and event type
-- [ ] **ES-14**: Player sees calendar view (month/week)
-- [ ] **ES-15**: Recurring event expansion handled server-side
-- [ ] **ES-16**: Events stored UTC, displayed in user's local timezone
+- [x] **ES-01**: Coach can create an event: title, type (training/match/other), start/end datetime, location, description
+- [x] **ES-02**: Events can span multiple days
+- [x] **ES-03**: Coach can create recurring events (daily, weekly on selected weekdays, custom interval, optional end date)
+- [x] **ES-04**: Coach can assign an event to one or more teams
+- [x] **ES-05**: Coach can target event at specific sub-groups
+- [x] **ES-06**: Coach can set minimum required attendees (optional)
+- [x] **ES-07**: Coach can edit event; players notified of changes
+- [x] **ES-08**: Coach can cancel event; players notified; responses preserved with cancelled marker
+- [x] **ES-09**: When editing a recurring event: this occurrence / this and future / all
+- [x] **ES-10**: Coach can duplicate an event
+- [x] **ES-11**: Player sees chronological list of upcoming events for all teams
+- [x] **ES-12**: Player can view event details (location, time, description, attendance summary)
+- [x] **ES-13**: Player can filter events by team and event type
+- [x] **ES-14**: Player sees calendar view (month/week)
+- [x] **ES-15**: Recurring event expansion handled server-side
+- [x] **ES-16**: Events stored UTC, displayed in user's local timezone
 
 ### AT — Attendance Tracking
 - [ ] **AT-01**: Player can confirm, decline (optional reason), or mark unsure (mandatory Begründung) for an event

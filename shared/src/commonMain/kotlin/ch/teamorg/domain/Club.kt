@@ -3,11 +3,24 @@ package ch.teamorg.domain
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class UserRoles(
+    val clubRoles: List<ClubRoleEntry> = emptyList(),
+    val teamRoles: List<TeamRoleEntry> = emptyList()
+)
+
+@Serializable
+data class ClubRoleEntry(val clubId: String, val role: String)
+
+@Serializable
+data class TeamRoleEntry(val teamId: String, val clubId: String, val role: String)
+
+@Serializable
 data class Club(
     val id: String,
     val name: String,
     val logoUrl: String?,
-    val sportType: String
+    val sportType: String,
+    val location: String? = null
 )
 
 @Serializable
@@ -15,7 +28,7 @@ data class Team(
     val id: String,
     val clubId: String,
     val name: String,
-    val memberCount: Int
+    val memberCount: Int = 0
 )
 
 @Serializable

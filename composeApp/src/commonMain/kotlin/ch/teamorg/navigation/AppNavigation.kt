@@ -4,11 +4,20 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import ch.teamorg.ui.club.ClubSetupScreen
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.emptystate.EmptyStateScreen
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
+import ch.teamorg.ui.calendar.CalendarScreen
+import ch.teamorg.ui.calendar.CalendarViewModel
+import ch.teamorg.ui.events.CreateEditEventScreen
+import ch.teamorg.ui.events.CreateEditEventViewModel
+import ch.teamorg.ui.events.EventDetailScreen
+import ch.teamorg.ui.events.EventDetailViewModel
+import ch.teamorg.ui.events.EventListScreen
+import ch.teamorg.ui.events.EventListViewModel
+import ch.teamorg.ui.events.EventViewMode
 import ch.teamorg.ui.invite.InviteScreen
 import ch.teamorg.ui.invite.InviteViewModel
 import ch.teamorg.ui.login.LoginScreen
@@ -18,14 +27,21 @@ import ch.teamorg.ui.register.RegisterScreen
 import ch.teamorg.ui.register.RegisterViewModel
 import ch.teamorg.ui.team.TeamRosterScreen
 import ch.teamorg.ui.team.TeamRosterViewModel
+import ch.teamorg.ui.team.PlayerProfileScreen
+import ch.teamorg.ui.team.PlayerProfileViewModel
+import ch.teamorg.ui.team.TeamsListScreen
+import ch.teamorg.ui.team.TeamsListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ch.teamorg.DeepLinkHandler
 import org.koin.mp.KoinPlatform
 
 @Composable
 fun AppNavigation(
     backStack: MutableList<Screen>,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    onAuthSuccess: () -> Unit
 ) {
+    var detailRefreshTrigger by remember { mutableIntStateOf(0) }
     val currentScreen = backStack.lastOrNull() ?: Screen.Loading
     AnimatedContent(
         targetState = currentScreen,
@@ -37,7 +53,7 @@ fun AppNavigation(
                 val viewModel: LoginViewModel = viewModel { KoinPlatform.getKoin().get() }
                 LoginScreen(
                     viewModel = viewModel,
-                    onLoginSuccess = { backStack.add(Screen.Events) },
+                    onLoginSuccess = { onAuthSuccess() },
                     onNavigateToRegister = { backStack.add(Screen.Register) }
                 )
             }
@@ -45,7 +61,7 @@ fun AppNavigation(
                 val viewModel: RegisterViewModel = viewModel { KoinPlatform.getKoin().get() }
                 RegisterScreen(
                     viewModel = viewModel,
-                    onRegisterSuccess = { backStack.add(Screen.EmptyState) },
+                    onRegisterSuccess = { onAuthSuccess() },
                     onNavigateToLogin = { backStack.add(Screen.Login) }
                 )
             }
@@ -71,7 +87,8 @@ fun AppNavigation(
                     teamId = screen.teamId,
                     viewModel = viewModel,
                     onBack = { backStack.removeAt(backStack.lastIndex) },
-                    onShareInvite = { }
+                    onShareInvite = { },
+                    onMemberClick = { userId -> backStack.add(Screen.PlayerProfile(screen.teamId, userId)) }
                 )
             }
             is Screen.Invite -> {
@@ -80,16 +97,112 @@ fun AppNavigation(
                     token = screen.token,
                     viewModel = viewModel,
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = { backStack.add(Screen.Login) },
-                    onNavigateToRegister = { backStack.add(Screen.Register) },
-                    onJoinSuccess = { backStack.add(Screen.Events) }
+                    onNavigateToLogin = { token ->
+                        DeepLinkHandler.pendingToken.value = token
+                        backStack.add(Screen.Login)
+                    },
+                    onNavigateToRegister = { token ->
+                        DeepLinkHandler.pendingToken.value = token
+                        backStack.add(Screen.Register)
+                    },
+                    onJoinSuccess = {
+                        // Remove Invite screen from backStack BEFORE triggering
+                        // checkAuthState so the LaunchedEffect guard in TeamorgApp
+                        // allows navigation to proceed.
+                        backStack.removeAll { it is Screen.Invite }
+                        onAuthSuccess()
+                    }
                 )
             }
-            Screen.Events -> PlaceholderScreen("Events List")
-            Screen.Calendar -> PlaceholderScreen("Calendar")
-            Screen.Teams -> PlaceholderScreen("Teams")
+            Screen.Events -> {
+                val viewModel: EventListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(backStack.size) { viewModel.loadEvents() }
+                EventListScreen(
+                    viewModel = viewModel,
+                    onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                    onCreateClick = { backStack.add(Screen.CreateEvent) }
+                )
+            }
+            is Screen.EventDetail -> {
+                val viewModel: EventDetailViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId, detailRefreshTrigger) {
+                    viewModel.loadEvent(screen.eventId)
+                }
+                EventDetailScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onEdit = { backStack.add(Screen.EditEvent(screen.eventId)) },
+                    onDuplicate = { backStack.add(Screen.DuplicateEvent(screen.eventId)) },
+                    onCancel = {
+                        detailRefreshTrigger++
+                        backStack.removeAt(backStack.lastIndex)
+                    }
+                )
+            }
+            Screen.CreateEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(Unit) { viewModel.resetForm() }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
+            is Screen.EditEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId) { viewModel.loadForEdit(screen.eventId) }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = {
+                        detailRefreshTrigger++
+                        backStack.removeAt(backStack.lastIndex)
+                    }
+                )
+            }
+            is Screen.DuplicateEvent -> {
+                val viewModel: CreateEditEventViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.eventId) { viewModel.loadForDuplicate(screen.eventId) }
+                CreateEditEventScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onSaved = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
+            Screen.Calendar -> {
+                // Calendar is now integrated into Events screen
+                val viewModel: EventListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(Unit) {
+                    viewModel.setViewMode(EventViewMode.CALENDAR)
+                }
+                LaunchedEffect(backStack.size) { viewModel.loadEvents() }
+                EventListScreen(
+                    viewModel = viewModel,
+                    onEventClick = { eventId -> backStack.add(Screen.EventDetail(eventId)) },
+                    onCreateClick = { backStack.add(Screen.CreateEvent) }
+                )
+            }
+            Screen.Teams -> {
+                val viewModel: TeamsListViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(backStack.size) { viewModel.loadTeams() }
+                TeamsListScreen(
+                    viewModel = viewModel,
+                    onTeamClick = { teamId -> backStack.add(Screen.TeamRoster(teamId)) }
+                )
+            }
             Screen.Inbox -> PlaceholderScreen("Inbox")
             Screen.Profile -> PlaceholderScreen("Profile")
+            is Screen.PlayerProfile -> {
+                val viewModel: PlayerProfileViewModel = viewModel { KoinPlatform.getKoin().get() }
+                LaunchedEffect(screen.teamId, screen.userId) { viewModel.loadProfile(screen.teamId, screen.userId) }
+                PlayerProfileScreen(
+                    teamId = screen.teamId,
+                    userId = screen.userId,
+                    viewModel = viewModel,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    onLeftTeam = { backStack.removeAt(backStack.lastIndex) }
+                )
+            }
         }
     }
 }

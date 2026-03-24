@@ -2,7 +2,9 @@ package ch.teamorg.plugins
 
 import ch.teamorg.routes.authRoutes
 import ch.teamorg.routes.clubRoutes
+import ch.teamorg.routes.eventRoutes
 import ch.teamorg.routes.inviteRoutes
+import ch.teamorg.routes.subGroupRoutes
 import ch.teamorg.routes.teamRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,5 +20,7 @@ fun Application.configureRouting() {
         clubRoutes()
         teamRoutes()
         inviteRoutes()
+        eventRoutes()
+        subGroupRoutes()
     }
 }

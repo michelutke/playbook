@@ -6,7 +6,7 @@ import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.header
+import io.ktor.client.request.bearerAuth
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
@@ -30,9 +30,12 @@ object HttpClientFactory {
             install(DefaultRequest) {
                 url(ApiConfig.baseUrl)
                 contentType(ContentType.Application.Json)
+            }
+        }.also { client ->
+            client.requestPipeline.intercept(io.ktor.client.request.HttpRequestPipeline.Before) {
                 val token = userPreferences.getToken()
                 if (token != null) {
-                    header("Authorization", "Bearer $token")
+                    context.bearerAuth(token)
                 }
             }
         }

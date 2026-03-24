@@ -48,5 +48,26 @@ class FakeClubRepository : ClubRepository {
         return uploadLogoResult
     }
 
+    var getClubResult: Result<Club> = Result.success(
+        Club(id = "club1", name = "Test Club", logoUrl = null, sportType = "volleyball")
+    )
+    var createTeamResult: Result<Team> = Result.success(
+        Team(id = "team1", clubId = "club1", name = "Test Team")
+    )
+    var updateTeamResult: Result<Team> = Result.success(
+        Team(id = "team1", clubId = "club1", name = "Updated Team")
+    )
+    var updateClubResult: Result<Club> = Result.success(
+        Club(id = "club1", name = "Updated Club", logoUrl = null, sportType = "volleyball")
+    )
+
+    override suspend fun getClub(clubId: String): Result<Club> = getClubResult
+
     override suspend fun getClubTeams(clubId: String): Result<List<Team>> = getClubTeamsResult
+
+    override suspend fun createTeam(clubId: String, name: String, description: String?): Result<Team> = createTeamResult
+
+    override suspend fun updateTeam(teamId: String, name: String?, description: String?): Result<Team> = updateTeamResult
+
+    override suspend fun updateClub(clubId: String, name: String?, location: String?): Result<Club> = updateClubResult
 }

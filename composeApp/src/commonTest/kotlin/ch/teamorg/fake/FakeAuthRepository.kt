@@ -18,6 +18,7 @@ class FakeAuthRepository : AuthRepository {
         AuthUser(userId = "user1", email = "test@example.com", displayName = "Test User", avatarUrl = null)
     )
     var loggedIn: Boolean = false
+    var hasTeamResult: Boolean = false
 
     var lastLoginRequest: LoginRequest? = null
     var lastRegisterRequest: RegisterRequest? = null
@@ -34,6 +35,7 @@ class FakeAuthRepository : AuthRepository {
             AuthUser(userId = "user1", email = "test@example.com", displayName = "Test User", avatarUrl = null)
         )
         loggedIn = false
+        hasTeamResult = false
         lastLoginRequest = null
         lastRegisterRequest = null
         logoutCalled = false
@@ -41,19 +43,24 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun login(request: LoginRequest): Result<AuthResponse> {
         lastLoginRequest = request
+        loginResult.onSuccess { loggedIn = true }
         return loginResult
     }
 
     override suspend fun register(request: RegisterRequest): Result<AuthResponse> {
         lastRegisterRequest = request
+        registerResult.onSuccess { loggedIn = true }
         return registerResult
     }
 
     override fun logout() {
         logoutCalled = true
+        loggedIn = false
     }
 
     override fun isLoggedIn(): Boolean = loggedIn
 
     override suspend fun getMe(): Result<AuthUser> = getMeResult
+
+    override suspend fun hasTeam(): Boolean = hasTeamResult
 }

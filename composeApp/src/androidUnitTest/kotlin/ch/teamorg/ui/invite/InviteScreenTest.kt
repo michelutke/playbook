@@ -3,6 +3,7 @@ package ch.teamorg.ui.invite
 import android.app.Application
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.performClick
 import ch.teamorg.ui.TestActivity
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -88,5 +89,24 @@ class InviteScreenTest {
 
         composeTestRule.onNodeWithTag("btn_create_account_to_join").assertIsDisplayed()
         composeTestRule.onNodeWithTag("btn_login_to_join").assertIsDisplayed()
+    }
+
+    @Test
+    fun inviteScreen_authenticatedUser_clickJoin_triggersOnJoinSuccess() {
+        var joinSuccessCalled = false
+        val fakeRepo = FakeInviteRepository().apply {
+            getInviteDetailsResult = Result.success(fakeInviteDetails)
+            redeemInviteResult = Result.success(Unit)
+        }
+        launchScreen(
+            fakeRepo = fakeRepo,
+            isLoggedIn = true,
+            onJoinSuccess = { joinSuccessCalled = true }
+        )
+
+        composeTestRule.onNodeWithTag("btn_join_team").performClick()
+        composeTestRule.waitForIdle()
+
+        assert(joinSuccessCalled) { "onJoinSuccess must be called after successful redeem" }
     }
 }

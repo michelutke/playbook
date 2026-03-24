@@ -1,9 +1,15 @@
 package ch.teamorg.di
 
 import ch.teamorg.auth.AuthViewModel
+import ch.teamorg.ui.calendar.CalendarViewModel
 import ch.teamorg.ui.club.ClubSetupViewModel
+import ch.teamorg.ui.events.CreateEditEventViewModel
+import ch.teamorg.ui.events.EventDetailViewModel
+import ch.teamorg.ui.events.EventListViewModel
 import ch.teamorg.ui.invite.InviteViewModel
+import ch.teamorg.ui.team.PlayerProfileViewModel
 import ch.teamorg.ui.team.TeamRosterViewModel
+import ch.teamorg.ui.team.TeamsListViewModel
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
 import ch.teamorg.ui.login.LoginViewModel
 import ch.teamorg.ui.register.RegisterViewModel
@@ -15,6 +21,12 @@ val uiModule = module {
     factory { RegisterViewModel(get()) }
     factory { EmptyStateViewModel(get()) }
     factory { ClubSetupViewModel(get()) }
-    factory { TeamRosterViewModel(get()) }
+    factory { TeamRosterViewModel(get(), get()) }
+    factory { TeamsListViewModel(get(), get()) }
+    factory { PlayerProfileViewModel(get(), get()) }
     factory { InviteViewModel(get()) }
+    factory { EventListViewModel(get(), get(), get()) }
+    factory { EventDetailViewModel(get(), get(), get()) }
+    factory { CreateEditEventViewModel(get(), get(), get()) }
+    factory { CalendarViewModel(get(), get(), get()) }
 }

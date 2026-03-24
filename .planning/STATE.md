@@ -1,49 +1,94 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: active
+last_updated: "2026-03-24T00:00:00.000Z"
+progress:
+  total_phases: 6
+  completed_phases: 3
+  total_plans: 14
+  completed_plans: 14
+---
+
 # STATE.md — Playbook
 
 ## Current State
-- **Active phase:** Phase 1 — completing iOS wiring
+- **Active phase:** Phase 4 — Attendance Tracking
 - **Mode:** YOLO
-- **Last updated:** 2026-03-16
+- **Last updated:** 2026-03-24
 
 ## Phase Status
 
 | Phase | Status | Started | Completed |
 |---|---|---|---|
-| 1 — Foundation + Auth | 🔶 In progress | 2026-03-11 | — |
-| 2 — Team Management | 🔶 In progress | 2026-03-11 | — |
-| 3 — Event Scheduling | 🔲 Not started | — | — |
-| 4 — Attendance Tracking | 🔲 Not started | — | — |
+| 1 — Foundation + Auth | ✅ Done | 2026-03-11 | 2026-03-19 |
+| 2 — Team Management | ✅ Done | 2026-03-11 | 2026-03-19 |
+| 3 — Event Scheduling | ✅ Done | 2026-03-19 | 2026-03-24 |
+| 4 — Attendance Tracking | 🔄 In progress | 2026-03-24 | — |
 | 5 — Notifications | 🔲 Not started | — | — |
 | 6 — Super Admin | 🔲 Not started | — | — |
 
 ## What's Actually Done
 
-### Phase 1 — Foundation + Auth
+### Phase 1 — Foundation + Auth ✅
 - ✅ KMP monorepo scaffolded (shared, composeApp, androidApp, iosApp, server, admin)
 - ✅ Ktor server: DB (PostgreSQL + Flyway), JWT auth, register/login/logout
 - ✅ Role system in DB (Coach, Player, ClubManager, SuperAdmin)
-- ✅ Android app builds and runs
+- ✅ Android + iOS apps build and run, login flow verified in simulator
 - ✅ Shared KMP code: ViewModels, screens, navigation (Nav3 CMP), Koin DI
-- ✅ Auth screens: Login, Register (Android working)
+- ✅ Auth screens: Login, Register working on Android + iOS
 - ✅ CI/CD: Test Suite + Deploy Android pipelines, iOS XCTest smoke tests
-- ✅ iOS scaffold: Tuist project, KMP framework linked, smoke tests run in CI
-- ✅ iOS UIKit lifecycle wired (AppDelegate + UIWindowSceneDelegate)
-- ✅ NavigationEventDispatcher crash fixed (JetBrains rc01 substitution)
-- ⏳ Waiting for Miggi to verify in simulator
 
-### Phase 2 — Team Management
+### Phase 2 — Team Management ✅
 - ✅ Backend: clubs, teams, invite system, role assignments, sub-groups (DB + API)
 - ✅ Flyway migrations V1–V6
 - ✅ Android UI: EmptyState, ClubSetup, TeamRoster, Invite screens + ViewModels
-- ❌ Not fully tested end-to-end on device
+- ✅ UI + E2E tests for all team management flows
+- ✅ GitHub Actions: CI build check + Updraft deploy workflow
+- ⚠️ Updraft deploy needs `UPDRAFT_APP_ID` + `UPDRAFT_API_KEY` secrets added to GitHub
 
-## Open Items (before closing Phase 1)
-1. ✅ Wire CMP UI into `iosApp/iosApp/iOSApp.swift` — UIKit lifecycle
-2. ✅ Fix NavigationEventDispatcher crash (2026-03-16)
-3. Add SPM deps to `iosApp/Project.swift` as needed (Miggi to add if needed)
-4. Verify iOS app runs in simulator with auth flow working (Miggi, needs Mac)
+### Phase 3 — Event Scheduling ✅
+- ✅ 03-00: Wave 0 test stubs — 9 stub files across shared/server/composeApp
+- ✅ 03-01: Event DB foundation — V7 migration + Exposed tables + EventRepository (interface + impl)
+- ✅ 03-03: Shared KMP contracts — Event domain models, EventRepository interface, navigation screens, kizitonwose calendar in catalog
+- ✅ 03-02: Event API routes — 7 event endpoints + GET /teams/{teamId}/subgroups + background materialisation job + 9 integration tests
+- ✅ 03-04: KMP EventRepositoryImpl (Ktor) + EventCacheManager (SQLDelight) + DatabaseDriverFactory expect/actual + Koin wiring
+- ✅ 03-05: EventListScreen + EventDetailScreen — filterable event list, full detail (7 sections), coach role detection via UserPreferences, detailRefreshTrigger in navigation
+- ✅ 03-06: CreateEditEventScreen (S4) + RecurringPatternSheet (S5) + RecurringScopeSheet (S6) — full create/edit form, recurring config, scope sheet, navigation wired, Koin registered
+- ✅ 03-07: Calendar screen with kizitonwose month + week views
+
+## Decisions
+- Used `kotlin.test.@Ignore` for shared/server stubs (consistent with existing test convention)
+- Used `org.junit.@Ignore` for androidTest stubs (JUnit 4 standard for Android instrumented tests)
+- Created `composeApp/src/androidTest/` with `androidInstrumentedTest` source set (VALIDATION.md targets `connectedAndroidTest`)
+- [Phase 03-event-scheduling]: Used enumerationByName for EventType/EventStatus/PatternType to store as TEXT matching V7 CHECK constraints
+- [Phase 03-event-scheduling]: Used array<Short> for weekdays column — confirmed supported in Exposed 0.54.0 via resolveColumnType
+- [Phase 03-event-scheduling]: kotlinx.datetime.Instant used for all timestamps (not java.time) — required for KMP iOS compilation
+- [Phase 03-event-scheduling]: kizitonwose-calendar added to version catalog only; Plan 07 adds to build.gradle.kts
+- [Phase 03-event-scheduling]: EditEventWithScope route-local wrapper keeps scope deserialization out of domain model
+- [Phase 03-event-scheduling]: Custom KSerializer objects for java.time types — explicit, no SerializersModule needed
+- [Phase 03-event-scheduling]: SQLDelight 2.0.2 generates CachedEvent in package ch.teamorg (not ch.teamorg.db); DatabaseDriverFactory expect/actual pattern for Android+iOS
+- [Phase 03-event-scheduling]: Offline fallback covers ConnectTimeoutException, HttpRequestTimeoutException, IOException only; ResponseException (4xx/5xx) propagates to caller
+- [Phase 03-event-scheduling]: Used UserPreferences.getUserId() for coach role detection — avoids extra getMe() API call since userId is cached at login
+- [Phase 03-event-scheduling]: kotlinx-datetime added as direct composeApp dependency — shared module uses implementation (not api) so not transitive
+- [Phase 03-event-scheduling]: Local val captures for nullable Event fields — required for Kotlin smart cast from cross-module public API
+- [Phase 03-event-scheduling]: Local val capture for nullable RecurringPatternState required for Kotlin smart cast across module boundary
+- [Phase 03-event-scheduling]: detailRefreshTrigger incremented in EditEvent onSaved and EventDetail onCancel to cover all write paths
+- [Phase 03-event-scheduling]: kizitonwose downgraded 2.10.0→2.7.0: v2.10.0 references kotlinx.datetime.YearMonth (0.7.x only) causing unlinked iOS symbols; v2.7.0 uses library own YearMonth type, iOS links cleanly
+- [Phase 03-event-scheduling]: Multi-day event spanning in CalendarViewModel (not UI): iterates startDate..endDate inclusive, adds event to each date in eventsByDate map
+- [Phase 02-team-management]: getMyRoles() replaces roster-scan: one API call, correctly detects club_manager role
+- [Phase 02-team-management]: CalendarViewModel injected with teamRepository + userPreferences for checkCoachRole()
+- [Phase 02]: TeamsListViewModel derives clubId from getMyRoles() clubRoles — avoids storing clubId separately
+- [Phase 02]: TeamEditSheet reused for both create (TeamsListScreen) and edit (TeamRosterScreen)
+- [Phase 02-team-management]: leaveTeam uses DELETE /teams/{teamId}/leave (separate from DELETE /members/{userId} which is coach-only remove)
+- [Phase 02-team-management]: SubGroup domain model moved to Event.kt by Plan 02-09; shared TeamRepository imports from ch.teamorg.domain.SubGroup (same package)
+- [Phase 02-team-management]: SubGroupResponse data class added to SubGroupRoutes — mapOf with mixed String/Long types caused kotlinx.serialization crash
+- [Phase 02-team-management]: getClub() called alongside getClubTeams() in loadTeams() — no separate trigger needed
+- [Phase 02-team-management]: ClubEditSheet added as private composable in TeamsListScreen.kt — too small for separate file
+- [Phase 02-team-management]: uploadAvatar placed in TeamRepository (not a new repo) — user-scoped but TeamRepo already has getMyRoles() pattern
+- [Phase 02-team-management]: expect/actual rememberImagePickerLauncher: Android GetContent, iOS UIImagePickerController — avoids peekaboo/mpfilepicker dependency
 
 ## Notes
-- `failed example project/` can be deleted once iOS is running
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Branching: `feat/phase-3-planning` is current working branch
+- Last session: 2026-03-24 — Phase 3 complete, starting Phase 4 (Attendance Tracking)

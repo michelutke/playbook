@@ -2,6 +2,7 @@ package ch.teamorg.domain.repositories
 
 import ch.teamorg.db.tables.ClubRolesTable
 import ch.teamorg.db.tables.ClubsTable
+import ch.teamorg.db.tables.TeamRolesTable
 import ch.teamorg.db.tables.TeamsTable
 import ch.teamorg.domain.models.Club
 import ch.teamorg.domain.models.Team
@@ -34,11 +35,11 @@ class ClubRepositoryImpl : ClubRepository {
             .singleOrNull()
     }
 
-    override suspend fun update(id: UUID, name: String?, location: String?, logoPath: String?): Club = transaction {
+    override suspend fun update(id: UUID, name: String?, location: String?, logoUrl: String?): Club = transaction {
         ClubsTable.update({ ClubsTable.id eq id }) {
             if (name != null) it[ClubsTable.name] = name
             if (location != null) it[ClubsTable.location] = location
-            if (logoPath != null) it[ClubsTable.logoPath] = logoPath
+            if (logoUrl != null) it[ClubsTable.logoPath] = logoUrl
             it[ClubsTable.updatedAt] = java.time.Instant.now()
         }
 
@@ -48,8 +49,13 @@ class ClubRepositoryImpl : ClubRepository {
     }
 
     override suspend fun listTeams(clubId: UUID): List<Team> = transaction {
+        val memberCounts = TeamRolesTable
+            .select(TeamRolesTable.teamId, TeamRolesTable.teamId.count())
+            .groupBy(TeamRolesTable.teamId)
+            .associate { it[TeamRolesTable.teamId] to it[TeamRolesTable.teamId.count()].toInt() }
+
         TeamsTable.selectAll().where { (TeamsTable.clubId eq clubId) and TeamsTable.archivedAt.isNull() }
-            .map(::rowToTeam)
+            .map { row -> rowToTeam(row, memberCounts[row[TeamsTable.id]] ?: 0) }
     }
 
     override suspend fun hasRole(userId: UUID, clubId: UUID, role: String): Boolean = transaction {
@@ -65,15 +71,16 @@ class ClubRepositoryImpl : ClubRepository {
         name = row[ClubsTable.name],
         sportType = row[ClubsTable.sportType],
         location = row[ClubsTable.location],
-        logoPath = row[ClubsTable.logoPath],
+        logoUrl = row[ClubsTable.logoPath],
         createdAt = row[ClubsTable.createdAt].toString(),
         updatedAt = row[ClubsTable.updatedAt].toString()
     )
 
-    private fun rowToTeam(row: ResultRow) = Team(
+    private fun rowToTeam(row: ResultRow, memberCount: Int = 0) = Team(
         id = row[TeamsTable.id].toString(),
         clubId = row[TeamsTable.clubId].toString(),
         name = row[TeamsTable.name],
+        memberCount = memberCount,
         description = row[TeamsTable.description],
         archivedAt = row[TeamsTable.archivedAt]?.toString(),
         createdAt = row[TeamsTable.createdAt].toString(),

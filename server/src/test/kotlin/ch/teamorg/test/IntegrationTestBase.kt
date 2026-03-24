@@ -6,9 +6,19 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
-import java.util.*
+import kotlinx.serialization.json.Json
+import org.testcontainers.containers.PostgreSQLContainer
 
 abstract class IntegrationTestBase {
+
+    companion object {
+        private val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15-alpine")
+            .withDatabaseName("teamorg_test")
+            .withUsername("test")
+            .withPassword("test")
+            .also { it.start() }
+    }
+
     fun withTeamorgTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
         val testConfig = MapApplicationConfig(
             "jwt.secret" to "test_secret_32_chars_long_minimum_required",
@@ -16,27 +26,32 @@ abstract class IntegrationTestBase {
             "jwt.audience" to "teamorg-users",
             "jwt.realm" to "teamorg",
             "jwt.expiry-days" to "30",
-            "database.url" to "jdbc:h2:mem:test_${UUID.randomUUID()};DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
-            "database.driver" to "org.h2.Driver"
+            "database.url" to postgres.jdbcUrl,
+            "database.driver" to "org.postgresql.Driver",
+            "database.username" to postgres.username,
+            "database.password" to postgres.password
         )
 
-        environment {
-            config = testConfig
-        }
-
-        application {
-            module()
-        }
-
+        environment { config = testConfig }
+        application { module() }
         block()
     }
 
     fun ApplicationTestBuilder.createJsonClient(): HttpClient = createClient {
         install(ContentNegotiation) {
-            json(kotlinx.serialization.json.Json {
+            json(Json {
                 ignoreUnknownKeys = true
                 isLenient = true
-                prettyPrint = true
+            })
+        }
+    }
+
+    /** Strict client — fails if any unexpected field is present or expected field is missing. */
+    fun ApplicationTestBuilder.createStrictJsonClient(): HttpClient = createClient {
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = false
+                isLenient = false
             })
         }
     }

@@ -2,6 +2,7 @@ package ch.teamorg.ui.team
 
 import app.cash.turbine.test
 import ch.teamorg.domain.TeamMember
+import ch.teamorg.fake.FakeClubRepository
 import ch.teamorg.fake.FakeTeamRepository
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -21,6 +22,7 @@ class TeamRosterViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val fakeTeamRepo = FakeTeamRepository()
+    private val fakeClubRepo = FakeClubRepository()
     private lateinit var viewModel: TeamRosterViewModel
 
     private val memberAlice = TeamMember(
@@ -36,7 +38,7 @@ class TeamRosterViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         fakeTeamRepo.reset()
-        viewModel = TeamRosterViewModel(fakeTeamRepo)
+        viewModel = TeamRosterViewModel(fakeTeamRepo, fakeClubRepo)
     }
 
     @AfterTest

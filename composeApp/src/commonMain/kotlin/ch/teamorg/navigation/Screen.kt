@@ -40,4 +40,19 @@ sealed class Screen(val route: String) {
 
     @Serializable
     data class Invite(val token: String) : Screen("invite/{token}")
+
+    @Serializable
+    data class EventDetail(val eventId: String) : Screen("event_detail/{eventId}")
+
+    @Serializable
+    data object CreateEvent : Screen("create_event")
+
+    @Serializable
+    data class EditEvent(val eventId: String) : Screen("edit_event/{eventId}")
+
+    @Serializable
+    data class DuplicateEvent(val eventId: String) : Screen("duplicate_event/{eventId}")
+
+    @Serializable
+    data class PlayerProfile(val teamId: String, val userId: String) : Screen("player_profile/{teamId}/{userId}")
 }

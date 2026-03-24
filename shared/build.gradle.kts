@@ -50,6 +50,18 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":server"))
+                implementation(libs.kotlin.testJunit)
+                implementation(libs.ktor.serverNetty)
+                implementation(libs.ktor.serverCore)
+                implementation(libs.testcontainers.postgresql)
+                implementation(libs.testcontainers.junit)
+                implementation(libs.kotlinx.coroutinesTest)
+            }
+        }
     }
 
     compilerOptions {
@@ -67,6 +79,16 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         buildConfigField("String", "API_BASE_URL", "\"${System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL") ?: "https://api.teamorg.app"}\"")
+    }
+    buildTypes {
+        debug {
+            val localUrl = System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL")
+            buildConfigField("String", "API_BASE_URL", "\"${localUrl ?: "http://10.0.2.2:8080"}\"")
+        }
+        release {
+            val prodUrl = System.getenv("API_BASE_URL") ?: project.findProperty("API_BASE_URL")
+            buildConfigField("String", "API_BASE_URL", "\"${prodUrl ?: "https://api.teamorg.app"}\"")
+        }
     }
     buildFeatures {
         buildConfig = true

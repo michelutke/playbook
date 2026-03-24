@@ -13,6 +13,7 @@ interface UserRepository {
     fun create(email: String, passwordHash: String, displayName: String): User
     fun existsByEmail(email: String): Boolean
     fun getPasswordHash(email: String): String?
+    fun updateAvatarUrl(userId: UUID, avatarUrl: String?): User
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -52,6 +53,15 @@ class UserRepositoryImpl : UserRepository {
         UsersTable.select(UsersTable.passwordHash).where { UsersTable.email eq email }
             .map { it[UsersTable.passwordHash] }
             .singleOrNull()
+    }
+
+    override fun updateAvatarUrl(userId: UUID, avatarUrl: String?): User = transaction {
+        UsersTable.update({ UsersTable.id eq userId }) {
+            it[UsersTable.avatarUrl] = avatarUrl
+        }
+        UsersTable.selectAll().where { UsersTable.id eq userId }
+            .map(::rowToUser)
+            .single()
     }
 
     private fun rowToUser(row: ResultRow) = User(

@@ -1,6 +1,8 @@
 package ch.teamorg.fake
 
+import ch.teamorg.domain.SubGroup
 import ch.teamorg.domain.TeamMember
+import ch.teamorg.domain.UserRoles
 import ch.teamorg.repository.TeamRepository
 
 class FakeTeamRepository : TeamRepository {
@@ -42,4 +44,39 @@ class FakeTeamRepository : TeamRepository {
         lastInviteRole = role
         return createInviteResult
     }
+
+    var getMyRolesResult: Result<UserRoles> = Result.success(UserRoles())
+    var updateMemberRoleResult: Result<TeamMember> = Result.success(
+        TeamMember(userId = "u1", displayName = "Test", avatarUrl = null, role = "player", jerseyNumber = null, position = null)
+    )
+    var updateMemberProfileResult: Result<TeamMember> = Result.success(
+        TeamMember(userId = "u1", displayName = "Test", avatarUrl = null, role = "player", jerseyNumber = null, position = null)
+    )
+    var leaveTeamResult: Result<Unit> = Result.success(Unit)
+    var getSubGroupsResult: Result<List<SubGroup>> = Result.success(emptyList())
+    var createSubGroupResult: Result<SubGroup> = Result.success(SubGroup(id = "sg1", teamId = "team1", name = "Group A"))
+    var deleteSubGroupResult: Result<Unit> = Result.success(Unit)
+    var addSubGroupMemberResult: Result<Unit> = Result.success(Unit)
+    var removeSubGroupMemberResult: Result<Unit> = Result.success(Unit)
+    var uploadAvatarResult: Result<Unit> = Result.success(Unit)
+
+    override suspend fun getMyRoles(): Result<UserRoles> = getMyRolesResult
+
+    override suspend fun updateMemberRole(teamId: String, userId: String, role: String): Result<TeamMember> = updateMemberRoleResult
+
+    override suspend fun updateMemberProfile(teamId: String, userId: String, jerseyNumber: Int?, position: String?): Result<TeamMember> = updateMemberProfileResult
+
+    override suspend fun leaveTeam(teamId: String): Result<Unit> = leaveTeamResult
+
+    override suspend fun getSubGroups(teamId: String): Result<List<SubGroup>> = getSubGroupsResult
+
+    override suspend fun createSubGroup(teamId: String, name: String): Result<SubGroup> = createSubGroupResult
+
+    override suspend fun deleteSubGroup(teamId: String, subGroupId: String): Result<Unit> = deleteSubGroupResult
+
+    override suspend fun addSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit> = addSubGroupMemberResult
+
+    override suspend fun removeSubGroupMember(teamId: String, subGroupId: String, userId: String): Result<Unit> = removeSubGroupMemberResult
+
+    override suspend fun uploadAvatar(imageBytes: ByteArray, extension: String): Result<Unit> = uploadAvatarResult
 }

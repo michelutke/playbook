@@ -4,6 +4,7 @@ import ch.teamorg.domain.AuthResponse
 import ch.teamorg.domain.AuthUser
 import ch.teamorg.domain.LoginRequest
 import ch.teamorg.domain.RegisterRequest
+import ch.teamorg.domain.UserRoles
 import ch.teamorg.preferences.UserPreferences
 import ch.teamorg.repository.AuthRepository
 import io.ktor.client.HttpClient
@@ -60,6 +61,20 @@ class AuthRepositoryImpl(
 
     override fun isLoggedIn(): Boolean {
         return userPreferences.getToken() != null
+    }
+
+    override suspend fun hasTeam(): Boolean {
+        return try {
+            val response = client.get("/auth/me/roles")
+            if (response.status == HttpStatusCode.OK) {
+                val roles = response.body<UserRoles>()
+                roles.teamRoles.isNotEmpty() || roles.clubRoles.isNotEmpty()
+            } else {
+                false
+            }
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override suspend fun getMe(): Result<AuthUser> {

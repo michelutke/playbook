@@ -1,0 +1,47 @@
+CREATE TABLE IF NOT EXISTS CachedEvent (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    start_at INTEGER NOT NULL,
+    end_at INTEGER NOT NULL,
+    meetup_at INTEGER,
+    location TEXT,
+    description TEXT,
+    min_attendees INTEGER,
+    status TEXT NOT NULL DEFAULT 'active',
+    cancelled_at INTEGER,
+    series_id TEXT,
+    series_sequence INTEGER,
+    series_override INTEGER NOT NULL DEFAULT 0,
+    created_by TEXT NOT NULL,
+    team_ids TEXT NOT NULL DEFAULT '',
+    subgroup_ids TEXT NOT NULL DEFAULT '',
+    matched_teams_json TEXT NOT NULL DEFAULT '[]',
+    cached_at INTEGER NOT NULL
+);
+
+getUpcomingEvents:
+SELECT * FROM CachedEvent
+WHERE start_at >= :fromMillis AND start_at <= :toMillis
+ORDER BY start_at ASC;
+
+getEventById:
+SELECT * FROM CachedEvent
+WHERE id = :eventId;
+
+getFilteredEvents:
+SELECT * FROM CachedEvent
+WHERE start_at >= :fromMillis AND start_at <= :toMillis
+AND (CASE WHEN :type IS NOT NULL THEN type = :type ELSE 1 END)
+AND (CASE WHEN :teamId IS NOT NULL THEN team_ids LIKE '%' || :teamId || '%' ELSE 1 END)
+ORDER BY start_at ASC;
+
+upsertEvent:
+INSERT OR REPLACE INTO CachedEvent(id, title, type, start_at, end_at, meetup_at, location, description, min_attendees, status, cancelled_at, series_id, series_sequence, series_override, created_by, team_ids, subgroup_ids, matched_teams_json, cached_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteOlderThan:
+DELETE FROM CachedEvent WHERE cached_at < :cutoffMillis;
+
+deleteAll:
+DELETE FROM CachedEvent;

@@ -1,6 +1,8 @@
 package ch.teamorg.routes
 
 import ch.teamorg.domain.repositories.TeamRepository
+import ch.teamorg.domain.repositories.UserRepository
+import ch.teamorg.middleware.authenticateUser
 import ch.teamorg.middleware.requireTeamRole
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,8 +20,15 @@ data class CreateTeamRequest(val name: String, val description: String? = null)
 @Serializable
 data class UpdateTeamRequest(val name: String? = null, val description: String? = null)
 
+@Serializable
+data class UpdateRoleRequest(val role: String)
+
+@Serializable
+data class UpdateProfileRequest(val jerseyNumber: Int? = null, val position: String? = null)
+
 fun Route.teamRoutes() {
     val teamRepository by inject<TeamRepository>()
+    val userRepository by inject<UserRepository>()
 
     authenticate("jwt") {
         route("/teams") {
@@ -56,6 +65,40 @@ fun Route.teamRoutes() {
                     val teamId = UUID.fromString(call.parameters["teamId"])
                     val members = teamRepository.listMembers(teamId)
                     call.respond(members)
+                }
+
+                patch("/members/{userId}/role") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    if (!call.requireTeamRole(teamId, "club_manager", teamRepository = teamRepository)) return@patch
+                    val userId = UUID.fromString(call.parameters["userId"])
+                    val request = call.receive<UpdateRoleRequest>()
+                    val member = teamRepository.updateMemberRole(teamId, userId, request.role)
+                    call.respond(member)
+                }
+
+                delete("/members/{userId}") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    if (!call.requireTeamRole(teamId, "club_manager", teamRepository = teamRepository)) return@delete
+                    val userId = UUID.fromString(call.parameters["userId"])
+                    teamRepository.removeMember(teamId, userId)
+                    call.respond(HttpStatusCode.NoContent)
+                }
+
+                patch("/members/{userId}/profile") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    val userId = UUID.fromString(call.parameters["userId"])
+                    if (!call.requireTeamRole(teamId, "coach", "club_manager", teamRepository = teamRepository)) return@patch
+                    val request = call.receive<UpdateProfileRequest>()
+                    val member = teamRepository.updateMemberProfile(teamId, userId, request.jerseyNumber, request.position)
+                    call.respond(member)
+                }
+
+                delete("/leave") {
+                    val teamId = UUID.fromString(call.parameters["teamId"])
+                    call.authenticateUser(userRepository) { user ->
+                        teamRepository.removeMember(teamId, UUID.fromString(user.id))
+                        call.respond(HttpStatusCode.NoContent)
+                    }
                 }
             }
         }

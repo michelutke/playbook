@@ -1,10 +1,11 @@
 package ch.teamorg.domain
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class AuthUser(
-    val userId: String,
+    @SerialName("id") val userId: String,
     val email: String,
     val displayName: String,
     val avatarUrl: String?,

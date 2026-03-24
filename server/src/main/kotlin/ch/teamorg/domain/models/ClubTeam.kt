@@ -8,7 +8,7 @@ data class Club(
     val name: String,
     val sportType: String,
     val location: String?,
-    val logoPath: String?,
+    val logoUrl: String?,
     val createdAt: String,
     val updatedAt: String
 )
@@ -18,6 +18,7 @@ data class Team(
     val id: String,
     val clubId: String,
     val name: String,
+    val memberCount: Int,
     val description: String?,
     val archivedAt: String?,
     val createdAt: String,

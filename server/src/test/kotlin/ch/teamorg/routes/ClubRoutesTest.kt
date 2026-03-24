@@ -116,7 +116,7 @@ class ClubRoutesTest : IntegrationTestBase() {
 
         assertEquals(HttpStatusCode.OK, response.status)
         val club = response.body<Club>()
-        assertNotNull(club.logoPath)
+        assertNotNull(club.logoUrl)
     }
 
     @Test

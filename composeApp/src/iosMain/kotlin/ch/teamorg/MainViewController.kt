@@ -26,3 +26,11 @@ fun MainViewController() = ComposeUIViewController {
         TeamorgApp()
     }
 }
+
+fun handleDeepLink(url: String) {
+    // teamorg://invite/team/{token} → extract last path segment
+    val token = url.trimEnd('/').substringAfterLast('/')
+    if (token.isNotBlank()) {
+        DeepLinkHandler.pendingToken.value = token
+    }
+}
