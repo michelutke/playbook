@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-03-24
+revised: 2026-03-24
 ---
 
 # Phase 4 — UI Design Contract: Attendance Tracking
@@ -29,21 +30,21 @@ Source: `composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/` (Color.kt, Type.
 
 ## Spacing Scale
 
-Declared values (multiples of 4):
+Declared values (multiples of 4 only):
 
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4dp | Icon gaps, inline padding between icon and text |
-| sm | 8dp | Compact element spacing, chip inner padding |
-| md | 16dp | Default content padding, card inner vertical padding |
+| sm | 8dp | Compact element spacing, chip inner padding, RSVP row spacing, reason grid gap |
+| md | 16dp | Default content padding, card inner vertical padding, deadline padding |
 | lg | 20dp | Screen horizontal padding (established throughout codebase) |
 | xl | 24dp | Section spacing, between major content blocks |
 | 2xl | 32dp | Between sections on profile screen |
 | 3xl | 48dp | Not used in this phase |
 
 Exceptions:
-- Header bar height: 62dp (established pattern — status bar area)
-- Bottom nav height: 62dp pill (established pattern)
+- Header bar height: 64dp (status bar area)
+- Bottom nav height: 64dp pill
 - RSVP buttons on detail: 48dp height (established in EventDetailScreen.kt)
 - RSVP small buttons on list cards: 32dp height (compact, icon + count)
 - Touch targets minimum: 44dp (accessibility — applies to absence preset tiles, body part grid cells)
@@ -58,20 +59,24 @@ Exceptions:
 
 All roles use `FontFamily.Default`. Established in `Type.kt` — do not redefine, reference via `MaterialTheme.typography`.
 
+4 sizes, 2 weights maximum.
+
 | Role | Size | Weight | Line Height | M3 Style | Usage |
 |------|------|--------|-------------|----------|-------|
-| Display | 20sp | SemiBold (600) | 28sp | `titleLarge` | Screen headings, section titles |
-| Body | 16sp | Normal (400) | 24sp | `bodyLarge` | Event titles, member names, primary content |
-| Label | 14sp | Normal (400) | 20sp | `bodyMedium` | Event metadata, response counts, dates |
-| Caption | 12sp | Medium (500) | 16sp | `labelMedium` | Section headers (CONFIRMED / MAYBE / DECLINED), timestamps, countdown |
+| Display | 20sp | SemiBold (600) | 28sp | `titleLarge` | Screen headings, section titles, hero attendance %, sheet header titles |
+| Body | 16sp | Normal (400) | 24sp | `bodyLarge` | Event titles, member names, primary content, RSVP button labels, CTA button text |
+| Label | 14sp | Normal (400) | 20sp | `bodyMedium` | Event metadata, response counts, dates, absence card titles, note placeholders, Begründung placeholder |
+| Caption | 12sp | SemiBold (600) | 16sp | `labelMedium` | Section headers (CONFIRMED / MAYBE / DECLINED), timestamps, countdown, tracking labels (letterSpacing 1.5sp), body part labels, reason tile labels, stats bar label, badge text |
 
-Additional established values from EventDetailScreen.kt:
-- RSVP button symbol: 15sp Bold
-- RSVP button label: 11sp SemiBold
-- Section header tracking label: 10sp Bold, letterSpacing 1.5sp
-- Attendance percentage value: 20sp SemiBold (hero card stat)
-- Absence card title: 14sp Medium
-- Reason Begründung placeholder: 14sp Normal, color `MutedForeground`
+**Size absorption map (checker fix):**
+- 10sp → 12sp (auto-declined badge, section tracking labels)
+- 11sp → 12sp (RSVP button count labels, sheet sub-labels)
+- 15sp → 16sp (RSVP button symbol absorbed into Body)
+- 17sp → 16sp (bottom sheet header titles absorbed into Body at SemiBold)
+
+**Weight reduction map (checker fix):**
+- Medium (500) → Normal (400) (was used for absence card title, secondary labels)
+- Bold (700) → SemiBold (600) (was used for section headers, RSVP symbol, tracking labels)
 
 ---
 
@@ -124,17 +129,17 @@ New composables introduced in this phase (all in `composeApp/src/commonMain/kotl
 
 | Composable | File | Description |
 |-----------|------|-------------|
-| `AttendanceRsvpButtons` | `attendance/AttendanceRsvpButtons.kt` | Row of 3 RSVP buttons. Props: `currentResponse: String?`, `deadline: Instant?`, `onSelect: (String) -> Unit`. Uses tall 48dp variant for Detail, compact 32dp for List cards. |
+| `AttendanceRsvpButtons` | `attendance/AttendanceRsvpButtons.kt` | Row of 3 RSVP buttons. Props: `currentResponse: String?`, `deadline: Instant?`, `onSelect: (String) -> Unit`. Uses tall 48dp variant for Detail, compact 32dp for List cards. Accessibility: each button sets `contentDescription` = "Going", "Maybe", or "Can't Go". |
 | `BegrundungSheet` | `attendance/BegrundungSheet.kt` | `ModalBottomSheet` triggered on "Maybe" selection. Contains `OutlinedTextField` for mandatory reason. CTA: "Confirm Maybe". |
 | `MemberResponseList` | `attendance/MemberResponseList.kt` | Grouped list: CONFIRMED / MAYBE / DECLINED sections. Each section has `SectionHeader` with colored label + count, then member rows. |
-| `MemberResponseRow` | `attendance/MemberResponseRow.kt` | Single row: `Avatar/40` on left, name + optional Begründung below, 3 small status icon-buttons on right (coach only). Auto-declined indicator inline. |
-| `CoachOverrideSheet` | `attendance/CoachOverrideSheet.kt` | `ModalBottomSheet` on tapping member row status buttons. Pre-selects current status. Optional note `OutlinedTextField`. CTA: "Save Override". |
+| `MemberResponseRow` | `attendance/MemberResponseRow.kt` | Single row: `Avatar/40` on left, name + optional Begründung below, 3 small status icon-buttons on right (coach only). Each icon-button sets `contentDescription` = "Set present", "Set absent", "Set excused". Auto-declined indicator inline. |
+| `CoachOverrideSheet` | `attendance/CoachOverrideSheet.kt` | `ModalBottomSheet` on tapping member row status buttons. Pre-selects current status. Optional note `OutlinedTextField`. CTA: "Save Override". Each status button sets `contentDescription` = "Mark as Present", "Mark as Absent", "Mark as Excused". |
 | `AttendanceStatsBar` | `attendance/AttendanceStatsBar.kt` | Linear progress bar `8dp` height, `#4F8EF7` fill on `#1C1C2E` track. Shows label above: "Attendance · 78%". Corner radius 4dp. |
-| `AbsenceCard` | `attendance/AbsenceCard.kt` | Card `#1C1C2E`, padding `16dp`, corner radius `12dp`. Left: icon (24dp) + title (14sp Medium) + date range (12sp Muted). Right: status badge. |
+| `AbsenceCard` | `attendance/AbsenceCard.kt` | Card `#1C1C2E`, padding `16dp`, corner radius `12dp`. Left: icon (24dp) + title (14sp Normal) + date range (12sp Muted). Right: status badge. |
 | `AddAbsenceSheet` | `attendance/AddAbsenceSheet.kt` | Full-height `ModalBottomSheet`. Sections: reason presets (2×3 grid), body part selector (shown only for Injury), Recurring/Period `SegmentedControl`, weekday selector or date range. CTA: "Save Rule". |
 | `AbsenceReasonTile` | `attendance/AbsenceReasonTile.kt` | Tappable tile `(fill_width/3 - gap)` × 72dp. Icon 24dp centered above label 12sp. Selected: `#4F8EF7` border 1.5dp + bg `#1C1C2E`. Unselected: border `#2A2A40` + bg `#13131F`. |
 | `BodyPartGrid` | `attendance/BodyPartGrid.kt` | 2-row × 5-col grid of tappable cells. Each cell: body part label 12sp + silhouette indicator. Selected fill `#EF4444` (injury = red). Only shown when reason = Injury. |
-| `WeekdaySelector` | `attendance/WeekdaySelector.kt` | Row of 7 circular toggle buttons (Mo–Su), 36dp each, spacing 4dp. Selected: `#4F8EF7` fill. |
+| `WeekdaySelector` | `attendance/WeekdaySelector.kt` | Row of 7 circular toggle buttons (Mo–Su), 36dp each, spacing 4dp. Selected: `#4F8EF7` fill. Each button sets `contentDescription` = full day name (e.g. "Monday"). |
 | `ResponseDeadlineLabel` | `attendance/ResponseDeadlineLabel.kt` | Inline label below RSVP buttons. Active: "Respond by [date]" 12sp Muted. Closed: "Response closed" 12sp `#6B7280` + buttons disabled. |
 
 ### Modifications to existing composables
@@ -155,31 +160,32 @@ Extends existing EventListScreen. Per event card, below the existing content row
 
 ```
 [Card background #1C1C2E, cornerRadius 12dp, padding 16dp]
-  Row: event type chip | title (bodyLarge) | date (bodyMedium Muted)
+  Row: event type chip | title (16sp Normal) | date (14sp Muted)
   [RSVP compact row — new]
-  Row(spacing 6dp):
+  Row(spacing 8dp):
     Box(weight 1f, height 32dp, cornerRadius 6dp, bg per state):
-      Icon ✓ (16sp) + Text "12" (12sp)   ← count of confirmed
+      Icon ✓ (16sp) + Text "12" (12sp SemiBold)   ← count of confirmed
     Box(weight 1f, height 32dp, cornerRadius 6dp, bg per state):
-      Icon ? (16sp) + Text "2" (12sp)    ← count of unsure
+      Icon ? (16sp) + Text "2" (12sp SemiBold)    ← count of unsure
     Box(weight 1f, height 32dp, cornerRadius 6dp, bg per state):
-      Icon ✗ (16sp) + Text "4" (12sp)    ← count of declined
+      Icon ✗ (16sp) + Text "4" (12sp SemiBold)    ← count of declined
 ```
 
-Auto-declined card: `Modifier.alpha(0.6f)` + badge top-right "Auto-declined" (`#6B7280` bg, 10sp white text).
+Auto-declined card: `Modifier.alpha(0.6f)` + badge top-right "Auto-declined" (`#6B7280` bg, 12sp SemiBold white text).
 
 ### S2 — Event Detail (modified)
 
 Replaces placeholder. Below RSVP row:
 
 ```
-[ResponseDeadlineLabel — 12sp, padding top 8dp, bottom 14dp]
+[ResponseDeadlineLabel — 12sp SemiBold, padding top 8dp, bottom 16dp]
 [Divider 1dp #2A2A40]
 [MemberResponseList]
-  SectionHeader: "CONFIRMED · 12" — #22C55E, 10sp Bold, tracking 1.5sp
+  SectionHeader: "CONFIRMED · 12" — #22C55E, 12sp SemiBold, tracking 1.5sp
   [MemberResponseRow × N]
     Row(height 56dp, padding horizontal 20dp):
-      Avatar 40dp | Column(name 14sp Normal, Begründung 12sp Muted) | Spacer | [3× 28dp icon buttons — coach only]
+      Avatar 40dp | Column(name 16sp Normal, Begründung 12sp Muted) | Spacer | [3× 28dp icon buttons — coach only]
+      Each icon button: contentDescription "Set present" / "Set absent" / "Set excused"
   SectionHeader: "MAYBE · 2" — #FACC15
   SectionHeader: "DECLINED · 4" — #EF4444
   SectionHeader: "NO RESPONSE · 3" — #6B7280
@@ -189,42 +195,42 @@ Replaces placeholder. Below RSVP row:
 
 ```
 [Screen bg #090912]
-[Header 62dp — back arrow + "Profile" title]
+[Header 64dp — back arrow + "Profile" title 16sp SemiBold]
 [HeroCard — #1C1C2E, padding 20dp, margin horizontal 20dp, cornerRadius 16dp]
   Row: Avatar 72dp | Column(displayName 20sp SemiBold, role chip, team name 14sp Muted)
   Spacer 12dp
   AttendanceStatsBar (label "Attendance · 78%" 12sp Muted above, bar 8dp height, cornerRadius 4dp)
 [Spacer 24dp]
-[SectionHeader: "My Absences" + "View All" right-aligned — #4F8EF7 14sp]
+[SectionHeader: "My Absences" + "View All" right-aligned — #4F8EF7 14sp Normal]
 [AbsenceCard × N — margin horizontal 20dp, spacing 8dp]
   Row(padding 16dp):
-    Icon 24dp (type-specific) | Column(title 14sp, dateRange 12sp Muted) | Spacer | StatusBadge
-[FAB — bottom-right, 56dp, #F97316 bg, white + icon]
+    Icon 24dp (type-specific) | Column(title 14sp Normal, dateRange 12sp Muted) | Spacer | StatusBadge
+[FAB — bottom-right, 56dp, #F97316 bg, white + icon, contentDescription "Add absence"]
 ```
 
 ### S4 — Add Absence Bottom Sheet (new, Pencil V1 — Add absence id: FcxGd)
 
 ```
 [ModalBottomSheet bg #13131F, handleBar #2A2A40]
-[Header: "Add Absence" 17sp Bold + X close button]
+[Header: "Add Absence" 16sp SemiBold + X close button, contentDescription "Close"]
 [Divider]
 [ScrollContent padding 20dp]
-  Label: "Reason" 12sp Muted tracking
-  [2-row × 3-col grid, gap 10dp — AbsenceReasonTile × 6]
+  Label: "Reason" 12sp SemiBold Muted tracking
+  [2-row × 3-col grid, gap 8dp — AbsenceReasonTile × 6]
     Holidays (sun icon) | Injury (zap icon) | Work (briefcase icon)
     School (book-open icon) | Travel (plane icon) | Other (more-horizontal icon)
   [IF Injury selected:]
-    Label: "Affected Area" 12sp Muted
+    Label: "Affected Area" 12sp SemiBold Muted
     [BodyPartGrid 2-row × 5-col]
       Head | Shoulder | Chest | Back | Arm
       Hip | Thigh | Knee | Shin | Foot
   Spacer 16dp
-  Label: "Type" 12sp Muted
+  Label: "Type" 12sp SemiBold Muted
   [SegmentedControl: "Recurring" | "Period"]
   [IF Recurring:]
-    Label: "Days" 12sp Muted
+    Label: "Days" 12sp SemiBold Muted
     WeekdaySelector (Mo Tu We Th Fr Sa Su)
-    Label: "End Date (optional)" 12sp Muted
+    Label: "End Date (optional)" 12sp SemiBold Muted
     DatePickerField
   [IF Period:]
     Row: DatePickerField "From" | DatePickerField "To"
@@ -236,7 +242,7 @@ Replaces placeholder. Below RSVP row:
 
 ```
 [ModalBottomSheet bg #13131F]
-[Header: "Why are you unsure?" 17sp Bold]
+[Header: "Why are you unsure?" 16sp SemiBold]
 [Divider]
 [Content padding 20dp]
   OutlinedTextField:
@@ -252,16 +258,16 @@ Replaces placeholder. Below RSVP row:
 
 ```
 [ModalBottomSheet bg #13131F]
-[Header: "[Player Name]" 17sp Bold + X close button]
+[Header: "[Player Name]" 16sp SemiBold + X close button, contentDescription "Close"]
 [Divider]
 [Content padding 20dp]
-  Label: "Status" 12sp Muted
+  Label: "Status" 12sp SemiBold Muted
   Row(spacing 8dp):
-    OverrideButton "Present" — selected: #065F46 bg #22C55E text | inactive: #1F2937 bg #6B7280 text
-    OverrideButton "Absent" — selected: #450A0A bg #EF4444 text | inactive: #1F2937 bg #6B7280 text
-    OverrideButton "Excused" — selected: #3D3400 bg #FACC15 text | inactive: #1F2937 bg #6B7280 text
+    OverrideButton "Present" contentDescription "Mark as Present" — selected: #065F46 bg #22C55E text | inactive: #1F2937 bg #6B7280 text
+    OverrideButton "Absent" contentDescription "Mark as Absent" — selected: #450A0A bg #EF4444 text | inactive: #1F2937 bg #6B7280 text
+    OverrideButton "Excused" contentDescription "Mark as Excused" — selected: #3D3400 bg #FACC15 text | inactive: #1F2937 bg #6B7280 text
   Spacer 12dp
-  Label: "Note (optional)" 12sp Muted
+  Label: "Note (optional)" 12sp SemiBold Muted
   OutlinedTextField placeholder "Add a note..." 14sp Muted, cornerRadius 8dp, border #2A2A40
   Spacer 16dp
   Button: "Save Override" — full width, 48dp, #4F8EF7 bg, white 16sp SemiBold
@@ -287,7 +293,7 @@ Replaces placeholder. Below RSVP row:
 3. Toggle Recurring/Period → weekday selector or date range shown
 4. "Save Rule" → `AbwesenheitRepository.createRule()` → sheet closes, `AbsenceCard` prepended to list
 5. Tap existing `AbsenceCard` → opens `AddAbsenceSheet` pre-filled (edit mode, title "Edit Absence")
-6. Long-press or swipe `AbsenceCard` → delete confirm inline alert: "Delete this absence rule? This cannot be undone." — two actions: "Cancel" | "Delete" (destructive red)
+6. Long-press or swipe `AbsenceCard` → delete confirm inline alert: "Delete this absence rule? This cannot be undone." — two actions: "Keep Rule" | "Delete" (destructive red)
 
 ### Coach Override Flow
 
@@ -347,7 +353,29 @@ Replaces placeholder. Below RSVP row:
 | Destructive — delete absence | "Delete absence rule?" |
 | Destructive — delete body | "This rule will be removed and will no longer auto-decline matching events." |
 | Destructive — delete confirm | "Delete" (red) |
-| Destructive — delete cancel | "Cancel" |
+| Destructive — delete cancel | "Keep Rule" |
+
+---
+
+## Accessibility
+
+Icon-only interactive elements must declare `contentDescription`. Exhaustive list for this phase:
+
+| Component | Element | contentDescription |
+|-----------|---------|-------------------|
+| `AttendanceRsvpButtons` | Going button | "Going" |
+| `AttendanceRsvpButtons` | Maybe button | "Maybe" |
+| `AttendanceRsvpButtons` | Can't Go button | "Can't Go" |
+| `MemberResponseRow` | Present status button (coach) | "Set present" |
+| `MemberResponseRow` | Absent status button (coach) | "Set absent" |
+| `MemberResponseRow` | Excused status button (coach) | "Set excused" |
+| `CoachOverrideSheet` | Present override button | "Mark as Present" |
+| `CoachOverrideSheet` | Absent override button | "Mark as Absent" |
+| `CoachOverrideSheet` | Excused override button | "Mark as Excused" |
+| `AddAbsenceSheet` | Close (X) button | "Close" |
+| `CoachOverrideSheet` | Close (X) button | "Close" |
+| `PlayerProfileScreen` | Add absence FAB | "Add absence" |
+| `WeekdaySelector` | Each day button | Full day name: "Monday", "Tuesday", etc. |
 
 ---
 
