@@ -99,6 +99,17 @@ Plans:
 
 **Requirements:** AT-01–16
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Backend data foundation (V8 migration, Exposed tables, server repositories)
+- [ ] 04-02-PLAN.md — Server API routes (attendance, abwesenheit, check-in) + background jobs
+- [ ] 04-03-PLAN.md — Shared KMP contracts (domain models, repository interfaces, SQLDelight offline schema)
+- [ ] 04-04-PLAN.md — Shared KMP repository impls + offline mutation queue + stats calculator
+- [ ] 04-05-PLAN.md — Event list + detail attendance UI (RSVP buttons, member list, Begrundung sheet)
+- [ ] 04-06-PLAN.md — Coach override sheet + absence management UI (AddAbsenceSheet, profile integration)
+- [ ] 04-07-PLAN.md — End-to-end wiring + automated tests (server integration + stats unit tests)
+
 **Deliverables:**
 - Per-event response UI (confirm / decline / unsure + Begründung)
 - Response deadline enforcement (client UX + server 409)
@@ -184,7 +195,9 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 
 | Phase | Feature | Status |
 |---|---|---|
-| 1 | Foundation + Auth | ✅ Done |
-| 2 | 6/6 | Complete   | 2026-03-19 | 3 | 8/8 | Complete   | 2026-03-19 | 4 | Attendance Tracking | 🔲 Not started |
-| 5 | Notifications | 🔲 Not started |
-| 6 | Super Admin | 🔲 Not started |
+| 1 | Foundation + Auth | Done |
+| 2 | Team Management | Done |
+| 3 | Event Scheduling | Done |
+| 4 | Attendance Tracking | In progress |
+| 5 | Notifications | Not started |
+| 6 | Super Admin | Not started |
