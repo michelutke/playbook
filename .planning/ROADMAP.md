@@ -134,6 +134,28 @@ Plans:
 
 ---
 
+## Phase 4.1 — Attendance Integration Fixes
+**Goal:** Fix P0 runtime breaks and P1 degraded features identified by milestone audit.
+
+**Gap Closure:** Closes BREAK-01, PARTIAL-01, PARTIAL-02, PARTIAL-03 from v1.0 audit.
+
+**Requirements:** AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19
+
+**Deliverables:**
+- CheckInEntry server response aligned with client model (BREAK-01)
+- TeamRolesTable Exposed object updated to nullable user_id + SET NULL (PARTIAL-01)
+- PlayerProfileViewModel passes real eventTypes to stats calculator (PARTIAL-02)
+- Profile tab wired to PlayerProfileScreen instead of PlaceholderScreen (PARTIAL-03)
+
+**Success criteria:**
+1. Coach sees member response list on EventDetailScreen
+2. Coach can open and use CoachOverrideSheet
+3. Member removal doesn't crash subsequent role queries
+4. Stats bar shows correct per-type breakdown
+5. Player reaches attendance stats + absence management from Profile tab
+
+---
+
 ## Phase 5 — Notifications
 **Goal:** Players and coaches receive timely, relevant notifications. Users control what they get.
 
@@ -198,5 +220,7 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 1 | Foundation + Auth | Done |
 | 2 | Team Management | Done |
 | 3 | Event Scheduling | Done |
-| 4 | 7/7 | Complete   | 2026-03-24 | 5 | Notifications | Not started |
+| 4 | Attendance Tracking | Complete | 2026-03-24 |
+| 4.1 | Attendance Integration Fixes | Not started |
+| 5 | Notifications | Not started |
 | 6 | Super Admin | Not started |
