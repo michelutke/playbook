@@ -22,8 +22,8 @@ fun Route.checkInRoutes() {
     authenticate("jwt") {
         get("/events/{id}/check-in") {
             val eventId = UUID.fromString(call.parameters["id"])
-            val records = attendanceRepo.getCheckIn(eventId)
-            call.respond(records)
+            val entries = attendanceRepo.getCheckInEntries(eventId)
+            call.respond(entries)
         }
 
         put("/events/{id}/check-in/{userId}") {

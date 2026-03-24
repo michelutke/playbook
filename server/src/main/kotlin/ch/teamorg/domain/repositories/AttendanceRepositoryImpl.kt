@@ -1,6 +1,7 @@
 package ch.teamorg.domain.repositories
 
 import ch.teamorg.db.tables.*
+import kotlinx.datetime.toKotlinInstant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -65,6 +66,68 @@ class AttendanceRepositoryImpl : AttendanceRepository {
         AttendanceRecordsTable.selectAll()
             .where { AttendanceRecordsTable.eventId eq eventId }
             .map(::rowToCheckIn)
+    }
+
+    override suspend fun getCheckInEntries(eventId: UUID): List<CheckInEntryResponse> = transaction {
+        // Get all team members for this event via event_teams → team_roles → users
+        val teamMemberRows = (EventTeamsTable
+            innerJoin TeamRolesTable innerJoin UsersTable)
+            .select(
+                UsersTable.id,
+                UsersTable.displayName,
+                UsersTable.avatarUrl
+            )
+            .where { EventTeamsTable.eventId eq eventId }
+            .distinctBy { it[UsersTable.id] }
+
+        // Load all responses and records for this event (keyed by userId)
+        val responsesByUser = AttendanceResponsesTable.selectAll()
+            .where { AttendanceResponsesTable.eventId eq eventId }
+            .associateBy { it[AttendanceResponsesTable.userId] }
+
+        val recordsByUser = AttendanceRecordsTable.selectAll()
+            .where { AttendanceRecordsTable.eventId eq eventId }
+            .associateBy { it[AttendanceRecordsTable.userId] }
+
+        teamMemberRows.map { userRow ->
+            val userId = userRow[UsersTable.id]
+            val respRow = responsesByUser[userId]
+            val recRow = recordsByUser[userId]
+
+            val responseDto = respRow?.let {
+                AttendanceResponseDto(
+                    eventId = it[AttendanceResponsesTable.eventId].toString(),
+                    userId = it[AttendanceResponsesTable.userId].toString(),
+                    status = it[AttendanceResponsesTable.status],
+                    reason = it[AttendanceResponsesTable.reason],
+                    abwesenheitRuleId = it[AttendanceResponsesTable.abwesenheitRuleId]?.toString(),
+                    manualOverride = it[AttendanceResponsesTable.manualOverride],
+                    respondedAt = it[AttendanceResponsesTable.respondedAt]?.toKotlinInstant(),
+                    updatedAt = it[AttendanceResponsesTable.updatedAt].toKotlinInstant()
+                )
+            }
+
+            val recordDto = recRow?.let {
+                AttendanceRecordDto(
+                    eventId = it[AttendanceRecordsTable.eventId].toString(),
+                    userId = it[AttendanceRecordsTable.userId].toString(),
+                    status = it[AttendanceRecordsTable.status].name,
+                    note = it[AttendanceRecordsTable.note],
+                    setBy = it[AttendanceRecordsTable.setBy].toString(),
+                    setAt = it[AttendanceRecordsTable.setAt].toKotlinInstant(),
+                    previousStatus = it[AttendanceRecordsTable.previousStatus]?.name,
+                    previousSetBy = it[AttendanceRecordsTable.previousSetBy]?.toString()
+                )
+            }
+
+            CheckInEntryResponse(
+                userId = userId.toString(),
+                userName = userRow[UsersTable.displayName],
+                userAvatar = userRow[UsersTable.avatarUrl],
+                response = responseDto,
+                record = recordDto
+            )
+        }
     }
 
     override suspend fun upsertCheckIn(
