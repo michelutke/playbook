@@ -2,9 +2,16 @@ package ch.teamorg.ui.team
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ch.teamorg.data.AttendanceStatsCalculator
+import ch.teamorg.domain.AbwesenheitRule
+import ch.teamorg.domain.CreateAbwesenheitRequest
 import ch.teamorg.domain.TeamMember
+import ch.teamorg.domain.UpdateAbwesenheitRequest
 import ch.teamorg.preferences.UserPreferences
+import ch.teamorg.repository.AbwesenheitRepository
+import ch.teamorg.repository.AttendanceRepository
 import ch.teamorg.repository.TeamRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -16,12 +23,17 @@ data class PlayerProfileState(
     val error: String? = null,
     val isCoachOrManager: Boolean = false,
     val isOwnProfile: Boolean = false,
-    val leftTeam: Boolean = false
+    val leftTeam: Boolean = false,
+    val presencePct: Float = 0f,
+    val absenceRules: List<AbwesenheitRule> = emptyList(),
+    val backfillStatus: String? = null
 )
 
 class PlayerProfileViewModel(
     private val teamRepository: TeamRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val abwesenheitRepository: AbwesenheitRepository,
+    private val attendanceRepository: AttendanceRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PlayerProfileState())
@@ -45,6 +57,73 @@ class PlayerProfileViewModel(
                     roles.clubRoles.any { it.role == "club_manager" }
                 _state.update { it.copy(isCoachOrManager = isCoach) }
             }
+
+            loadAbsences()
+            loadStats(userId)
+        }
+    }
+
+    fun loadAbsences() {
+        viewModelScope.launch {
+            abwesenheitRepository.listRules().onSuccess { rules ->
+                _state.update { it.copy(absenceRules = rules) }
+            }
+        }
+    }
+
+    fun loadStats(userId: String) {
+        viewModelScope.launch {
+            attendanceRepository.getRawAttendance(userId).onSuccess { responses ->
+                val stats = AttendanceStatsCalculator.calculateStats(responses, emptyMap())
+                _state.update { it.copy(presencePct = stats.presencePct) }
+            }
+        }
+    }
+
+    fun createAbsence(request: CreateAbwesenheitRequest) {
+        viewModelScope.launch {
+            abwesenheitRepository.createRule(request).onSuccess {
+                loadAbsences()
+                pollBackfillStatus()
+            }.onFailure { e ->
+                _state.update { it.copy(error = e.message ?: "Couldn't save absence rule. Try again.") }
+            }
+        }
+    }
+
+    fun updateAbsence(ruleId: String, request: UpdateAbwesenheitRequest) {
+        viewModelScope.launch {
+            abwesenheitRepository.updateRule(ruleId, request).onSuccess {
+                loadAbsences()
+                pollBackfillStatus()
+            }.onFailure { e ->
+                _state.update { it.copy(error = e.message ?: "Couldn't save absence rule. Try again.") }
+            }
+        }
+    }
+
+    fun deleteAbsence(ruleId: String) {
+        viewModelScope.launch {
+            abwesenheitRepository.deleteRule(ruleId).onSuccess {
+                loadAbsences()
+            }.onFailure { e ->
+                _state.update { it.copy(error = e.message ?: "Failed to delete absence rule.") }
+            }
+        }
+    }
+
+    private fun pollBackfillStatus() {
+        viewModelScope.launch {
+            _state.update { it.copy(backfillStatus = "pending") }
+            repeat(10) {
+                delay(2000)
+                abwesenheitRepository.getBackfillStatus().onSuccess { status ->
+                    _state.update { it.copy(backfillStatus = status.status) }
+                    if (status.status == "done" || status.status == "failed") return@launch
+                }
+            }
+            // Give up after 20s
+            _state.update { it.copy(backfillStatus = null) }
         }
     }
 
