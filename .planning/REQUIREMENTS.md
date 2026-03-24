@@ -27,7 +27,7 @@
 - [ ] **TM-14**: Player can belong to multiple teams
 - [x] **TM-15**: Player can leave a team themselves
 - [x] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
-- [ ] **TM-17**: Player profile shows attendance statistics summary
+- [x] **TM-17**: Player profile shows attendance statistics summary
 - [x] **TM-18**: Invite links expire after 7 days (configurable)
 - [x] **TM-19**: Removing a member preserves their historical attendance data
 

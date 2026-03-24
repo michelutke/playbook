@@ -3,21 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T15:07:39.304Z"
+last_updated: "2026-03-24T15:14:49.143Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # STATE.md — Playbook
 
 ## Current State
 
-- **Active phase:** Phase 4 — Attendance Tracking
+- **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
+- **Last session:** Completed 04-07-PLAN.md — all 7 plans in phase 04 done
 
 ## Phase Status
 
@@ -26,7 +27,7 @@ progress:
 | 1 — Foundation + Auth | ✅ Done | 2026-03-11 | 2026-03-19 |
 | 2 — Team Management | ✅ Done | 2026-03-11 | 2026-03-19 |
 | 3 — Event Scheduling | ✅ Done | 2026-03-19 | 2026-03-24 |
-| 4 — Attendance Tracking | 🔄 In progress | 2026-03-24 | — |
+| 4 — Attendance Tracking | ✅ Done | 2026-03-24 | 2026-03-24 |
 | 5 — Notifications | 🔲 Not started | — | — |
 | 6 — Super Admin | 🔲 Not started | — | — |
 
@@ -61,6 +62,16 @@ progress:
 - ✅ 03-05: EventListScreen + EventDetailScreen — filterable event list, full detail (7 sections), coach role detection via UserPreferences, detailRefreshTrigger in navigation
 - ✅ 03-06: CreateEditEventScreen (S4) + RecurringPatternSheet (S5) + RecurringScopeSheet (S6) — full create/edit form, recurring config, scope sheet, navigation wired, Koin registered
 - ✅ 03-07: Calendar screen with kizitonwose month + week views
+
+### Phase 4 — Attendance Tracking ✅
+
+- ✅ 04-01: Attendance DB — V8 migration (attendance_responses, check_in_records, abwesenheit_rules, pending_mutations)
+- ✅ 04-02: Attendance API routes — PUT /events/{id}/attendance/me, GET /events/{id}/attendance, coach check-in override, deadline enforcement
+- ✅ 04-03: Abwesenheit routes — CRUD + recurring/period rules, backfill job, auto-decline materialisation
+- ✅ 04-04: AttendanceStatsCalculator (KMP shared) + AttendanceCacheManager (SQLDelight) + AttendanceRepositoryImpl (Ktor)
+- ✅ 04-05: EventDetailViewModel + EventListViewModel — attendance loading, RSVP submission, check-in entries, coach override
+- ✅ 04-06: AttendanceRsvpButtons, BegrundungSheet, CoachOverrideSheet, MemberResponseList, ResponseDeadlineLabel, PlayerProfileScreen stats, AbsenceCard, AddAbsenceSheet
+- ✅ 04-07: CoachOverrideSheet wired end-to-end in EventDetail; integration tests for attendance + abwesenheit; stats unit tests; coach auth enforcement on check-in route
 
 ## Decisions
 
@@ -105,6 +116,8 @@ progress:
 - [Phase 04-05]: loadAttendanceCounts fetches per-event serially — acceptable for MVP list size
 - [Phase 04-attendance-tracking]: Icons.Outlined.MenuBook kept (not AutoMirrored) — deprecation warning only, consistent with codebase
 - [Phase 04-attendance-tracking]: BodyPartGrid uses two Rows (not LazyVerticalGrid) — simpler for fixed 2x5 layout
+- [Phase 04-07]: Coach role enforcement added to PUT /events/{id}/check-in/{userId}
+- [Phase 04-07]: onOverrideTap opens CoachOverrideSheet via state pattern instead of calling submitOverride directly
 
 ## Notes
 
