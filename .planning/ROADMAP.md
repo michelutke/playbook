@@ -141,6 +141,12 @@ Plans:
 
 **Requirements:** AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04.1-01-PLAN.md — Server fixes: CheckInEntry shape mismatch + TeamRolesTable nullable alignment
+- [ ] 04.1-02-PLAN.md — Client fixes: Stats eventTypes + Profile tab navigation
+
 **Deliverables:**
 - CheckInEntry server response aligned with client model (BREAK-01)
 - TeamRolesTable Exposed object updated to nullable user_id + SET NULL (PARTIAL-01)
