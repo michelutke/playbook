@@ -27,6 +27,7 @@ import ch.teamorg.domain.CheckInEntry
 import ch.teamorg.domain.EventWithTeams
 import ch.teamorg.ui.attendance.AttendanceRsvpButtons
 import ch.teamorg.ui.attendance.BegrundungSheet
+import ch.teamorg.ui.attendance.CoachOverrideSheet
 import ch.teamorg.ui.attendance.MemberResponseList
 import ch.teamorg.ui.attendance.ResponseDeadlineLabel
 import kotlinx.datetime.Instant
@@ -82,6 +83,8 @@ fun EventDetailScreen(
     var showCancelScopeSheet by remember { mutableStateOf(false) }
     var showUncancelScopeSheet by remember { mutableStateOf(false) }
     var showBegrundung by remember { mutableStateOf(false) }
+    var showOverrideSheet by remember { mutableStateOf(false) }
+    var overrideTarget by remember { mutableStateOf<CheckInEntry?>(null) }
 
     val isCancelled = state.event?.event?.status == "cancelled"
     val isSeries = state.event?.event?.seriesId != null
@@ -203,8 +206,9 @@ fun EventDetailScreen(
                         viewModel.submitResponse(status, null)
                     }
                 },
-                onOverrideTap = { entry, status ->
-                    viewModel.submitOverride(entry.userId, status, null)
+                onOverrideTap = { entry, _ ->
+                    overrideTarget = entry
+                    showOverrideSheet = true
                 }
             )
         }
@@ -217,6 +221,29 @@ fun EventDetailScreen(
                 viewModel.submitResponse("unsure", reason)
             }
         )
+
+        if (showOverrideSheet) {
+            val target = overrideTarget
+            if (target != null) {
+                CoachOverrideSheet(
+                    visible = true,
+                    playerName = target.userName,
+                    currentStatus = target.record?.status ?: target.response?.let {
+                        when (it.status) {
+                            "confirmed" -> "present"
+                            "declined", "declined-auto" -> "absent"
+                            else -> null
+                        }
+                    },
+                    onDismiss = { showOverrideSheet = false; overrideTarget = null },
+                    onSave = { status, note ->
+                        viewModel.submitOverride(target.userId, status, note)
+                        showOverrideSheet = false
+                        overrideTarget = null
+                    }
+                )
+            }
+        }
     }
 }
 
