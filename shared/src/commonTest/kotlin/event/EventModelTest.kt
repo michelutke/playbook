@@ -4,15 +4,15 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 
 class EventModelTest {
-    @Test @Ignore("Wave 0 stub - ES-01: implement when Event model exists")
-    fun `event has required fields`() {}
+    @Test @Ignore
+    fun `event has required fields`() {} // Wave 0 stub - ES-01
 
-    @Test @Ignore("Wave 0 stub - ES-02: implement when Event model exists")
-    fun `event type must be training match or other`() {}
+    @Test @Ignore
+    fun `event type must be training match or other`() {} // Wave 0 stub - ES-02
 
-    @Test @Ignore("Wave 0 stub - ES-03: implement when cancel logic exists")
-    fun `cancelled event has cancelled status and timestamp`() {}
+    @Test @Ignore
+    fun `cancelled event has cancelled status and timestamp`() {} // Wave 0 stub - ES-03
 
-    @Test @Ignore("Wave 0 stub - ES-04: implement when duplicate logic exists")
-    fun `duplicated event has new id and active status`() {}
+    @Test @Ignore
+    fun `duplicated event has new id and active status`() {} // Wave 0 stub - ES-04
 }

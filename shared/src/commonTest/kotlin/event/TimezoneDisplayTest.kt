@@ -4,12 +4,12 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 
 class TimezoneDisplayTest {
-    @Test @Ignore("Wave 0 stub - ES-12: implement when timezone conversion exists")
-    fun `UTC instant converts to local display time`() {}
+    @Test @Ignore
+    fun `UTC instant converts to local display time`() {} // Wave 0 stub - ES-12
 
-    @Test @Ignore("Wave 0 stub - ES-12: implement when form exists")
-    fun `local form input converts to UTC instant`() {}
+    @Test @Ignore
+    fun `local form input converts to UTC instant`() {} // Wave 0 stub - ES-12
 
-    @Test @Ignore("Wave 0 stub - ES-12: implement when timezone label exists")
-    fun `timezone abbreviation label is shown on form`() {}
+    @Test @Ignore
+    fun `timezone abbreviation label is shown on form`() {} // Wave 0 stub - ES-12
 }
