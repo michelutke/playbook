@@ -47,7 +47,7 @@ Exceptions:
 - Bottom nav height: 64dp pill
 - RSVP buttons on detail: 48dp height (established in EventDetailScreen.kt)
 - RSVP small buttons on list cards: 32dp height (compact, icon + count)
-- Touch targets minimum: 44dp (accessibility — applies to absence preset tiles, body part grid cells)
+- Touch targets minimum: 48dp (accessibility — applies to absence preset tiles, body part grid cells)
 - Body part grid cells: 64dp × 56dp (2-row × 5-col grid to fill 390dp width minus padding)
 - Member row height: 56dp (avatar 40dp + 8dp vertical padding each side)
 - Absence card height: 64dp min (icon 24dp + two text lines)
@@ -293,7 +293,7 @@ Replaces placeholder. Below RSVP row:
 3. Toggle Recurring/Period → weekday selector or date range shown
 4. "Save Rule" → `AbwesenheitRepository.createRule()` → sheet closes, `AbsenceCard` prepended to list
 5. Tap existing `AbsenceCard` → opens `AddAbsenceSheet` pre-filled (edit mode, title "Edit Absence")
-6. Long-press or swipe `AbsenceCard` → delete confirm inline alert: "Delete this absence rule? This cannot be undone." — two actions: "Keep Rule" | "Delete" (destructive red)
+6. Long-press or swipe `AbsenceCard` → delete confirm inline alert: "Delete this absence rule? This cannot be undone." — two actions: "Keep Rule" | "Delete Rule" (destructive red)
 
 ### Coach Override Flow
 
@@ -352,7 +352,7 @@ Replaces placeholder. Below RSVP row:
 | Error — absence save failed | "Couldn't save absence rule. Try again." |
 | Destructive — delete absence | "Delete absence rule?" |
 | Destructive — delete body | "This rule will be removed and will no longer auto-decline matching events." |
-| Destructive — delete confirm | "Delete" (red) |
+| Destructive — delete confirm | "Delete Rule" (red) |
 | Destructive — delete cancel | "Keep Rule" |
 
 ---
