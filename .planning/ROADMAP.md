@@ -99,7 +99,7 @@ Plans:
 
 **Requirements:** AT-01–16
 
-**Plans:** 1/7 plans executed
+**Plans:** 2/7 plans executed
 
 Plans:
 - [ ] 04-01-PLAN.md — Backend data foundation (V8 migration, Exposed tables, server repositories)
@@ -198,5 +198,5 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 1 | Foundation + Auth | Done |
 | 2 | Team Management | Done |
 | 3 | Event Scheduling | Done |
-| 4 | 1/7 | In Progress|  | 5 | Notifications | Not started |
+| 4 | 2/7 | In Progress|  | 5 | Notifications | Not started |
 | 6 | Super Admin | Not started |

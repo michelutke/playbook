@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T14:48:37.214Z"
+last_updated: "2026-03-24T14:49:54.528Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # STATE.md — Playbook
@@ -96,6 +96,8 @@ progress:
 - [Phase 04-attendance-tracking]: AttendanceStats not @Serializable — client-side computed only (ADR-007)
 - [Phase 04-attendance-tracking]: AbwesenheitRule uses String for date fields to avoid kotlinx-datetime LocalDate serialization complexity
 - [Phase 04-attendance-tracking]: pending_mutation table uses AUTOINCREMENT id for stable ordering and deletion
+- [Phase 04-attendance-tracking]: Used text() column for attendance_responses.status — declined-auto and no-response have hyphens, invalid Kotlin enum identifiers
+- [Phase 04-attendance-tracking]: team_roles.user_id FK changed CASCADE -> SET NULL (TM-19): column made nullable to preserve historical attendance data
 
 ## Notes
 
