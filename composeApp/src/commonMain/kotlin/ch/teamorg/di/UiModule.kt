@@ -23,7 +23,7 @@ val uiModule = module {
     factory { ClubSetupViewModel(get()) }
     factory { TeamRosterViewModel(get(), get()) }
     factory { TeamsListViewModel(get(), get()) }
-    factory { PlayerProfileViewModel(get(), get(), get(), get()) }
+    factory { PlayerProfileViewModel(get(), get(), get(), get(), get()) }
     factory { InviteViewModel(get()) }
     factory { EventListViewModel(get(), get(), get(), get()) }
     factory { EventDetailViewModel(get(), get(), get(), get()) }

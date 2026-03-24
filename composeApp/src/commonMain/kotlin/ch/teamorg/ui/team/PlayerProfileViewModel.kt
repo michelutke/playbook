@@ -10,6 +10,7 @@ import ch.teamorg.domain.UpdateAbwesenheitRequest
 import ch.teamorg.preferences.UserPreferences
 import ch.teamorg.repository.AbwesenheitRepository
 import ch.teamorg.repository.AttendanceRepository
+import ch.teamorg.repository.EventRepository
 import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,8 @@ data class PlayerProfileState(
     val isOwnProfile: Boolean = false,
     val leftTeam: Boolean = false,
     val presencePct: Float = 0f,
+    val trainingPresencePct: Float = 0f,
+    val matchPresencePct: Float = 0f,
     val absenceRules: List<AbwesenheitRule> = emptyList(),
     val backfillStatus: String? = null
 )
@@ -33,7 +36,8 @@ class PlayerProfileViewModel(
     private val teamRepository: TeamRepository,
     private val userPreferences: UserPreferences,
     private val abwesenheitRepository: AbwesenheitRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PlayerProfileState())
@@ -74,8 +78,23 @@ class PlayerProfileViewModel(
     fun loadStats(userId: String) {
         viewModelScope.launch {
             attendanceRepository.getRawAttendance(userId).onSuccess { responses ->
-                val stats = AttendanceStatsCalculator.calculateStats(responses, emptyMap())
-                _state.update { it.copy(presencePct = stats.presencePct) }
+                val eventIds = responses.map { it.eventId }.toSet()
+                val eventTypes = mutableMapOf<String, String>()
+                eventRepository.getMyEvents().onSuccess { events ->
+                    events.forEach { ewt ->
+                        if (ewt.event.id in eventIds) {
+                            eventTypes[ewt.event.id] = ewt.event.type
+                        }
+                    }
+                }
+                val stats = AttendanceStatsCalculator.calculateStats(responses, eventTypes)
+                _state.update {
+                    it.copy(
+                        presencePct = stats.presencePct,
+                        trainingPresencePct = stats.trainingPresencePct,
+                        matchPresencePct = stats.matchPresencePct
+                    )
+                }
             }
         }
     }
