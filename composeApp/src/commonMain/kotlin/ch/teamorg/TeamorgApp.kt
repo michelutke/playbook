@@ -14,7 +14,7 @@ import ch.teamorg.navigation.AppNavigation
 import ch.teamorg.navigation.Screen
 import ch.teamorg.ui.components.TeamorgBottomBar
 import ch.teamorg.ui.theme.TeamorgTheme
-import androidx.activity.compose.BackHandler
+import ch.teamorg.ui.components.PlatformBackHandler
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.koin.mp.KoinPlatform
 
@@ -59,7 +59,7 @@ fun TeamorgApp(
           && currentScreen !is Screen.EditEvent
           && currentScreen !is Screen.DuplicateEvent
 
-        BackHandler(enabled = backStack.size > 1) {
+        PlatformBackHandler(enabled = backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
         }
 
