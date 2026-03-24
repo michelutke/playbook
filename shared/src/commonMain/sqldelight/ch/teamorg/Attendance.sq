@@ -1,0 +1,79 @@
+-- Cached attendance responses (mirrors server)
+CREATE TABLE cached_attendance_response (
+    event_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    reason TEXT,
+    abwesenheit_rule_id TEXT,
+    manual_override INTEGER NOT NULL DEFAULT 0,
+    responded_at INTEGER,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (event_id, user_id)
+);
+
+-- Cached abwesenheit rules
+CREATE TABLE cached_abwesenheit_rule (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    preset_type TEXT NOT NULL,
+    label TEXT NOT NULL,
+    body_part TEXT,
+    rule_type TEXT NOT NULL,
+    weekdays TEXT,
+    start_date TEXT,
+    end_date TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+-- Offline mutation queue
+CREATE TABLE pending_mutation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    method TEXT NOT NULL,
+    body TEXT,
+    created_at INTEGER NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0
+);
+
+-- Queries for attendance responses
+upsertResponse:
+INSERT OR REPLACE INTO cached_attendance_response (event_id, user_id, status, reason, abwesenheit_rule_id, manual_override, responded_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+getEventResponses:
+SELECT * FROM cached_attendance_response WHERE event_id = ?;
+
+getMyResponse:
+SELECT * FROM cached_attendance_response WHERE event_id = ? AND user_id = ?;
+
+deleteEventResponses:
+DELETE FROM cached_attendance_response WHERE event_id = ?;
+
+-- Queries for abwesenheit rules
+upsertRule:
+INSERT OR REPLACE INTO cached_abwesenheit_rule (id, user_id, preset_type, label, body_part, rule_type, weekdays, start_date, end_date, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getAllRules:
+SELECT * FROM cached_abwesenheit_rule WHERE user_id = ?;
+
+deleteRule:
+DELETE FROM cached_abwesenheit_rule WHERE id = ?;
+
+clearAllRules:
+DELETE FROM cached_abwesenheit_rule WHERE user_id = ?;
+
+-- Mutation queue queries
+enqueueMutation:
+INSERT INTO pending_mutation (type, endpoint, method, body, created_at) VALUES (?, ?, ?, ?, ?);
+
+getPendingMutations:
+SELECT * FROM pending_mutation ORDER BY created_at ASC;
+
+deleteMutation:
+DELETE FROM pending_mutation WHERE id = ?;
+
+incrementRetryCount:
+UPDATE pending_mutation SET retry_count = retry_count + 1 WHERE id = ?;
