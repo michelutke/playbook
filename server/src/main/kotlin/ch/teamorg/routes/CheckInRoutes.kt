@@ -1,6 +1,7 @@
 package ch.teamorg.routes
 
 import ch.teamorg.domain.repositories.AttendanceRepository
+import ch.teamorg.domain.repositories.CheckInRow
 import ch.teamorg.domain.repositories.TeamRepository
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -8,12 +9,36 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.datetime.Instant as KInstant
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import java.util.UUID
 
 @Serializable
 private data class CheckInRequest(val status: String, val note: String? = null)
+
+@Serializable
+private data class CheckInDto(
+    val eventId: String,
+    val userId: String,
+    val status: String,
+    val note: String? = null,
+    val setBy: String,
+    val setAt: KInstant,
+    val previousStatus: String? = null,
+    val previousSetBy: String? = null
+)
+
+private fun CheckInRow.toDto() = CheckInDto(
+    eventId = eventId.toString(),
+    userId = userId.toString(),
+    status = status,
+    note = note,
+    setBy = setBy.toString(),
+    setAt = KInstant.fromEpochMilliseconds(setAt.toEpochMilli()),
+    previousStatus = previousStatus,
+    previousSetBy = previousSetBy?.toString()
+)
 
 fun Route.checkInRoutes() {
     val attendanceRepo by inject<AttendanceRepository>()
@@ -49,7 +74,7 @@ fun Route.checkInRoutes() {
                 note = body.note,
                 setBy = coachId
             )
-            call.respond(record)
+            call.respond(record.toDto())
         }
     }
 }
