@@ -72,21 +72,25 @@ class EventDetailViewModel(
                 _state.update { it.copy(myResponse = response?.status) }
             }
 
-            // Load check-in entries (includes all members + their responses)
-            attendanceRepository.getCheckIn(eventId).onSuccess { entries ->
-                val confirmed = entries.count { it.response?.status == "confirmed" }
-                val maybe = entries.count { it.response?.status == "unsure" }
-                val declined = entries.count {
-                    it.response?.status == "declined" || it.response?.status == "declined-auto"
+            // Load counts from attendance responses (same endpoint list view uses — reliable)
+            attendanceRepository.getEventAttendance(eventId).onSuccess { responses ->
+                val confirmed = responses.count { it.status == "confirmed" }
+                val maybe = responses.count { it.status == "unsure" }
+                val declined = responses.count {
+                    it.status == "declined" || it.status == "declined-auto"
                 }
                 _state.update {
                     it.copy(
-                        checkInEntries = entries,
                         confirmedCount = confirmed,
                         maybeCount = maybe,
                         declinedCount = declined
                     )
                 }
+            }
+
+            // Load check-in entries for coach list display
+            attendanceRepository.getCheckIn(eventId).onSuccess { entries ->
+                _state.update { it.copy(checkInEntries = entries) }
             }
         }
     }
