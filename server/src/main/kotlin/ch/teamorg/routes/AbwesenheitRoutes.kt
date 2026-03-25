@@ -41,6 +41,7 @@ private data class UpdateAbwesenheitRequest(
 @Serializable
 private data class AbwesenheitResponse(
     val id: String,
+    val userId: String,
     val presetType: String,
     val label: String,
     val bodyPart: String?,
@@ -57,6 +58,7 @@ private data class BackfillStatusResponse(val status: String)
 
 private fun AbwesenheitRuleRow.toResponse() = AbwesenheitResponse(
     id = id.toString(),
+    userId = userId.toString(),
     presetType = presetType,
     label = label,
     bodyPart = bodyPart,
