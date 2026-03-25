@@ -2,6 +2,7 @@ package ch.teamorg.ui.attendance
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -332,36 +333,33 @@ private fun DatePickerField(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        placeholder = {
-            Text(
-                text = placeholder,
-                color = TextMuted,
-                fontSize = 14.sp
-            )
-        },
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(Modifier), // clickable handled via readOnly + trailingIcon tap
-        readOnly = true,
-        enabled = false,
-        shape = RoundedCornerShape(8.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledBorderColor = DividerColor,
-            disabledTextColor = TextPrimary,
-            disabledPlaceholderColor = TextMuted
-        ),
-        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-            .also { interactionSource ->
-                LaunchedEffect(interactionSource) {
-                    interactionSource.interactions.collect {
-                        if (it is androidx.compose.foundation.interaction.PressInteraction.Release) onClick()
-                    }
-                }
-            }
-    )
+            .clickable { onClick() }
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    color = TextMuted,
+                    fontSize = 14.sp
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            enabled = false,
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = DividerColor,
+                disabledTextColor = TextPrimary,
+                disabledPlaceholderColor = TextMuted,
+                disabledContainerColor = Color.Transparent
+            )
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
