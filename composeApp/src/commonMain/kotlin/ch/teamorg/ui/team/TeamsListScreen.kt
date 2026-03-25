@@ -39,7 +39,7 @@ fun TeamsListScreen(
             if (state.isClubManager) {
                 FloatingActionButton(
                     onClick = { viewModel.showCreateSheet() },
-                    modifier = Modifier.testTag("fab_create_team")
+                    modifier = Modifier.testTag("fab_create_team").padding(bottom = 48.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Create Team")
                 }

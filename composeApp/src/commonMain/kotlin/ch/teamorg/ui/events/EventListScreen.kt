@@ -106,7 +106,10 @@ fun EventListScreen(
         },
         floatingActionButton = {
             if (state.isCoach) {
-                FloatingActionButton(onClick = onCreateClick) {
+                FloatingActionButton(
+                    onClick = onCreateClick,
+                    modifier = Modifier.padding(bottom = 48.dp)
+                ) {
                     Icon(Icons.Default.Add, contentDescription = "Create event")
                 }
             }

@@ -1,8 +1,11 @@
 package ch.teamorg.navigation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.*
 import ch.teamorg.ui.club.ClubSetupScreen
@@ -42,10 +45,28 @@ fun AppNavigation(
     onAuthSuccess: () -> Unit
 ) {
     var detailRefreshTrigger by remember { mutableIntStateOf(0) }
+    var previousStackSize by remember { mutableIntStateOf(backStack.size) }
     val currentScreen = backStack.lastOrNull() ?: Screen.Loading
+    val isGoingBack = backStack.size < previousStackSize
+
+    LaunchedEffect(backStack.size) {
+        previousStackSize = backStack.size
+    }
+
     AnimatedContent(
         targetState = currentScreen,
-        transitionSpec = { fadeIn() togetherWith fadeOut() }
+        transitionSpec = {
+            val duration = 300
+            if (isGoingBack) {
+                // Back: slide in from left + fade, slide out to right + fade
+                (slideInHorizontally(tween(duration)) { -it / 4 } + fadeIn(tween(duration)))
+                    .togetherWith(slideOutHorizontally(tween(duration)) { it / 3 } + fadeOut(tween(duration / 2)))
+            } else {
+                // Forward: slide in from right + fade, slide out to left + fade
+                (slideInHorizontally(tween(duration)) { it / 4 } + fadeIn(tween(duration)))
+                    .togetherWith(slideOutHorizontally(tween(duration)) { -it / 3 } + fadeOut(tween(duration / 2)))
+            }
+        }
     ) { screen ->
         when (screen) {
             Screen.Loading -> PlaceholderScreen("Loading...")
@@ -217,7 +238,8 @@ fun AppNavigation(
                     onLeftTeam = {
                         backStack.removeAll { it == Screen.Profile }
                         backStack.add(Screen.Teams)
-                    }
+                    },
+                    isNavProfile = true
                 )
             }
             is Screen.PlayerProfile -> {

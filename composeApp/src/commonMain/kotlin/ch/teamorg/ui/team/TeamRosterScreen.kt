@@ -81,7 +81,7 @@ fun TeamRosterScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showInviteDialog = true },
-                modifier = Modifier.testTag("fab_invite_player")
+                modifier = Modifier.testTag("fab_invite_player").padding(bottom = 48.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Invite Player")
             }

@@ -49,7 +49,8 @@ fun PlayerProfileScreen(
     userId: String,
     viewModel: PlayerProfileViewModel,
     onBack: () -> Unit,
-    onLeftTeam: () -> Unit
+    onLeftTeam: () -> Unit,
+    isNavProfile: Boolean = false  // true = bottom nav profile tab, false = member detail
 ) {
     val state by viewModel.state.collectAsState()
     var showLeaveDialog by remember { mutableStateOf(false) }
@@ -68,7 +69,11 @@ fun PlayerProfileScreen(
             .fillMaxSize()
             .background(ScreenBg)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
+        ) {
             // Header bar
             Box(
                 modifier = Modifier
@@ -77,15 +82,17 @@ fun PlayerProfileScreen(
                     .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = TextPrimary
-                    )
+                if (!isNavProfile) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = TextPrimary
+                        )
+                    }
                 }
                 Text(
                     text = "Profile",
@@ -391,21 +398,24 @@ fun PlayerProfileScreen(
             }
         }
 
-        // FAB — Add absence
-        FloatingActionButton(
-            onClick = {
-                editingRule = null
-                showAddAbsenceSheet = true
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 24.dp)
-                .size(56.dp),
-            containerColor = AccentBlue,
-            contentColor = Color.White,
-            shape = CircleShape
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add absence")
+        // FAB — Add absence (own profile or coach viewing member)
+        val canManageAbsences = state.isOwnProfile || state.isCoachOrManager
+        if (canManageAbsences) {
+            FloatingActionButton(
+                onClick = {
+                    editingRule = null
+                    showAddAbsenceSheet = true
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = if (isNavProfile) 80.dp else 24.dp)
+                    .size(56.dp),
+                containerColor = AccentBlue,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add absence")
+            }
         }
     }
 
