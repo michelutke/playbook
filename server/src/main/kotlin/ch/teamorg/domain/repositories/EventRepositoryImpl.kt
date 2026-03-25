@@ -43,6 +43,7 @@ class EventRepositoryImpl : EventRepository {
             it[EventsTable.minAttendees] = request.minAttendees
             it[EventsTable.seriesId] = seriesId
             it[EventsTable.seriesSequence] = seriesSequence
+            it[EventsTable.responseDeadline] = request.responseDeadline
             it[EventsTable.createdBy] = createdBy
         } get EventsTable.id
 
