@@ -112,7 +112,7 @@ class AbwesenheitRoutesTest : IntegrationTestBase() {
             header(HttpHeaders.Authorization, "Bearer ${auth.token}")
             contentType(ContentType.Application.Json)
             setBody(CreateAbwPayload(
-                presetType = "illness",
+                presetType = "injury",
                 label = "Flu",
                 ruleType = "period",
                 startDate = "2026-04-01",
@@ -151,7 +151,7 @@ class AbwesenheitRoutesTest : IntegrationTestBase() {
             header(HttpHeaders.Authorization, "Bearer ${authB.token}")
             contentType(ContentType.Application.Json)
             setBody(CreateAbwPayload(
-                presetType = "illness",
+                presetType = "other",
                 label = "B rule",
                 ruleType = "period",
                 startDate = "2026-05-01",
@@ -205,12 +205,12 @@ class AbwesenheitRoutesTest : IntegrationTestBase() {
             header(HttpHeaders.Authorization, "Bearer ${auth.token}")
             contentType(ContentType.Application.Json)
             setBody(CreateAbwPayload(
-                presetType = "personal",
+                presetType = "other",
                 label = "To delete",
                 ruleType = "recurring",
                 weekdays = listOf(5)
             ))
-        }.body<AbwResponse>()
+        }.body<AbwRuleWithUserId>()
 
         val response = client.delete("/users/me/abwesenheit/${created.id}") {
             header(HttpHeaders.Authorization, "Bearer ${auth.token}")
