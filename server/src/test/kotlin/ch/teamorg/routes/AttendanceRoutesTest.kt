@@ -293,6 +293,22 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         val previousSetBy: String? = null
     )
 
+    private suspend fun ApplicationTestBuilder.invitePlayerToTeam(
+        coachToken: String,
+        teamId: String,
+        playerToken: String
+    ) {
+        val client = createJsonClient()
+        val inviteToken = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer $coachToken")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+        client.post("/invites/$inviteToken/redeem") {
+            header(HttpHeaders.Authorization, "Bearer $playerToken")
+        }
+    }
+
     @Test
     fun `get check-in entries returns team members with responses`() = withTeamorgTestApplication {
         val client = createJsonClient()
@@ -418,5 +434,111 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         }
 
         assertEquals(HttpStatusCode.NoContent, response.status)
+    }
+
+    @Test
+    fun `check-in entries show player responses after RSVP`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("ci_rsvp_coach@example.com", displayName = "Coach RSVP")
+        val playerAuth = registerAndLogin("ci_rsvp_player@example.com", displayName = "Player RSVP")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        val event = createEvent(coachAuth.token, "Training RSVP", teamIds = listOf(teamId))
+
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        val response = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<CheckInEntryPayload>>()
+        val playerEntry = entries.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry)
+        assertEquals("confirmed", playerEntry.response?.status)
+    }
+
+    @Test
+    fun `check-in entries include members with no response`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("ci_noresponse_coach@example.com", displayName = "Coach NoResp")
+        val playerAuth = registerAndLogin("ci_noresponse_player@example.com", displayName = "Player NoResp")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        val event = createEvent(coachAuth.token, "Training No Response Event", teamIds = listOf(teamId))
+
+        // Player does NOT submit a response
+
+        val response = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<CheckInEntryPayload>>()
+        val playerEntry = entries.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry)
+        assertEquals("Player NoResp", playerEntry.userName)
+        assertEquals(null, playerEntry.response)
+    }
+
+    @Test
+    fun `check-in entries return empty for event with no team`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("ci_noteam@example.com", displayName = "No Team User")
+
+        // Event created without teamIds
+        val event = createEvent(auth.token, "Training No Team")
+
+        val response = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<CheckInEntryPayload>>()
+        assertTrue(entries.isEmpty())
+    }
+
+    @Test
+    fun `submitting response updates check-in entry`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("ci_update_coach@example.com", displayName = "Coach Update")
+        val playerAuth = registerAndLogin("ci_update_player@example.com", displayName = "Player Update")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        val event = createEvent(coachAuth.token, "Training Update Entry", teamIds = listOf(teamId))
+
+        // Player submits confirmed
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        val afterConfirmed = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }.body<List<CheckInEntryPayload>>()
+        assertEquals("confirmed", afterConfirmed.find { it.userId == playerAuth.userId }?.response?.status)
+
+        // Player changes to declined
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "declined"))
+        }
+
+        val afterDeclined = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }.body<List<CheckInEntryPayload>>()
+        assertEquals("declined", afterDeclined.find { it.userId == playerAuth.userId }?.response?.status)
     }
 }
