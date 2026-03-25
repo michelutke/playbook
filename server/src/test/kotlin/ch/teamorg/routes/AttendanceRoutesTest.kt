@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @Serializable
 private data class AttendanceSubmitPayload(val status: String, val reason: String? = null)
@@ -257,5 +258,165 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         val record = response.body<CheckInRowPayload>()
         assertEquals("absent", record.status)
         assertEquals("present", record.previousStatus)
+    }
+
+    @Serializable
+    private data class CheckInEntryPayload(
+        val userId: String,
+        val userName: String,
+        val userAvatar: String? = null,
+        val response: AttendanceResponseDtoPayload? = null,
+        val record: AttendanceRecordDtoPayload? = null
+    )
+
+    @Serializable
+    private data class AttendanceResponseDtoPayload(
+        val eventId: String,
+        val userId: String,
+        val status: String,
+        val reason: String? = null,
+        val abwesenheitRuleId: String? = null,
+        val manualOverride: Boolean = false,
+        val respondedAt: String? = null,
+        val updatedAt: String
+    )
+
+    @Serializable
+    private data class AttendanceRecordDtoPayload(
+        val eventId: String,
+        val userId: String,
+        val status: String,
+        val note: String? = null,
+        val setBy: String,
+        val setAt: String,
+        val previousStatus: String? = null,
+        val previousSetBy: String? = null
+    )
+
+    @Test
+    fun `get check-in entries returns team members with responses`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("ci_coach@example.com", displayName = "Coach")
+        val player1Auth = registerAndLogin("ci_player1@example.com", displayName = "Player One")
+        val player2Auth = registerAndLogin("ci_player2@example.com", displayName = "Player Two")
+
+        val (clubId, teamId) = setupClubAndTeam(coachAuth.token)
+
+        // Create player invite and redeem for both players
+        val invite1Token = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        client.post("/invites/$invite1Token/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${player1Auth.token}")
+        }
+
+        val invite2Token = client.post("/teams/$teamId/invites") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateInviteRequest(role = "player"))
+        }.body<InviteResponse>().token
+
+        client.post("/invites/$invite2Token/redeem") {
+            header(HttpHeaders.Authorization, "Bearer ${player2Auth.token}")
+        }
+
+        // Create event linked to team
+        val event = createEvent(coachAuth.token, "Training CheckIn Entries", teamIds = listOf(teamId))
+
+        // Player 1 submits confirmed response
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${player1Auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        val response = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<CheckInEntryPayload>>()
+        assertEquals(2, entries.size)
+
+        val player1Entry = entries.find { it.userId == player1Auth.userId }
+        assertNotNull(player1Entry)
+        assertEquals("Player One", player1Entry.userName)
+        assertEquals("confirmed", player1Entry.response?.status)
+
+        val player2Entry = entries.find { it.userId == player2Auth.userId }
+        assertNotNull(player2Entry)
+        assertEquals("Player Two", player2Entry.userName)
+    }
+
+    @Test
+    fun `get event attendance returns correct DTO fields`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("dto_check@example.com", displayName = "DTO User")
+        val event = createEvent(auth.token, "Training DTO Check")
+
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        val response = client.get("/events/${event.id}/attendance") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<AttendanceResponseDtoPayload>>()
+        assertEquals(1, entries.size)
+
+        val entry = entries[0]
+        assertEquals(event.id.toString(), entry.eventId)
+        assertEquals(auth.userId, entry.userId)
+        assertEquals("confirmed", entry.status)
+        // updatedAt must be a non-blank ISO string, not a UUID or raw java.time value
+        assertTrue(entry.updatedAt.isNotBlank())
+        assertTrue(entry.updatedAt.contains("T"), "updatedAt should be ISO-8601: ${entry.updatedAt}")
+    }
+
+    @Test
+    fun `submit response updates existing response`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("update_response@example.com", displayName = "Updater")
+        val event = createEvent(auth.token, "Training Update Response")
+
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "declined"))
+        }
+
+        val meResponse = client.get("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, meResponse.status)
+        val body = meResponse.body<AttendanceResponsePayload>()
+        assertEquals("declined", body.status)
+    }
+
+    @Test
+    fun `get my response returns NoContent when no response exists`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("no_response_yet@example.com", displayName = "No Response")
+        val event = createEvent(auth.token, "Training No Response")
+
+        val response = client.get("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.NoContent, response.status)
     }
 }
