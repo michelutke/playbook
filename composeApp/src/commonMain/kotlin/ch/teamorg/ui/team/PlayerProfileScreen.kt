@@ -1,5 +1,6 @@
 package ch.teamorg.ui.team
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -118,26 +119,30 @@ fun PlayerProfileScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 20.dp),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardBg)
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF13131F)),
+                            border = BorderStroke(1.dp, DividerColor)
                         ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    // Avatar 72dp
+                                    // Avatar 80dp
                                     val pickImage = rememberImagePickerLauncher { bytes, ext ->
                                         viewModel.uploadAvatar(teamId, userId, bytes, ext)
                                     }
                                     Box(
-                                        modifier = Modifier.size(72.dp),
+                                        modifier = Modifier.size(80.dp),
                                         contentAlignment = Alignment.BottomEnd
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(72.dp)
+                                                .size(80.dp)
                                                 .clip(CircleShape)
-                                                .background(Color(0xFF1F2937))
+                                                .background(CardBg)
                                                 .then(
                                                     if (state.isOwnProfile) Modifier.clickable { pickImage() } else Modifier
                                                 ),
@@ -154,7 +159,7 @@ fun PlayerProfileScreen(
                                                 Icon(
                                                     Icons.Default.Person,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(36.dp),
+                                                    modifier = Modifier.size(40.dp),
                                                     tint = TextMuted
                                                 )
                                             }
@@ -212,7 +217,6 @@ fun PlayerProfileScreen(
                                     }
                                 }
 
-                                Spacer(Modifier.height(12.dp))
                                 AttendanceStatsBar(presencePct = state.presencePct)
                             }
                         }
@@ -228,15 +232,16 @@ fun PlayerProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "My Absences",
-                                color = TextPrimary,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
+                                text = "MY ABSENCES",
+                                color = TextMuted,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
                             )
                             Text(
                                 text = "View All",
                                 color = AccentBlue,
-                                fontSize = 14.sp
+                                fontSize = 12.sp
                             )
                         }
 
@@ -394,8 +399,9 @@ fun PlayerProfileScreen(
             },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 24.dp),
-            containerColor = AccentOrange,
+                .padding(end = 20.dp, bottom = 24.dp)
+                .size(56.dp),
+            containerColor = AccentBlue,
             contentColor = Color.White,
             shape = CircleShape
         ) {
