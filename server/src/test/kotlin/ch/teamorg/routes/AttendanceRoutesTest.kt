@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @Serializable
@@ -85,7 +86,9 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         token: String,
         title: String,
         responseDeadline: String? = null,
-        teamIds: List<String> = emptyList()
+        teamIds: List<String> = emptyList(),
+        startAt: String = "2026-09-01T10:00:00Z",
+        endAt: String = "2026-09-01T12:00:00Z"
     ): Event {
         val client = createJsonClient()
         return client.post("/events") {
@@ -94,13 +97,23 @@ class AttendanceRoutesTest : IntegrationTestBase() {
             setBody(CreateEventPayloadAttn(
                 title = title,
                 type = "training",
-                startAt = "2026-09-01T10:00:00Z",
-                endAt = "2026-09-01T12:00:00Z",
+                startAt = startAt,
+                endAt = endAt,
                 responseDeadline = responseDeadline,
                 teamIds = teamIds
             ))
         }.body<Event>()
     }
+
+    @Serializable
+    private data class CreateAbwesenheitPayloadAttn(
+        val presetType: String,
+        val label: String,
+        val ruleType: String,
+        val weekdays: List<Int>? = null,
+        val startDate: String? = null,
+        val endDate: String? = null
+    )
 
     @Test
     fun `submit response returns 200 with valid status`() = withTeamorgTestApplication {
@@ -504,6 +517,143 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         assertEquals(HttpStatusCode.OK, response.status)
         val entries = response.body<List<CheckInEntryPayload>>()
         assertTrue(entries.isEmpty())
+    }
+
+    // --- absence auto-decline on event creation ---
+
+    @Test
+    fun `event created during absence period gets auto-declined`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("abw_period_coach@example.com", displayName = "Coach Period")
+        val playerAuth = registerAndLogin("abw_period_player@example.com", displayName = "Player Period")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        // Player creates a period absence rule covering October 2026
+        client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwesenheitPayloadAttn(
+                presetType = "other",
+                label = "October sick",
+                ruleType = "period",
+                startDate = "2026-10-01",
+                endDate = "2026-10-31"
+            ))
+        }
+
+        // Coach creates event in October linked to the team
+        val event = createEvent(
+            coachAuth.token,
+            "October Training",
+            teamIds = listOf(teamId),
+            startAt = "2026-10-15T10:00:00Z",
+            endAt = "2026-10-15T12:00:00Z"
+        )
+
+        val response = client.get("/events/${event.id}/attendance") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<AttendanceResponseDtoPayload>>()
+        val playerEntry = entries.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry)
+        assertEquals("declined-auto", playerEntry.status)
+        assertNotNull(playerEntry.abwesenheitRuleId)
+    }
+
+    @Test
+    fun `event created on recurring absence day gets auto-declined`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("abw_recur_coach@example.com", displayName = "Coach Recur")
+        val playerAuth = registerAndLogin("abw_recur_player@example.com", displayName = "Player Recur")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        // Player creates recurring rule for Wednesdays (dayOfWeek.value % 7 = 3)
+        client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwesenheitPayloadAttn(
+                presetType = "work",
+                label = "Wednesday work",
+                ruleType = "recurring",
+                weekdays = listOf(3)
+            ))
+        }
+
+        // 2026-09-02 is a Wednesday
+        val event = createEvent(
+            coachAuth.token,
+            "Wednesday Training",
+            teamIds = listOf(teamId),
+            startAt = "2026-09-02T10:00:00Z",
+            endAt = "2026-09-02T12:00:00Z"
+        )
+
+        val response = client.get("/events/${event.id}/attendance") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val entries = response.body<List<AttendanceResponseDtoPayload>>()
+        val playerEntry = entries.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry)
+        assertEquals("declined-auto", playerEntry.status)
+    }
+
+    @Test
+    fun `manual response overrides auto-decline`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("abw_override_coach@example.com", displayName = "Coach Override")
+        val playerAuth = registerAndLogin("abw_override_player@example.com", displayName = "Player Override")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        // Player has a period absence rule
+        client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwesenheitPayloadAttn(
+                presetType = "other",
+                label = "Holiday",
+                ruleType = "period",
+                startDate = "2026-11-01",
+                endDate = "2026-11-30"
+            ))
+        }
+
+        val event = createEvent(
+            coachAuth.token,
+            "November Training",
+            teamIds = listOf(teamId),
+            startAt = "2026-11-10T10:00:00Z",
+            endAt = "2026-11-10T12:00:00Z"
+        )
+
+        // Verify auto-declined first
+        val beforeEntries = client.get("/events/${event.id}/attendance") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }.body<List<AttendanceResponseDtoPayload>>()
+        assertEquals("declined-auto", beforeEntries.find { it.userId == playerAuth.userId }?.status)
+
+        // Player manually submits confirmed
+        client.put("/events/${event.id}/attendance/me") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(AttendanceSubmitPayload(status = "confirmed"))
+        }
+
+        val afterEntries = client.get("/events/${event.id}/attendance") {
+            header(HttpHeaders.Authorization, "Bearer ${coachAuth.token}")
+        }.body<List<AttendanceResponseDtoPayload>>()
+        val playerEntry = afterEntries.find { it.userId == playerAuth.userId }
+        assertNotNull(playerEntry)
+        assertEquals("confirmed", playerEntry.status)
     }
 
     @Test

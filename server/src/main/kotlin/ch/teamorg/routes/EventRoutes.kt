@@ -4,6 +4,7 @@ import ch.teamorg.domain.models.CreateEventRequest
 import ch.teamorg.domain.models.EditEventRequest
 import ch.teamorg.domain.models.RecurringScope
 import ch.teamorg.domain.repositories.EventRepository
+import ch.teamorg.infra.AbwesenheitBackfillJob
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -35,6 +36,7 @@ private data class CancelScopeRequest(val scope: String? = "this_only")
 
 fun Route.eventRoutes() {
     val eventRepository by inject<EventRepository>()
+    val backfillJob by inject<AbwesenheitBackfillJob>()
 
     authenticate("jwt") {
         get("/users/me/events") {
@@ -66,6 +68,7 @@ fun Route.eventRoutes() {
             val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val request = call.receive<CreateEventRequest>()
             val event = eventRepository.create(request, userId)
+            backfillJob.applyRulesToNewEvent(event.id, event.startAt, event.teamIds)
             call.respond(HttpStatusCode.Created, event)
         }
 
@@ -193,8 +196,12 @@ fun Route.eventRoutes() {
             val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val id = UUID.fromString(call.parameters["id"])
             val event = eventRepository.duplicate(id, userId)
-            if (event != null) call.respond(HttpStatusCode.Created, event)
-            else call.respond(HttpStatusCode.NotFound)
+            if (event != null) {
+                backfillJob.applyRulesToNewEvent(event.id, event.startAt, event.teamIds)
+                call.respond(HttpStatusCode.Created, event)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
     }
 }
