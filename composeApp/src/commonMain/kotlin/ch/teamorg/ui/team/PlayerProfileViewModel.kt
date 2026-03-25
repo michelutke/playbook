@@ -69,9 +69,13 @@ class PlayerProfileViewModel(
 
     fun loadAbsences() {
         viewModelScope.launch {
-            abwesenheitRepository.listRules().onSuccess { rules ->
-                _state.update { it.copy(absenceRules = rules) }
-            }
+            abwesenheitRepository.listRules()
+                .onSuccess { rules ->
+                    _state.update { it.copy(absenceRules = rules) }
+                }
+                .onFailure { e ->
+                    _state.update { it.copy(error = e.message) }
+                }
         }
     }
 

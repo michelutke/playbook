@@ -248,7 +248,7 @@ fun PlayerProfileScreen(
                         Spacer(Modifier.height(12.dp))
 
                         // Absence list or empty state
-                        val displayedRules = state.absenceRules.take(3)
+                        val displayedRules = state.absenceRules
                         if (displayedRules.isEmpty()) {
                             Column(
                                 modifier = Modifier
@@ -298,7 +298,7 @@ fun PlayerProfileScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "Applying absence rule to past events...",
+                                    text = "Applying absence rule to matching events...",
                                     modifier = Modifier.padding(12.dp),
                                     color = TextMuted,
                                     fontSize = 12.sp

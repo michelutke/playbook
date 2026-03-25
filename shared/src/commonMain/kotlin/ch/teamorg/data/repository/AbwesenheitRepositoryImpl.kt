@@ -38,6 +38,8 @@ class AbwesenheitRepositoryImpl(
             offlineFallback()
         } catch (e: IOException) {
             offlineFallback()
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -63,6 +65,8 @@ class AbwesenheitRepositoryImpl(
             Result.failure(Exception("You're offline. Connect to create rules."))
         } catch (e: IOException) {
             Result.failure(Exception("You're offline. Connect to create rules."))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -85,6 +89,8 @@ class AbwesenheitRepositoryImpl(
             Result.failure(Exception("You're offline. Connect to update rules."))
         } catch (e: IOException) {
             Result.failure(Exception("You're offline. Connect to update rules."))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -99,6 +105,8 @@ class AbwesenheitRepositoryImpl(
             Result.failure(Exception("You're offline. Connect to delete rules."))
         } catch (e: IOException) {
             Result.failure(Exception("You're offline. Connect to delete rules."))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

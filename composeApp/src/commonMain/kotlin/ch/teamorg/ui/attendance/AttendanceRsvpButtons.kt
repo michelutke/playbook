@@ -88,7 +88,7 @@ fun AttendanceRsvpButtons(
         )
 
         // Can't Go button
-        val declinedSelected = currentResponse == "declined"
+        val declinedSelected = currentResponse == "declined" || currentResponse == "declined-auto"
         RsvpButton(
             modifier = Modifier.weight(1f),
             symbol = "✗",
