@@ -70,8 +70,10 @@ class AttendanceRepositoryImpl : AttendanceRepository {
 
     override suspend fun getCheckInEntries(eventId: UUID): List<CheckInEntryResponse> = transaction {
         // Get all team members for this event via event_teams → team_roles → users
-        val teamMemberRows = (EventTeamsTable
-            innerJoin TeamRolesTable innerJoin UsersTable)
+        // Use explicit join conditions because EventTeamsTable and TeamRolesTable share no direct FK
+        val teamMemberRows = EventTeamsTable
+            .innerJoin(TeamRolesTable, { EventTeamsTable.teamId }, { TeamRolesTable.teamId })
+            .innerJoin(UsersTable, { TeamRolesTable.userId }, { UsersTable.id })
             .select(
                 UsersTable.id,
                 UsersTable.displayName,
