@@ -83,8 +83,10 @@ fun EventDetailScreen(
     var showCancelScopeSheet by remember { mutableStateOf(false) }
     var showUncancelScopeSheet by remember { mutableStateOf(false) }
     var showBegrundung by remember { mutableStateOf(false) }
-    var showOverrideSheet by remember { mutableStateOf(false) }
+    var begrundungStatus by remember { mutableStateOf("unsure") }
+    var showOverrideReason by remember { mutableStateOf(false) }
     var overrideTarget by remember { mutableStateOf<CheckInEntry?>(null) }
+    var overrideStatus by remember { mutableStateOf("") }
 
     val isCancelled = state.event?.event?.status == "cancelled"
     val isSeries = state.event?.event?.seriesId != null
@@ -200,50 +202,48 @@ fun EventDetailScreen(
                 checkInEntries = state.checkInEntries,
                 isCoach = state.isCoach,
                 onRsvpSelect = { status ->
-                    if (status == "unsure") {
+                    if (status == "unsure" || status == "declined") {
+                        begrundungStatus = status
                         showBegrundung = true
                     } else {
                         viewModel.submitResponse(status, null)
                     }
                 },
-                onOverrideTap = { entry, _ ->
-                    overrideTarget = entry
-                    showOverrideSheet = true
+                onOverrideTap = { entry, status ->
+                    if (status == "absent" || status == "excused") {
+                        overrideTarget = entry
+                        overrideStatus = status
+                        showOverrideReason = true
+                    } else {
+                        viewModel.submitOverride(entry.userId, status, null)
+                    }
                 }
             )
         }
 
         BegrundungSheet(
             visible = showBegrundung,
+            mode = begrundungStatus,
             onDismiss = { showBegrundung = false },
             onConfirm = { reason ->
                 showBegrundung = false
-                viewModel.submitResponse("unsure", reason)
+                viewModel.submitResponse(begrundungStatus, reason.ifBlank { null })
             }
         )
 
-        if (showOverrideSheet) {
-            val target = overrideTarget
-            if (target != null) {
-                CoachOverrideSheet(
-                    visible = true,
-                    playerName = target.userName,
-                    currentStatus = target.record?.status ?: target.response?.let {
-                        when (it.status) {
-                            "confirmed" -> "present"
-                            "declined", "declined-auto" -> "absent"
-                            else -> null
-                        }
-                    },
-                    onDismiss = { showOverrideSheet = false; overrideTarget = null },
-                    onSave = { status, note ->
-                        viewModel.submitOverride(target.userId, status, note)
-                        showOverrideSheet = false
-                        overrideTarget = null
-                    }
-                )
+        BegrundungSheet(
+            visible = showOverrideReason,
+            mode = overrideStatus,
+            onDismiss = { showOverrideReason = false; overrideTarget = null },
+            onConfirm = { reason ->
+                val target = overrideTarget
+                if (target != null) {
+                    viewModel.submitOverride(target.userId, overrideStatus, reason.ifBlank { null })
+                }
+                showOverrideReason = false
+                overrideTarget = null
             }
-        }
+        )
     }
 }
 

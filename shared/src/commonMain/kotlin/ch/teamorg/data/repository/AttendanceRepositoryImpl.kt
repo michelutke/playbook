@@ -39,6 +39,8 @@ class AttendanceRepositoryImpl(
             Result.success(cacheManager.getCachedResponses(eventId))
         } catch (e: IOException) {
             Result.success(cacheManager.getCachedResponses(eventId))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -56,6 +58,8 @@ class AttendanceRepositoryImpl(
             Result.success(null)
         } catch (e: IOException) {
             Result.success(null)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -105,8 +109,9 @@ class AttendanceRepositoryImpl(
             )
             cacheManager.saveResponses(eventId, listOf(optimistic))
             Result.success(optimistic)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        // ResponseException (4xx/5xx including 409 Conflict) propagates to caller
     }
 
     override suspend fun getCheckIn(eventId: String): Result<List<CheckInEntry>> {
@@ -118,6 +123,8 @@ class AttendanceRepositoryImpl(
             Result.success(emptyList())
         } catch (e: IOException) {
             Result.success(emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -150,6 +157,8 @@ class AttendanceRepositoryImpl(
             Result.success(emptyList())
         } catch (e: IOException) {
             Result.success(emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -170,6 +179,8 @@ class AttendanceRepositoryImpl(
             Result.success(emptyList())
         } catch (e: IOException) {
             Result.success(emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

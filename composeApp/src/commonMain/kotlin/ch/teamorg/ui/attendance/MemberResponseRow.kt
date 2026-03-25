@@ -92,7 +92,7 @@ fun MemberResponseRow(
                     )
                 }
             }
-            val reason = entry.response?.reason
+            val reason = entry.record?.note ?: entry.response?.reason
             if (!reason.isNullOrBlank()) {
                 Text(
                     text = reason,
@@ -106,22 +106,32 @@ fun MemberResponseRow(
 
         // Coach override buttons
         if (isCoach) {
+            val currentStatus = entry.record?.status
+                ?: when (entry.response?.status) {
+                    "confirmed" -> "present"
+                    "declined", "declined-auto" -> "absent"
+                    "unsure" -> "excused"
+                    else -> null
+                }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 CoachStatusButton(
                     symbol = "✓",
                     color = Color(0xFF22C55E),
+                    isSelected = currentStatus == "present",
                     contentDesc = "Set present",
                     onClick = { onStatusTap("present") }
                 )
                 CoachStatusButton(
                     symbol = "✗",
                     color = Color(0xFFEF4444),
+                    isSelected = currentStatus == "absent",
                     contentDesc = "Set absent",
                     onClick = { onStatusTap("absent") }
                 )
                 CoachStatusButton(
                     symbol = "~",
                     color = Color(0xFFFACC15),
+                    isSelected = currentStatus == "excused",
                     contentDesc = "Set excused",
                     onClick = { onStatusTap("excused") }
                 )
@@ -134,21 +144,24 @@ fun MemberResponseRow(
 private fun CoachStatusButton(
     symbol: String,
     color: Color,
+    isSelected: Boolean = false,
     contentDesc: String,
     onClick: () -> Unit
 ) {
+    val bg = if (isSelected) color.copy(alpha = 0.2f) else InactiveBg
+    val textColor = if (isSelected) color else InactiveText
     Box(
         modifier = Modifier
             .size(28.dp)
             .clip(CircleShape)
-            .background(InactiveBg)
+            .background(bg)
             .clickable(onClick = onClick)
             .semantics { contentDescription = contentDesc },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = symbol,
-            color = color,
+            color = textColor,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )

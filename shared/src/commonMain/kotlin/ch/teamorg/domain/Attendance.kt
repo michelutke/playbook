@@ -32,8 +32,8 @@ data class CheckInEntry(
     val userId: String,
     val userName: String,
     val userAvatar: String? = null,
-    val response: AttendanceResponse?,
-    val record: AttendanceRecord?
+    val response: AttendanceResponse? = null,
+    val record: AttendanceRecord? = null
 )
 
 @Serializable

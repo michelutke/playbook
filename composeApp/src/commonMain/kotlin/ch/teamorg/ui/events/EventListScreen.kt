@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import ch.teamorg.domain.EventWithTeams
 import ch.teamorg.domain.MatchedTeam
 import ch.teamorg.ui.attendance.AttendanceRsvpButtons
+import ch.teamorg.ui.attendance.BegrundungSheet
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -117,6 +118,19 @@ fun EventListScreen(
     onCreateClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    var showBegrundung by remember { mutableStateOf(false) }
+    var begrundungEventId by remember { mutableStateOf("") }
+    var begrundungStatus by remember { mutableStateOf("unsure") }
+
+    BegrundungSheet(
+        visible = showBegrundung,
+        mode = begrundungStatus,
+        onDismiss = { showBegrundung = false },
+        onConfirm = { reason ->
+            showBegrundung = false
+            viewModel.submitResponse(begrundungEventId, begrundungStatus, reason.ifBlank { null })
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -164,7 +178,16 @@ fun EventListScreen(
                 EventViewMode.LIST -> EventListContent(
                     state = state,
                     onEventClick = onEventClick,
-                    onCreateClick = onCreateClick
+                    onCreateClick = onCreateClick,
+                    onRsvpSelect = { eventId, status ->
+                        if (status == "unsure" || status == "declined") {
+                            begrundungEventId = eventId
+                            begrundungStatus = status
+                            showBegrundung = true
+                        } else {
+                            viewModel.submitResponse(eventId, status, null)
+                        }
+                    }
                 )
                 EventViewMode.CALENDAR -> CalendarContent(
                     state = state,
@@ -238,7 +261,8 @@ private fun FilterRows(
 private fun EventListContent(
     state: EventListState,
     onEventClick: (String) -> Unit,
-    onCreateClick: () -> Unit
+    onCreateClick: () -> Unit,
+    onRsvpSelect: (String, String) -> Unit  // (eventId, status)
 ) {
     when {
         state.isLoading -> {
@@ -271,7 +295,10 @@ private fun EventListContent(
                         maybeCount = counts?.maybeCount ?: 0,
                         declinedCount = counts?.declinedCount ?: 0,
                         myResponse = counts?.myResponse,
-                        onClick = { onEventClick(ewt.event.id) }
+                        onClick = { onEventClick(ewt.event.id) },
+                        onRsvpSelect = { status ->
+                            onRsvpSelect(ewt.event.id, status)
+                        }
                     )
                 }
             }
@@ -319,7 +346,8 @@ private fun EventListItem(
     maybeCount: Int,
     declinedCount: Int,
     myResponse: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onRsvpSelect: (String) -> Unit = {}
 ) {
     val event = ewt.event
     val isCancelled = event.status == "cancelled"
@@ -444,7 +472,7 @@ private fun EventListItem(
                 declinedCount = declinedCount,
                 deadlinePassed = false,
                 compact = true,
-                onSelect = {}  // list cards are read-only; tap card to go to detail
+                onSelect = onRsvpSelect
             )
         }
     }

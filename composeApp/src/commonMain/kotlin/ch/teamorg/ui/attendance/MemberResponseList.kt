@@ -29,14 +29,26 @@ fun MemberResponseList(
         return
     }
 
-    val confirmed = entries.filter { it.response?.status == "confirmed" }
-    val maybe = entries.filter { it.response?.status == "unsure" }
+    // Coach record status overrides player response status
+    fun effectiveStatus(entry: CheckInEntry): String? {
+        val recordStatus = entry.record?.status
+        if (recordStatus != null) return when (recordStatus) {
+            "present" -> "confirmed"
+            "absent" -> "declined"
+            "excused" -> "unsure"
+            else -> recordStatus
+        }
+        return entry.response?.status
+    }
+
+    val confirmed = entries.filter { effectiveStatus(it) == "confirmed" }
+    val maybe = entries.filter { effectiveStatus(it) == "unsure" }
     val declined = entries.filter { entry ->
-        val s = entry.response?.status
+        val s = effectiveStatus(entry)
         s == "declined" || s == "declined-auto"
     }
     val noResponse = entries.filter { entry ->
-        val s = entry.response?.status
+        val s = effectiveStatus(entry)
         s == null || s == "no-response"
     }
 

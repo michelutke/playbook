@@ -113,6 +113,7 @@ class EventListViewModel(
     private fun loadAttendanceCounts(eventIds: List<String>) {
         viewModelScope.launch {
             val countsMap = mutableMapOf<String, EventAttendanceCounts>()
+            val userId = userPreferences.getUserId()
             eventIds.forEach { eventId ->
                 attendanceRepository.getEventAttendance(eventId).onSuccess { responses ->
                     val confirmed = responses.count { it.status == "confirmed" }
@@ -120,14 +121,43 @@ class EventListViewModel(
                     val declined = responses.count {
                         it.status == "declined" || it.status == "declined-auto"
                     }
+                    val myResponse = responses.find { it.userId == userId }?.status
                     countsMap[eventId] = EventAttendanceCounts(
                         confirmedCount = confirmed,
                         maybeCount = maybe,
-                        declinedCount = declined
+                        declinedCount = declined,
+                        myResponse = myResponse
                     )
                 }
             }
             _state.update { it.copy(attendanceCounts = countsMap) }
+        }
+    }
+
+    fun submitResponse(eventId: String, status: String, reason: String?) {
+        // Optimistic update
+        _state.update { state ->
+            val counts = state.attendanceCounts.toMutableMap()
+            val current = counts[eventId] ?: EventAttendanceCounts()
+            counts[eventId] = current.copy(myResponse = status)
+            state.copy(attendanceCounts = counts)
+        }
+        viewModelScope.launch {
+            val request = ch.teamorg.domain.SubmitResponseRequest(status = status, reason = reason)
+            attendanceRepository.submitResponse(eventId, request)
+                .onSuccess {
+                    // Reload counts to get accurate numbers
+                    loadAttendanceCounts(listOf(eventId))
+                }
+                .onFailure {
+                    // Revert optimistic update
+                    _state.update { state ->
+                        val counts = state.attendanceCounts.toMutableMap()
+                        val current = counts[eventId] ?: EventAttendanceCounts()
+                        counts[eventId] = current.copy(myResponse = null)
+                        state.copy(attendanceCounts = counts)
+                    }
+                }
         }
     }
 

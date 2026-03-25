@@ -19,15 +19,26 @@ private val DividerColor = Color(0xFF2A2A40)
 private val BorderFocused = Color(0xFF4F8EF7)
 private val ConfirmMaybeBg = Color(0xFF3D3400)
 private val ConfirmMaybeText = Color(0xFFFACC15)
+private val ConfirmDeclineBg = Color(0xFF450A0A)
+private val ConfirmDeclineText = Color(0xFFEF4444)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BegrundungSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (reason: String) -> Unit
+    onConfirm: (reason: String) -> Unit,
+    mode: String = "unsure"  // "unsure" | "declined"
 ) {
     if (!visible) return
+
+    val isDecline = mode == "declined"
+    val title = if (isDecline) "Why can't you go?" else "Why are you unsure?"
+    val placeholder = if (isDecline) "Reason for declining (optional)..." else "Describe your reason..."
+    val buttonLabel = if (isDecline) "Confirm Decline" else "Confirm Maybe"
+    val buttonBg = if (isDecline) ConfirmDeclineBg else ConfirmMaybeBg
+    val buttonText = if (isDecline) ConfirmDeclineText else ConfirmMaybeText
+    val reasonRequired = !isDecline  // unsure requires reason, decline is optional
 
     var text by remember { mutableStateOf("") }
 
@@ -52,9 +63,8 @@ fun BegrundungSheet(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header
             Text(
-                text = "Why are you unsure?",
+                text = title,
                 color = TextPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
@@ -62,17 +72,12 @@ fun BegrundungSheet(
 
             HorizontalDivider(color = DividerColor)
 
-            // Reason text field
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
-                    Text(
-                        "Describe your reason...",
-                        color = TextMuted,
-                        fontSize = 14.sp
-                    )
+                    Text(placeholder, color = TextMuted, fontSize = 14.sp)
                 },
                 minLines = 3,
                 maxLines = 6,
@@ -88,37 +93,24 @@ fun BegrundungSheet(
                 )
             )
 
-            // Confirm button
-            val isEnabled = text.isNotBlank()
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(
-                        color = if (isEnabled) ConfirmMaybeBg else ConfirmMaybeBg.copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
+            val isEnabled = !reasonRequired || text.isNotBlank()
+            Button(
+                onClick = { if (isEnabled) onConfirm(text.trim()) },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                enabled = isEnabled,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonBg,
+                    contentColor = buttonText,
+                    disabledContainerColor = buttonBg.copy(alpha = 0.4f),
+                    disabledContentColor = buttonText.copy(alpha = 0.4f)
+                )
             ) {
-                Button(
-                    onClick = { if (isEnabled) onConfirm(text.trim()) },
-                    modifier = Modifier.fillMaxSize(),
-                    enabled = isEnabled,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ConfirmMaybeBg,
-                        contentColor = ConfirmMaybeText,
-                        disabledContainerColor = ConfirmMaybeBg.copy(alpha = 0.4f),
-                        disabledContentColor = ConfirmMaybeText.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Text(
-                        "Confirm Maybe",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isEnabled) ConfirmMaybeText else ConfirmMaybeText.copy(alpha = 0.4f)
-                    )
-                }
+                Text(
+                    buttonLabel,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
