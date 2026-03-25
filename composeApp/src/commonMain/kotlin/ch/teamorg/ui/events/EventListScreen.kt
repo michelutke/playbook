@@ -337,13 +337,26 @@ private fun MonthView(
         navDirection = -1
         if (displayMonth == 1) { displayMonth = 12; displayYear-- } else displayMonth--
     }
+    fun goToday() {
+        navDirection = 0
+        displayYear = currentDate.year
+        displayMonth = currentDate.monthNumber
+        viewModel.selectDate(currentDate)
+    }
+
+    // Default select today when no date selected
+    LaunchedEffect(Unit) {
+        if (state.selectedDate == null) {
+            viewModel.selectDate(currentDate)
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Month navigation: ‹ March 2025 ›
+        // Month navigation: ‹ March 2025 › + Today button
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -358,12 +371,30 @@ private fun MonthView(
                     interactionSource = remember { MutableInteractionSource() }
                 ) { goPrev() }
             )
-            Text(
-                "${Month(displayMonth).name.lowercase().replaceFirstChar { it.uppercase() }} $displayYear",
-                color = Color(0xFFF0F0FF),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    "${Month(displayMonth).name.lowercase().replaceFirstChar { it.uppercase() }} $displayYear",
+                    color = Color(0xFFF0F0FF),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                val isCurrentMonth = displayYear == currentDate.year && displayMonth == currentDate.monthNumber
+                if (!isCurrentMonth) {
+                    Text(
+                        "Today",
+                        color = CalSelectedBg,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { goToday() }
+                    )
+                }
+            }
             Text(
                 "›",
                 color = Color(0xFF9090B0),

@@ -130,7 +130,7 @@ class EventListViewModel(
                     )
                 }
             }
-            _state.update { it.copy(attendanceCounts = countsMap) }
+            _state.update { it.copy(attendanceCounts = it.attendanceCounts + countsMap) }
         }
     }
 

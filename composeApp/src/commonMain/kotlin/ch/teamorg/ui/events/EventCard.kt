@@ -98,7 +98,7 @@ fun EventCard(
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // Top row: title+team on left, day abbrev+date on right
             Row(
@@ -106,7 +106,10 @@ fun EventCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f).padding(end = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
                     Text(
                         text = event.title,
                         fontSize = 15.sp,
@@ -126,10 +129,11 @@ fun EventCard(
                         )
                     }
                 }
-                Column(horizontalAlignment = Alignment.End) {
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     Text(
                         text = dayAbbrev(event.startAt),
-                        fontSize = 10.sp,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
                         color = TextSecondary
                     )
                     Text(
