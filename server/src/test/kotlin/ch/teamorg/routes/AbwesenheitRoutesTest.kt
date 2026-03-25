@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @Serializable
 private data class CreateAbwPayload(
@@ -44,6 +45,21 @@ private data class AbwResponse(
 
 @Serializable
 private data class BackfillStatusPayload(val status: String)
+
+@Serializable
+private data class AbwRuleWithUserId(
+    val id: String,
+    val userId: String,
+    val presetType: String,
+    val label: String,
+    val bodyPart: String? = null,
+    val ruleType: String,
+    val weekdays: List<Int>? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
 
 class AbwesenheitRoutesTest : IntegrationTestBase() {
 
@@ -207,6 +223,90 @@ class AbwesenheitRoutesTest : IntegrationTestBase() {
             header(HttpHeaders.Authorization, "Bearer ${auth.token}")
         }
         val rules = listResponse.body<List<AbwResponse>>()
+        assertEquals(0, rules.size)
+    }
+
+    @Test
+    fun `create absence rule response includes userId`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("abw_userid@example.com")
+
+        val response = client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwPayload(
+                presetType = "work",
+                label = "Work conflict",
+                ruleType = "recurring",
+                weekdays = listOf(0, 4)
+            ))
+        }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        val rule = response.body<AbwRuleWithUserId>()
+        assertNotNull(rule.id)
+        assertEquals(auth.userId, rule.userId)
+        assertEquals("work", rule.presetType)
+        assertTrue(rule.createdAt.isNotBlank())
+        assertTrue(rule.updatedAt.isNotBlank())
+    }
+
+    @Test
+    fun `get absence rules returns parseable JSON with userId`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("abw_getall@example.com")
+
+        client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwPayload(
+                presetType = "holidays",
+                label = "Summer break",
+                ruleType = "period",
+                startDate = "2026-07-01",
+                endDate = "2026-07-31"
+            ))
+        }
+
+        val response = client.get("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val rules = response.body<List<AbwRuleWithUserId>>()
+        assertEquals(1, rules.size)
+        assertEquals(auth.userId, rules[0].userId)
+        assertEquals("2026-07-01", rules[0].startDate)
+        assertEquals("2026-07-31", rules[0].endDate)
+    }
+
+    @Test
+    fun `delete absence rule removes it from list`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val auth = registerAndLogin("abw_delete2@example.com")
+
+        val created = client.post("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+            contentType(ContentType.Application.Json)
+            setBody(CreateAbwPayload(
+                presetType = "school",
+                label = "Exam period",
+                ruleType = "period",
+                startDate = "2026-06-01",
+                endDate = "2026-06-15"
+            ))
+        }.body<AbwRuleWithUserId>()
+
+        val deleteResponse = client.delete("/users/me/abwesenheit/${created.id}") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+        assertEquals(HttpStatusCode.NoContent, deleteResponse.status)
+
+        val listResponse = client.get("/users/me/abwesenheit") {
+            header(HttpHeaders.Authorization, "Bearer ${auth.token}")
+        }
+        assertEquals(HttpStatusCode.OK, listResponse.status)
+        val rules = listResponse.body<List<AbwRuleWithUserId>>()
         assertEquals(0, rules.size)
     }
 
