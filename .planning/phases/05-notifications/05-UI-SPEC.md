@@ -50,13 +50,12 @@ Declared values (multiples of 4 — consistent with entire codebase):
 | md | 16dp | Horizontal screen padding, default row height gap |
 | lg | 24dp | Section header top padding, between grouped setting categories |
 | xl | 32dp | Empty state illustration-to-text gap |
-| 2xl | 48dp | Empty state vertical centering offset |
+| 2xl | 48dp | Empty state vertical centering offset, toggle row minimum touch height |
 | 3xl | 64dp | Not used in this phase |
 
 Exceptions:
 - Touch targets for toggle switches: minimum 48dp height (accessibility)
-- Unread badge pill: 6dp horizontal, 2dp vertical padding — intentionally smaller than scale
-- Reminder time picker: 56dp minimum touch height on the row
+- Unread badge pill: 8dp horizontal, 4dp vertical padding
 
 Source: established by EventCard (`padding(12.dp)`), EventDetailScreen (`padding(horizontal=16.dp)`), and Screen-level column patterns.
 
@@ -69,9 +68,11 @@ All roles use `FontFamily.Default` (system font). No new font roles introduced.
 | Role | Size | Weight | Line Height | M3 Style | Usage |
 |------|------|--------|-------------|----------|-------|
 | Body | 16sp | Normal (400) | 24sp (1.5) | `bodyLarge` | Notification message text, settings descriptions |
-| Label | 14sp | Medium (500) | 20sp (1.43) | `labelLarge` | Notification timestamp, team name chip, toggle labels |
+| Label | 14sp | Normal (400) | 20sp (1.43) | `labelLarge` | Notification timestamp, team name chip, toggle labels — distinguished from body by size (14sp vs 16sp), not weight |
 | Heading | 20sp | SemiBold (600) | 28sp (1.4) | `titleLarge` | Screen title ("Inbox", "Notification Settings") |
 | Caption | 12sp | Normal (400) | 16sp (1.33) | `labelMedium` | Relative time ("2h ago"), category section headers |
+
+Weights declared: Normal (400), SemiBold (600). Maximum 2 weights.
 
 Source: `composeApp/src/commonMain/kotlin/ch/teamorg/ui/theme/Type.kt`
 
@@ -129,7 +130,7 @@ Existing components modified:
 
 ### InboxScreen
 
-**Layout:** Scaffold with TopAppBar ("Inbox") + gear icon action → NotificationSettingsScreen. LazyColumn of NotificationRows. FloatingActionButton: none.
+**Layout:** Scaffold with TopAppBar ("Inbox") + gear icon action (contentDescription = "Notification settings") → NotificationSettingsScreen. LazyColumn of NotificationRows. FloatingActionButton: none.
 
 **States:**
 
@@ -164,7 +165,7 @@ Existing components modified:
 4. **Absences** (coach only) — Toggle: "Absence notifications"
 
 Section headers: 12sp `labelMedium`, `MutedForegroundDark`, uppercase, 24dp top padding.
-Toggle rows: 56dp minimum height, `bodyLarge` label left, M3 Switch right, 16dp horizontal padding.
+Toggle rows: 48dp minimum height, `bodyLarge` label left, M3 Switch right, 16dp horizontal padding.
 
 ### ReminderPickerSheet (BottomSheet)
 
@@ -174,7 +175,7 @@ Triggered from: EventDetailScreen Reminder row, and NotificationSettingsScreen D
 - Header: "Set Reminder" (titleLarge)
 - Free-form duration input: NumberField (hours) + NumberField (minutes) — two adjacent fields with unit labels
 - Preset chips row: "30 min", "1 h", "2 h", "1 day", "2 days" — tap to fill fields
-- CTA button: "Save" (full-width FilledButton, `PrimaryBlue`)
+- CTA button: "Set Reminder" (full-width FilledButton, `PrimaryBlue`)
 - Secondary: "No reminder" text button below CTA (for per-event override — removes custom reminder, falls back to global default)
 
 ### EventDetailScreen — Reminder Row
@@ -216,9 +217,9 @@ Row anatomy: `Icons.Outlined.Alarm` (20dp) + "Reminder" label (`bodyLarge`) + tr
 
 ### ReminderPickerSheet save
 
-- "Save" button: validates duration > 0, sends update, dismisses sheet
+- "Set Reminder" button: validates duration > 0, sends update, dismisses sheet
 - "No reminder": sends null override for that event, dismisses sheet
-- Invalid input (0 duration): "Save" button disabled, field border turns `DestructiveRed`
+- Invalid input (0 duration): "Set Reminder" button disabled, field border turns `DestructiveRed`
 
 ---
 
@@ -226,7 +227,7 @@ Row anatomy: `Icons.Outlined.Alarm` (20dp) + "Reminder" label (`bodyLarge`) + tr
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | "Save" (ReminderPickerSheet) |
+| Primary CTA | "Set Reminder" (ReminderPickerSheet) |
 | Inbox screen title | "Inbox" |
 | Settings screen title | "Notification Settings" |
 | Mark all as read | "Mark all read" |
@@ -256,6 +257,7 @@ Row anatomy: `Icons.Outlined.Alarm` (20dp) + "Reminder" label (`bodyLarge`) + tr
 | Response mode option 1 | "Per response" |
 | Response mode option 2 | "Pre-event summary" |
 | Default lead time row | "Default lead time" |
+| Gear icon contentDescription | "Notification settings" |
 
 No destructive actions in this phase — no confirmation dialogs required.
 
