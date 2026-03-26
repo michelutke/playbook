@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T08:32:55.656Z"
+last_updated: "2026-03-26T08:40:37.018Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-26T08:32:55.653Z
+- **Last session:** 2026-03-26T08:40:37.016Z
 
 ## Phase Status
 
@@ -133,6 +133,8 @@ progress:
 - [Phase 05-notifications]: iOS OneSignal SPM package requires manual Xcode setup; placeholder string in iOSApp.swift marks substitution point
 - [Phase 05-notifications]: call.application.launch(Dispatchers.IO) used in route handlers — top-level launch() is deprecated in Ktor route context
 - [Phase 05-notifications]: Reminder row management methods added to NotificationRepository interface — insertReminderRows, deleteReminderRowsForEvent, getDueReminders, getCoachIdsForTeam, getEventAttendanceSummary, getUpcomingEventsForCoachSummary
+- [Phase 05-notifications]: TeamRoleEntry has no teamName field — used teamId as display label in team picker
+- [Phase 05-notifications]: EventDetailViewModel: NotificationRepository injected as 5th param; reminder loaded in loadEvent flow
 
 ## Notes
 
