@@ -17,6 +17,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.slf4j.LoggerFactory
 import org.koin.ktor.ext.inject
 import java.time.LocalDate
 import java.util.UUID
@@ -60,6 +61,8 @@ private data class AbwesenheitResponse(
 
 @Serializable
 private data class BackfillStatusResponse(val status: String)
+
+private val abwLogger = LoggerFactory.getLogger("AbwesenheitRoutes")
 
 private fun AbwesenheitRuleRow.toResponse() = AbwesenheitResponse(
     id = id.toString(),
@@ -108,18 +111,22 @@ fun Route.abwesenheitRoutes() {
             backfillJob.enqueue(userId, rule.id, app)
 
             call.application.launch(Dispatchers.IO) {
-                val teamRoles = teamRepository.getUserTeamRoles(userId)
-                for ((_, teamId, _) in teamRoles) {
-                    dispatcher.notifyTeamMembers(
-                        teamId = teamId,
-                        excludeUserId = userId,
-                        type = "absence",
-                        title = "Absence Update",
-                        body = "A player updated their absence. Affects upcoming events.",
-                        entityId = rule.id,
-                        entityType = "absence",
-                        idempotencyKeySuffix = "absence:${rule.id}"
-                    )
+                try {
+                    val teamRoles = teamRepository.getUserTeamRoles(userId)
+                    for (roleTriple in teamRoles) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = roleTriple.first,
+                            excludeUserId = userId,
+                            type = "absence",
+                            title = "Absence Update",
+                            body = "A player updated their absence. Affects upcoming events.",
+                            entityId = rule.id,
+                            entityType = "absence",
+                            idempotencyKeySuffix = "absence:${rule.id}"
+                        )
+                    }
+                } catch (e: Exception) {
+                    abwLogger.warn("Absence create notification dispatch failed: ${e.message}")
                 }
             }
 
@@ -146,18 +153,22 @@ fun Route.abwesenheitRoutes() {
             backfillJob.enqueue(userId, ruleId, app)
 
             call.application.launch(Dispatchers.IO) {
-                val teamRoles = teamRepository.getUserTeamRoles(userId)
-                for ((_, teamId, _) in teamRoles) {
-                    dispatcher.notifyTeamMembers(
-                        teamId = teamId,
-                        excludeUserId = userId,
-                        type = "absence",
-                        title = "Absence Update",
-                        body = "A player updated their absence. Affects upcoming events.",
-                        entityId = ruleId,
-                        entityType = "absence",
-                        idempotencyKeySuffix = "absence:${ruleId}"
-                    )
+                try {
+                    val teamRoles = teamRepository.getUserTeamRoles(userId)
+                    for (roleTriple in teamRoles) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = roleTriple.first,
+                            excludeUserId = userId,
+                            type = "absence",
+                            title = "Absence Update",
+                            body = "A player updated their absence. Affects upcoming events.",
+                            entityId = ruleId,
+                            entityType = "absence",
+                            idempotencyKeySuffix = "absence:${ruleId}"
+                        )
+                    }
+                } catch (e: Exception) {
+                    abwLogger.warn("Absence update notification dispatch failed: ${e.message}")
                 }
             }
 

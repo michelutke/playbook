@@ -63,7 +63,7 @@ private suspend fun fireDueReminders(
     }
 }
 
-private suspend fun fireCoachSummaries(
+internal suspend fun fireCoachSummaries(
     notificationRepo: NotificationRepository,
     pushService: PushService,
     eventRepository: EventRepository
