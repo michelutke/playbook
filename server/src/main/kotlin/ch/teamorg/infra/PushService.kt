@@ -1,10 +1,15 @@
 package ch.teamorg.infra
 
 import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import org.slf4j.LoggerFactory
 
 interface PushService {
@@ -27,19 +32,24 @@ class PushServiceImpl(private val client: HttpClient) : PushService {
     ) {
         if (userIds.isEmpty()) return
         try {
+            val payload = buildJsonObject {
+                put("app_id", System.getenv("ONESIGNAL_APP_ID"))
+                putJsonObject("include_aliases") {
+                    putJsonArray("external_id") {
+                        userIds.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) }
+                    }
+                }
+                put("target_channel", "push")
+                putJsonObject("contents") { put("en", body) }
+                putJsonObject("headings") { put("en", title) }
+                putJsonObject("data") {
+                    data.forEach { (k, v) -> put(k, v) }
+                }
+            }
             client.post("https://api.onesignal.com/notifications?c=push") {
                 header("Authorization", "Key ${System.getenv("ONESIGNAL_API_KEY")}")
                 contentType(ContentType.Application.Json)
-                setBody(
-                    mapOf(
-                        "app_id" to System.getenv("ONESIGNAL_APP_ID"),
-                        "include_aliases" to mapOf("external_id" to userIds),
-                        "target_channel" to "push",
-                        "contents" to mapOf("en" to body),
-                        "headings" to mapOf("en" to title),
-                        "data" to data
-                    )
-                )
+                setBody(payload)
             }
         } catch (e: Exception) {
             logger.error("PushService: failed to send push to ${userIds.size} users", e)
