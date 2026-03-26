@@ -68,13 +68,13 @@
 - [x] **AT-16**: Audit log of manual coach overrides
 
 ### NO — Notifications
-- [ ] **NO-01**: Player notified when new event created for their team
-- [ ] **NO-02**: Player receives configurable reminder before event (1h, 2h, 1 day, 2 days)
-- [ ] **NO-03**: Player notified when event is edited (time/location change)
-- [ ] **NO-04**: Player notified when event is cancelled
-- [ ] **NO-05**: Coach can choose per-response notifications (each confirm/decline/unsure)
-- [ ] **NO-06**: Coach can choose pre-event summary of no-response players
-- [ ] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
+- [x] **NO-01**: Player notified when new event created for their team
+- [x] **NO-02**: Player receives configurable reminder before event (1h, 2h, 1 day, 2 days)
+- [x] **NO-03**: Player notified when event is edited (time/location change)
+- [x] **NO-04**: Player notified when event is cancelled
+- [x] **NO-05**: Coach can choose per-response notifications (each confirm/decline/unsure)
+- [x] **NO-06**: Coach can choose pre-event summary of no-response players
+- [x] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
 - [x] **NO-08**: Each user can enable/disable notification types independently
 - [x] **NO-09**: User can configure reminder lead time
 - [x] **NO-10**: Push notifications on iOS + Android (OneSignal)
