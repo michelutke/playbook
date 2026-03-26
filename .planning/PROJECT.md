@@ -126,9 +126,9 @@ Every phase must:
 - [x] Team management (clubs, teams, invite, roles) — Validated in Phase 02
 - [x] Event scheduling (create, edit, cancel, recurring, subgroups) — Validated in Phase 03
 - [x] Attendance tracking (confirm/decline, J+S reports, offline) — Validated in Phase 04
+- [x] Push notifications + in-app inbox — Validated in Phase 05
 
 ### Active
-- [ ] Push notifications + in-app inbox
 - [ ] Super-admin panel (clubs, users, audit log, impersonation)
 
 ### Out of Scope
@@ -137,4 +137,4 @@ Every phase must:
 - External job queue — V2 if scale demands
 
 ---
-*Last updated: 2026-03-24 after Phase 04 completion*
+*Last updated: 2026-03-26 after Phase 05 completion*
