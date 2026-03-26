@@ -3,6 +3,12 @@ package ch.teamorg.plugins
 import ch.teamorg.di.StorageModule
 import ch.teamorg.domain.repositories.*
 import ch.teamorg.infra.AbwesenheitBackfillJob
+import ch.teamorg.infra.PushService
+import ch.teamorg.infra.PushServiceImpl
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import org.koin.core.logger.Level
 import org.koin.dsl.module
@@ -17,6 +23,12 @@ val appModule = module {
     single<AttendanceRepository> { AttendanceRepositoryImpl() }
     single<AbwesenheitRepository> { AbwesenheitRepositoryImpl() }
     single { AbwesenheitBackfillJob() }
+    single<PushService> {
+        PushServiceImpl(HttpClient(CIO) {
+            install(ContentNegotiation) { json() }
+        })
+    }
+    single<NotificationRepository> { NotificationRepositoryImpl() }
 }
 
 fun Application.configureKoin() {

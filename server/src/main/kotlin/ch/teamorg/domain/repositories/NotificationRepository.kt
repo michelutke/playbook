@@ -1,0 +1,267 @@
+package ch.teamorg.domain.repositories
+
+import ch.teamorg.db.tables.*
+import ch.teamorg.domain.models.UpdateNotificationSettingsRequest
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
+import java.util.UUID
+
+data class NotificationRow(
+    val id: UUID,
+    val userId: UUID,
+    val type: String,
+    val title: String,
+    val body: String,
+    val entityId: UUID?,
+    val entityType: String?,
+    val isRead: Boolean,
+    val createdAt: Instant
+)
+
+data class NotificationSettingsRow(
+    val userId: UUID,
+    val teamId: UUID,
+    val eventsNew: Boolean,
+    val eventsEdit: Boolean,
+    val eventsCancel: Boolean,
+    val remindersEnabled: Boolean,
+    val reminderLeadMinutes: Int,
+    val coachResponseMode: String,
+    val absencesEnabled: Boolean
+)
+
+interface NotificationRepository {
+    suspend fun createNotification(
+        userId: UUID,
+        type: String,
+        title: String,
+        body: String,
+        entityId: UUID?,
+        entityType: String?,
+        idempotencyKey: String
+    ): Boolean
+
+    suspend fun createBatch(
+        userIds: List<UUID>,
+        type: String,
+        title: String,
+        body: String,
+        entityId: UUID?,
+        entityType: String?,
+        idempotencyKey: String
+    ): List<UUID>
+
+    suspend fun getNotifications(userId: UUID, limit: Int = 50, offset: Int = 0): List<NotificationRow>
+    suspend fun markRead(userId: UUID, notificationId: UUID): Boolean
+    suspend fun markAllRead(userId: UUID): Int
+    suspend fun getUnreadCount(userId: UUID): Long
+    suspend fun getSettings(userId: UUID, teamId: UUID): NotificationSettingsRow?
+    suspend fun upsertSettings(userId: UUID, teamId: UUID, settings: UpdateNotificationSettingsRequest)
+    suspend fun isUserEligible(userId: UUID, teamId: UUID, type: String): Boolean
+    suspend fun isDuplicate(userId: UUID, idempotencyKey: String): Boolean
+    suspend fun getTeamMemberIds(teamId: UUID): List<UUID>
+    suspend fun getReminderOverride(userId: UUID, eventId: UUID): Int?
+    suspend fun upsertReminderOverride(userId: UUID, eventId: UUID, leadMinutes: Int?)
+    suspend fun deleteOldNotifications(olderThanDays: Int = 90)
+}
+
+class NotificationRepositoryImpl : NotificationRepository {
+
+    override suspend fun createNotification(
+        userId: UUID,
+        type: String,
+        title: String,
+        body: String,
+        entityId: UUID?,
+        entityType: String?,
+        idempotencyKey: String
+    ): Boolean = transaction {
+        val inserted = NotificationsTable.insertIgnore {
+            it[NotificationsTable.userId] = userId
+            it[NotificationsTable.type] = type
+            it[NotificationsTable.title] = title
+            it[NotificationsTable.body] = body
+            it[NotificationsTable.entityId] = entityId
+            it[NotificationsTable.entityType] = entityType
+            it[NotificationsTable.idempotencyKey] = idempotencyKey
+        }
+        inserted.insertedCount > 0
+    }
+
+    override suspend fun createBatch(
+        userIds: List<UUID>,
+        type: String,
+        title: String,
+        body: String,
+        entityId: UUID?,
+        entityType: String?,
+        idempotencyKey: String
+    ): List<UUID> = transaction {
+        userIds.filter { userId ->
+            val inserted = NotificationsTable.insertIgnore {
+                it[NotificationsTable.userId] = userId
+                it[NotificationsTable.type] = type
+                it[NotificationsTable.title] = title
+                it[NotificationsTable.body] = body
+                it[NotificationsTable.entityId] = entityId
+                it[NotificationsTable.entityType] = entityType
+                it[NotificationsTable.idempotencyKey] = idempotencyKey
+            }
+            inserted.insertedCount > 0
+        }
+    }
+
+    override suspend fun getNotifications(userId: UUID, limit: Int, offset: Int): List<NotificationRow> = transaction {
+        NotificationsTable.selectAll()
+            .where { NotificationsTable.userId eq userId }
+            .orderBy(NotificationsTable.createdAt, SortOrder.DESC)
+            .limit(limit, offset.toLong())
+            .map(::rowToNotification)
+    }
+
+    override suspend fun markRead(userId: UUID, notificationId: UUID): Boolean = transaction {
+        val count = NotificationsTable.update({
+            (NotificationsTable.id eq notificationId) and (NotificationsTable.userId eq userId)
+        }) {
+            it[isRead] = true
+        }
+        count > 0
+    }
+
+    override suspend fun markAllRead(userId: UUID): Int = transaction {
+        NotificationsTable.update({ NotificationsTable.userId eq userId }) {
+            it[isRead] = true
+        }
+    }
+
+    override suspend fun getUnreadCount(userId: UUID): Long = transaction {
+        NotificationsTable.selectAll()
+            .where { (NotificationsTable.userId eq userId) and (NotificationsTable.isRead eq false) }
+            .count()
+    }
+
+    override suspend fun getSettings(userId: UUID, teamId: UUID): NotificationSettingsRow? = transaction {
+        NotificationSettingsTable.selectAll()
+            .where { (NotificationSettingsTable.userId eq userId) and (NotificationSettingsTable.teamId eq teamId) }
+            .map(::rowToSettings)
+            .singleOrNull()
+    }
+
+    override suspend fun upsertSettings(userId: UUID, teamId: UUID, settings: UpdateNotificationSettingsRequest): Unit = transaction {
+        val existing = NotificationSettingsTable.selectAll()
+            .where { (NotificationSettingsTable.userId eq userId) and (NotificationSettingsTable.teamId eq teamId) }
+            .singleOrNull()
+
+        if (existing == null) {
+            NotificationSettingsTable.insert {
+                it[NotificationSettingsTable.userId] = userId
+                it[NotificationSettingsTable.teamId] = teamId
+                settings.eventsNew?.let { v -> it[eventsNew] = v }
+                settings.eventsEdit?.let { v -> it[eventsEdit] = v }
+                settings.eventsCancel?.let { v -> it[eventsCancel] = v }
+                settings.remindersEnabled?.let { v -> it[remindersEnabled] = v }
+                settings.reminderLeadMinutes?.let { v -> it[reminderLeadMinutes] = v }
+                settings.coachResponseMode?.let { v -> it[coachResponseMode] = v }
+                settings.absencesEnabled?.let { v -> it[absencesEnabled] = v }
+            }
+        } else {
+            NotificationSettingsTable.update({
+                (NotificationSettingsTable.userId eq userId) and (NotificationSettingsTable.teamId eq teamId)
+            }) {
+                settings.eventsNew?.let { v -> it[eventsNew] = v }
+                settings.eventsEdit?.let { v -> it[eventsEdit] = v }
+                settings.eventsCancel?.let { v -> it[eventsCancel] = v }
+                settings.remindersEnabled?.let { v -> it[remindersEnabled] = v }
+                settings.reminderLeadMinutes?.let { v -> it[reminderLeadMinutes] = v }
+                settings.coachResponseMode?.let { v -> it[coachResponseMode] = v }
+                settings.absencesEnabled?.let { v -> it[absencesEnabled] = v }
+            }
+        }
+    }
+
+    override suspend fun isUserEligible(userId: UUID, teamId: UUID, type: String): Boolean = transaction {
+        val row = NotificationSettingsTable.selectAll()
+            .where { (NotificationSettingsTable.userId eq userId) and (NotificationSettingsTable.teamId eq teamId) }
+            .singleOrNull() ?: return@transaction true
+
+        when (type) {
+            "event_new" -> row[NotificationSettingsTable.eventsNew]
+            "event_edit" -> row[NotificationSettingsTable.eventsEdit]
+            "event_cancel" -> row[NotificationSettingsTable.eventsCancel]
+            "reminder" -> row[NotificationSettingsTable.remindersEnabled]
+            "absence" -> row[NotificationSettingsTable.absencesEnabled]
+            else -> true
+        }
+    }
+
+    override suspend fun isDuplicate(userId: UUID, idempotencyKey: String): Boolean = transaction {
+        NotificationsTable.selectAll()
+            .where { (NotificationsTable.userId eq userId) and (NotificationsTable.idempotencyKey eq idempotencyKey) }
+            .count() > 0
+    }
+
+    override suspend fun getTeamMemberIds(teamId: UUID): List<UUID> = transaction {
+        TeamRolesTable.select(TeamRolesTable.userId)
+            .where { (TeamRolesTable.teamId eq teamId) and (TeamRolesTable.userId.isNotNull()) }
+            .mapNotNull { it[TeamRolesTable.userId] }
+    }
+
+    override suspend fun getReminderOverride(userId: UUID, eventId: UUID): Int? = transaction {
+        EventReminderOverridesTable.selectAll()
+            .where { (EventReminderOverridesTable.userId eq userId) and (EventReminderOverridesTable.eventId eq eventId) }
+            .singleOrNull()
+            ?.get(EventReminderOverridesTable.reminderLeadMinutes)
+    }
+
+    override suspend fun upsertReminderOverride(userId: UUID, eventId: UUID, leadMinutes: Int?): Unit = transaction {
+        val existing = EventReminderOverridesTable.selectAll()
+            .where { (EventReminderOverridesTable.userId eq userId) and (EventReminderOverridesTable.eventId eq eventId) }
+            .singleOrNull()
+
+        if (existing == null) {
+            EventReminderOverridesTable.insert {
+                it[EventReminderOverridesTable.userId] = userId
+                it[EventReminderOverridesTable.eventId] = eventId
+                it[reminderLeadMinutes] = leadMinutes
+            }
+        } else {
+            EventReminderOverridesTable.update({
+                (EventReminderOverridesTable.userId eq userId) and (EventReminderOverridesTable.eventId eq eventId)
+            }) {
+                it[reminderLeadMinutes] = leadMinutes
+            }
+        }
+    }
+
+    override suspend fun deleteOldNotifications(olderThanDays: Int): Unit = transaction {
+        val cutoff = Instant.now().minusSeconds(olderThanDays.toLong() * 24 * 3600)
+        NotificationsTable.deleteWhere { NotificationsTable.createdAt less cutoff }
+    }
+
+    private fun rowToNotification(row: ResultRow) = NotificationRow(
+        id = row[NotificationsTable.id],
+        userId = row[NotificationsTable.userId],
+        type = row[NotificationsTable.type],
+        title = row[NotificationsTable.title],
+        body = row[NotificationsTable.body],
+        entityId = row[NotificationsTable.entityId],
+        entityType = row[NotificationsTable.entityType],
+        isRead = row[NotificationsTable.isRead],
+        createdAt = row[NotificationsTable.createdAt]
+    )
+
+    private fun rowToSettings(row: ResultRow) = NotificationSettingsRow(
+        userId = row[NotificationSettingsTable.userId],
+        teamId = row[NotificationSettingsTable.teamId],
+        eventsNew = row[NotificationSettingsTable.eventsNew],
+        eventsEdit = row[NotificationSettingsTable.eventsEdit],
+        eventsCancel = row[NotificationSettingsTable.eventsCancel],
+        remindersEnabled = row[NotificationSettingsTable.remindersEnabled],
+        reminderLeadMinutes = row[NotificationSettingsTable.reminderLeadMinutes],
+        coachResponseMode = row[NotificationSettingsTable.coachResponseMode],
+        absencesEnabled = row[NotificationSettingsTable.absencesEnabled]
+    )
+}

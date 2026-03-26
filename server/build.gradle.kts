@@ -42,6 +42,8 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.simple.javaMail)
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation(libs.ktor.clientCio)
+    implementation(libs.ktor.clientContentNegotiation)
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.ktor.clientContentNegotiation)
     testImplementation(libs.kotlin.testJunit)
