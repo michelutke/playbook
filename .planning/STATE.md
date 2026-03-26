@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T08:22:47.811Z"
+last_updated: "2026-03-26T08:27:23.523Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 29
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-26T08:22:47.808Z
+- **Last session:** 2026-03-26T08:27:23.516Z
 
 ## Phase Status
 
@@ -128,6 +128,9 @@ progress:
 - [Phase 05-notifications]: Used timestamp() not timestampWithTimeZone() in NotificationTables — not in exposed-java-time 0.54.0, TIMESTAMPTZ handled by PostgreSQL JDBC transparently
 - [Phase 05-notifications]: insertIgnore used for dedup in NotificationRepository.createNotification/createBatch — maps to INSERT IGNORE ON CONFLICT DO NOTHING via Exposed
 - [Phase 05-notifications]: ktor-client-cio added to server production deps for PushServiceImpl HttpClient — CIO engine is JVM-native
+- [Phase 05-notifications]: PushRegistration expect/actual: Android calls OneSignal.login/logout; iOS+JVM no-op (iOS OneSignal SDK is native Swift, not accessible from KMM)
+- [Phase 05-notifications]: ONESIGNAL_APP_ID read from onesignal.appId local.properties via findProperty() in BuildConfig
+- [Phase 05-notifications]: iOS OneSignal SPM package requires manual Xcode setup; placeholder string in iOSApp.swift marks substitution point
 
 ## Notes
 
