@@ -167,6 +167,16 @@ Plans:
 
 **Requirements:** NO-01–12
 
+**Plans:** 6 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Server DB foundation (V9 migration, Exposed tables, PushService, NotificationRepository)
+- [ ] 05-02-PLAN.md — Server routes + notification triggers + ReminderSchedulerJob
+- [ ] 05-03-PLAN.md — Shared KMP contracts (domain models, repository interface, SQLDelight cache, Ktor impl)
+- [ ] 05-04-PLAN.md — OneSignal SDK integration (Android + iOS init, login/logout hooks)
+- [ ] 05-05-PLAN.md — Notification UI (InboxScreen, settings, ReminderPickerSheet, badge, EventDetail reminder row)
+- [ ] 05-06-PLAN.md — Integration + unit tests (NotificationRoutesTest, PushServiceTest)
+
 **Deliverables:**
 - OneSignal integration (iOS + Android, behind PushService abstraction)
 - Event notifications: new event, edits, cancellations
@@ -226,6 +236,7 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 1 | Foundation + Auth | Done |
 | 2 | Team Management | Done |
 | 3 | Event Scheduling | Done |
-| 4 | Attendance Tracking | Complete | 2026-03-24 |
-| 4.1 | 2/2 | Complete   | 2026-03-24 | 5 | Notifications | Not started |
+| 4 | Attendance Tracking | Done |
+| 4.1 | Attendance Integration Fixes | Done |
+| 5 | Notifications | Not started |
 | 6 | Super Admin | Not started |
