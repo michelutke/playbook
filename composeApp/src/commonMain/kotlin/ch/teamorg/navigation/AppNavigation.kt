@@ -25,6 +25,10 @@ import ch.teamorg.ui.invite.InviteScreen
 import ch.teamorg.ui.invite.InviteViewModel
 import ch.teamorg.ui.login.LoginScreen
 import ch.teamorg.ui.login.LoginViewModel
+import ch.teamorg.ui.inbox.InboxScreen
+import ch.teamorg.ui.inbox.InboxViewModel
+import ch.teamorg.ui.inbox.NotificationSettingsScreen
+import ch.teamorg.ui.inbox.NotificationSettingsViewModel
 import ch.teamorg.ui.placeholder.PlaceholderScreen
 import ch.teamorg.ui.register.RegisterScreen
 import ch.teamorg.ui.register.RegisterViewModel
@@ -211,7 +215,20 @@ fun AppNavigation(
                     onTeamClick = { teamId -> backStack.add(Screen.TeamRoster(teamId)) }
                 )
             }
-            Screen.Inbox -> PlaceholderScreen("Inbox")
+            Screen.Inbox -> {
+                val viewModel: InboxViewModel = viewModel { KoinPlatform.getKoin().get() }
+                InboxScreen(
+                    viewModel = viewModel,
+                    onNavigate = { screen -> backStack.add(screen) }
+                )
+            }
+            Screen.NotificationSettings -> {
+                val viewModel: NotificationSettingsViewModel = viewModel { KoinPlatform.getKoin().get() }
+                NotificationSettingsScreen(
+                    viewModel = viewModel,
+                    onBack = { backStack.removeLastOrNull() }
+                )
+            }
             Screen.Profile -> {
                 val viewModel: PlayerProfileViewModel = viewModel { KoinPlatform.getKoin().get() }
                 val userPreferences = remember { KoinPlatform.getKoin().get<ch.teamorg.preferences.UserPreferences>() }

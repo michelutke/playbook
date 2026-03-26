@@ -9,11 +9,14 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +27,8 @@ import ch.teamorg.navigation.Screen
 @Composable
 fun TeamorgBottomBar(
     currentRoute: String?,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    unreadCount: Long = 0
 ) {
     // Bottom nav: 62dp height, cornerRadius 36dp
     NavigationBar(
@@ -47,11 +51,28 @@ fun TeamorgBottomBar(
             selected = currentRoute == Screen.Teams.route,
             onNavigate = onNavigate
         )
-        BottomNavItem(
-            screen = Screen.Inbox,
-            icon = Icons.Default.Notifications,
+        // Inbox tab with unread badge
+        NavigationBarItem(
             selected = currentRoute == Screen.Inbox.route,
-            onNavigate = onNavigate
+            onClick = { onNavigate(Screen.Inbox) },
+            icon = {
+                BadgedBox(
+                    badge = {
+                        if (unreadCount > 0) {
+                            Badge {
+                                Text(if (unreadCount > 99) "99+" else unreadCount.toString())
+                            }
+                        }
+                    }
+                ) {
+                    Icon(Icons.Default.Notifications, contentDescription = Screen.Inbox.route)
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                indicatorColor = MaterialTheme.colorScheme.surface
+            )
         )
         BottomNavItem(
             screen = Screen.Profile,
