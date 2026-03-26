@@ -28,7 +28,7 @@ val uiModule = module {
     factory { PlayerProfileViewModel(get(), get(), get(), get(), get()) }
     factory { InviteViewModel(get()) }
     factory { EventListViewModel(get(), get(), get(), get()) }
-    factory { EventDetailViewModel(get(), get(), get(), get()) }
+    factory { EventDetailViewModel(get(), get(), get(), get(), get()) }
     factory { CreateEditEventViewModel(get(), get(), get()) }
     factory { CalendarViewModel(get(), get(), get()) }
     factory { InboxViewModel(get()) }

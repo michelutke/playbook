@@ -25,11 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.teamorg.domain.CheckInEntry
 import ch.teamorg.domain.EventWithTeams
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Alarm
 import ch.teamorg.ui.attendance.AttendanceRsvpButtons
 import ch.teamorg.ui.attendance.BegrundungSheet
 import ch.teamorg.ui.attendance.CoachOverrideSheet
 import ch.teamorg.ui.attendance.MemberResponseList
 import ch.teamorg.ui.attendance.ResponseDeadlineLabel
+import ch.teamorg.ui.inbox.ReminderPickerSheet
+import ch.teamorg.ui.inbox.formatLeadTime
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -87,6 +91,7 @@ fun EventDetailScreen(
     var showOverrideReason by remember { mutableStateOf(false) }
     var overrideTarget by remember { mutableStateOf<CheckInEntry?>(null) }
     var overrideStatus by remember { mutableStateOf("") }
+    var showReminderSheet by remember { mutableStateOf(false) }
 
     val isCancelled = state.event?.event?.status == "cancelled"
     val isSeries = state.event?.event?.seriesId != null
@@ -201,6 +206,8 @@ fun EventDetailScreen(
                 deadlinePassed = state.deadlinePassed,
                 checkInEntries = state.checkInEntries,
                 isCoach = state.isCoach,
+                reminderLeadMinutes = state.reminderLeadMinutes,
+                onReminderTap = { showReminderSheet = true },
                 onRsvpSelect = { status ->
                     if (status == "unsure" || status == "declined") {
                         begrundungStatus = status
@@ -244,6 +251,22 @@ fun EventDetailScreen(
                 overrideTarget = null
             }
         )
+
+        val eventId = state.event?.event?.id
+        if (showReminderSheet && eventId != null) {
+            ReminderPickerSheet(
+                currentLeadMinutes = state.reminderLeadMinutes,
+                onConfirm = { minutes ->
+                    viewModel.setReminderOverride(eventId, minutes)
+                    showReminderSheet = false
+                },
+                onRemove = {
+                    viewModel.setReminderOverride(eventId, null)
+                    showReminderSheet = false
+                },
+                onDismiss = { showReminderSheet = false }
+            )
+        }
     }
 }
 
@@ -258,6 +281,8 @@ private fun EventDetailBody(
     deadlinePassed: Boolean,
     checkInEntries: List<CheckInEntry>,
     isCoach: Boolean,
+    reminderLeadMinutes: Int?,
+    onReminderTap: () -> Unit,
     onRsvpSelect: (String) -> Unit,
     onOverrideTap: (CheckInEntry, String) -> Unit
 ) {
@@ -296,6 +321,31 @@ private fun EventDetailBody(
             if (ewt.matchedTeams.isNotEmpty()) {
                 MetaRow(icon = "👥", text = ewt.matchedTeams.joinToString(", ") { it.name })
             }
+        }
+
+        // Divider
+        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerColor))
+
+        // Reminder row
+        val reminderText = when {
+            reminderLeadMinutes == null -> "Global default (2 h)"
+            reminderLeadMinutes == -1 -> "No reminder"
+            else -> formatLeadTime(reminderLeadMinutes)
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onReminderTap() }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Alarm, contentDescription = null, tint = TextMuted, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(12.dp))
+            Text("Reminder", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            Spacer(Modifier.weight(1f))
+            Text(reminderText, style = MaterialTheme.typography.labelLarge, color = TextMuted)
+            Spacer(Modifier.width(4.dp))
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
         }
 
         // Divider
