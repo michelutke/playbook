@@ -122,15 +122,14 @@ Every phase must:
 ## Requirements
 
 ### Validated
-*(None yet — first phase ships to validate)*
+- [x] Auth (email/password, JWT, roles from DB) — Validated in Phase 01
+- [x] Team management (clubs, teams, invite, roles) — Validated in Phase 02
+- [x] Event scheduling (create, edit, cancel, recurring, subgroups) — Validated in Phase 03
+- [x] Attendance tracking (confirm/decline, J+S reports, offline) — Validated in Phase 04
 
 ### Active
-- [ ] Team management (clubs, teams, invite, roles)
-- [ ] Event scheduling (create, edit, cancel, recurring, subgroups)
-- [ ] Attendance tracking (confirm/decline, J+S reports, offline)
 - [ ] Push notifications + in-app inbox
 - [ ] Super-admin panel (clubs, users, audit log, impersonation)
-- [ ] Auth (email/password, JWT, roles from DB)
 
 ### Out of Scope
 - Main app web client — ADR-001 unresolved
@@ -138,4 +137,4 @@ Every phase must:
 - External job queue — V2 if scale demands
 
 ---
-*Last updated: 2026-03-12 after initialization*
+*Last updated: 2026-03-24 after Phase 04 completion*

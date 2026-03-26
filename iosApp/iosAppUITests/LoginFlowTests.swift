@@ -92,7 +92,8 @@ final class LoginFlowTests: XCTestCase {
         passwordField.tap()
         passwordField.typeText("Password123!")
 
-        app.keyboards.firstMatch.buttons["Return"].tapIfExists()
+        // Dismiss keyboard by tapping outside the text field
+        app.tap()
 
         let loginButton = app.buttons["btn_sign_in"]
         guard loginButton.waitForExistence(timeout: 3) else {

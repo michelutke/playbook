@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,74 +37,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.teamorg.domain.EventWithTeams
 import ch.teamorg.domain.MatchedTeam
+import ch.teamorg.ui.attendance.BegrundungSheet
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
-// Event type colours
+// Calendar event colour helpers
 private val ColorTraining = Color(0xFF4F8EF7)
 private val ColorMatch = Color(0xFF22C55E)
 private val ColorOther = Color(0xFFA855F7)
-private val ColorCancelled = Color(0xFFEF4444)
 private val ColorCancelledGrey = Color(0xFF6B7280)
-
-private fun eventTypeColor(type: String): Color = when (type) {
-    "training" -> ColorTraining
-    "match" -> ColorMatch
-    else -> ColorOther
-}
 
 private fun calendarEventColor(type: String, isCancelled: Boolean): Color = when {
     isCancelled -> ColorCancelledGrey
     type == "training" -> ColorTraining
     type == "match" -> ColorMatch
     else -> ColorOther
-}
-
-private fun eventTypeLabel(type: String): String = when (type) {
-    "training" -> "Training"
-    "match" -> "Match"
-    else -> "Other"
-}
-
-private fun formatDate(instant: Instant): String {
-    val local = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    val dayName = local.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-    val month = local.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-    val hour = local.hour.toString().padStart(2, '0')
-    val min = local.minute.toString().padStart(2, '0')
-    return "$dayName, ${local.dayOfMonth} $month · $hour:$min"
-}
-
-private fun formatDateOnly(instant: Instant): String {
-    val local = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    val dayName = local.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-    val month = local.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-    return "$dayName ${local.dayOfMonth} $month"
-}
-
-private fun formatDateRange(start: Instant, end: Instant): String {
-    val startLocal = start.toLocalDateTime(TimeZone.currentSystemDefault())
-    val endLocal = end.toLocalDateTime(TimeZone.currentSystemDefault())
-    return if (startLocal.date == endLocal.date) {
-        formatDate(start)
-    } else {
-        "${formatDateOnly(start)} — ${formatDateOnly(end)}"
-    }
-}
-
-private fun formatTime(instant: Instant): String {
-    val local = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    val hour = local.hour.toString().padStart(2, '0')
-    val min = local.minute.toString().padStart(2, '0')
-    return "$hour:$min"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,6 +68,19 @@ fun EventListScreen(
     onCreateClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    var showBegrundung by remember { mutableStateOf(false) }
+    var begrundungEventId by remember { mutableStateOf("") }
+    var begrundungStatus by remember { mutableStateOf("unsure") }
+
+    BegrundungSheet(
+        visible = showBegrundung,
+        mode = begrundungStatus,
+        onDismiss = { showBegrundung = false },
+        onConfirm = { reason ->
+            showBegrundung = false
+            viewModel.submitResponse(begrundungEventId, begrundungStatus, reason.ifBlank { null })
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -141,7 +106,10 @@ fun EventListScreen(
         },
         floatingActionButton = {
             if (state.isCoach) {
-                FloatingActionButton(onClick = onCreateClick) {
+                FloatingActionButton(
+                    onClick = onCreateClick,
+                    modifier = Modifier.padding(bottom = 48.dp)
+                ) {
                     Icon(Icons.Default.Add, contentDescription = "Create event")
                 }
             }
@@ -163,12 +131,30 @@ fun EventListScreen(
                 EventViewMode.LIST -> EventListContent(
                     state = state,
                     onEventClick = onEventClick,
-                    onCreateClick = onCreateClick
+                    onCreateClick = onCreateClick,
+                    onRsvpSelect = { eventId, status ->
+                        if (status == "unsure" || status == "declined") {
+                            begrundungEventId = eventId
+                            begrundungStatus = status
+                            showBegrundung = true
+                        } else {
+                            viewModel.submitResponse(eventId, status, null)
+                        }
+                    }
                 )
                 EventViewMode.CALENDAR -> CalendarContent(
                     state = state,
                     viewModel = viewModel,
-                    onEventClick = onEventClick
+                    onEventClick = onEventClick,
+                    onRsvpSelect = { eventId, status ->
+                        if (status == "unsure" || status == "declined") {
+                            begrundungEventId = eventId
+                            begrundungStatus = status
+                            showBegrundung = true
+                        } else {
+                            viewModel.submitResponse(eventId, status, null)
+                        }
+                    }
                 )
             }
         }
@@ -237,7 +223,8 @@ private fun FilterRows(
 private fun EventListContent(
     state: EventListState,
     onEventClick: (String) -> Unit,
-    onCreateClick: () -> Unit
+    onCreateClick: () -> Unit,
+    onRsvpSelect: (String, String) -> Unit  // (eventId, status)
 ) {
     when {
         state.isLoading -> {
@@ -263,9 +250,15 @@ private fun EventListContent(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(state.events, key = { it.event.id }) { ewt ->
-                    EventListItem(
+                    val counts = state.attendanceCounts[ewt.event.id]
+                    EventCard(
                         ewt = ewt,
-                        onClick = { onEventClick(ewt.event.id) }
+                        confirmedCount = counts?.confirmedCount ?: 0,
+                        maybeCount = counts?.maybeCount ?: 0,
+                        declinedCount = counts?.declinedCount ?: 0,
+                        myResponse = counts?.myResponse,
+                        onClick = { onEventClick(ewt.event.id) },
+                        onRsvpSelect = { status -> onRsvpSelect(ewt.event.id, status) }
                     )
                 }
             }
@@ -304,117 +297,14 @@ private fun EmptyEventsList(
     }
 }
 
-@Composable
-private fun EventListItem(
-    ewt: EventWithTeams,
-    onClick: () -> Unit
-) {
-    val event = ewt.event
-    val isCancelled = event.status == "cancelled"
-    val typeColor = eventTypeColor(event.type)
-    val startLocal = event.startAt.toLocalDateTime(TimeZone.currentSystemDefault())
-    val endLocal = event.endAt.toLocalDateTime(TimeZone.currentSystemDefault())
-    val isMultiDay = startLocal.date != endLocal.date
-
-    val rowModifier = if (isCancelled) {
-        Modifier.fillMaxWidth().alpha(0.4f)
-    } else {
-        Modifier.fillMaxWidth()
-    }
-
-    Card(
-        onClick = onClick,
-        modifier = rowModifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(4.dp, 40.dp)
-                    .padding(end = 0.dp),
-            )
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = eventTypeLabel(event.type),
-                tint = typeColor,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (isCancelled) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            color = ColorCancelled.copy(alpha = 0.15f),
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                text = "Cancelled",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = ColorCancelled,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = if (isMultiDay) formatDateRange(event.startAt, event.endAt)
-                           else formatDate(event.startAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.End) {
-                if (ewt.matchedTeams.size > 1) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = "${ewt.matchedTeams.size} teams",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                if (event.seriesId != null) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Recurring",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
 // ── Calendar view ──────────────────────────────────────────
 
 @Composable
 private fun CalendarContent(
     state: EventListState,
     viewModel: EventListViewModel,
-    onEventClick: (String) -> Unit
+    onEventClick: (String) -> Unit,
+    onRsvpSelect: (String, String) -> Unit
 ) {
     if (state.isLoading) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -423,14 +313,15 @@ private fun CalendarContent(
         return
     }
 
-    MonthView(state = state, viewModel = viewModel, onEventClick = onEventClick)
+    MonthView(state = state, viewModel = viewModel, onEventClick = onEventClick, onRsvpSelect = onRsvpSelect)
 }
 
 @Composable
 private fun MonthView(
     state: EventListState,
     viewModel: EventListViewModel,
-    onEventClick: (String) -> Unit
+    onEventClick: (String) -> Unit,
+    onRsvpSelect: (String, String) -> Unit
 ) {
     val currentDate = remember {
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -449,13 +340,26 @@ private fun MonthView(
         navDirection = -1
         if (displayMonth == 1) { displayMonth = 12; displayYear-- } else displayMonth--
     }
+    fun goToday() {
+        navDirection = 0
+        displayYear = currentDate.year
+        displayMonth = currentDate.monthNumber
+        viewModel.selectDate(currentDate)
+    }
+
+    // Default select today when no date selected
+    LaunchedEffect(Unit) {
+        if (state.selectedDate == null) {
+            viewModel.selectDate(currentDate)
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Month navigation: ‹ March 2025 ›
+        // Month navigation: ‹ March 2025 › + Today button
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -470,12 +374,30 @@ private fun MonthView(
                     interactionSource = remember { MutableInteractionSource() }
                 ) { goPrev() }
             )
-            Text(
-                "${Month(displayMonth).name.lowercase().replaceFirstChar { it.uppercase() }} $displayYear",
-                color = Color(0xFFF0F0FF),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    "${Month(displayMonth).name.lowercase().replaceFirstChar { it.uppercase() }} $displayYear",
+                    color = Color(0xFFF0F0FF),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                val isCurrentMonth = displayYear == currentDate.year && displayMonth == currentDate.monthNumber
+                if (!isCurrentMonth) {
+                    Text(
+                        "Today",
+                        color = CalSelectedBg,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { goToday() }
+                    )
+                }
+            }
             Text(
                 "›",
                 color = Color(0xFF9090B0),
@@ -566,7 +488,12 @@ private fun MonthView(
         Column(modifier = Modifier.animateContentSize()) {
             if (state.selectedDate != null && state.selectedDayEvents.isNotEmpty()) {
                 HorizontalDivider(color = Color(0xFF2A2A40))
-                DayEventsList(events = state.selectedDayEvents, onEventClick = onEventClick)
+                DayEventsList(
+                    events = state.selectedDayEvents,
+                    attendanceCounts = state.attendanceCounts,
+                    onEventClick = onEventClick,
+                    onRsvpSelect = onRsvpSelect
+                )
             }
         }
     }
@@ -767,49 +694,24 @@ private fun EventChip(label: String, bgColor: Color, textColor: Color) {
 @Composable
 private fun DayEventsList(
     events: List<EventWithTeams>,
-    onEventClick: (String) -> Unit
+    attendanceCounts: Map<String, EventAttendanceCounts>,
+    onEventClick: (String) -> Unit,
+    onRsvpSelect: (String, String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
     ) {
         events.forEach { ewt ->
-            val isCancelled = ewt.event.status == "cancelled"
-            val typeColor = calendarEventColor(ewt.event.type, isCancelled)
-            Card(
+            val counts = attendanceCounts[ewt.event.id]
+            EventCard(
+                ewt = ewt,
+                confirmedCount = counts?.confirmedCount ?: 0,
+                maybeCount = counts?.maybeCount ?: 0,
+                declinedCount = counts?.declinedCount ?: 0,
+                myResponse = counts?.myResponse,
                 onClick = { onEventClick(ewt.event.id) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .alpha(if (isCancelled) 0.4f else 1f),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(4.dp)
-                            .height(40.dp)
-                            .background(typeColor, RoundedCornerShape(2.dp))
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = ewt.event.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "${formatTime(ewt.event.startAt)} – ${formatTime(ewt.event.endAt)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
+                onRsvpSelect = { status -> onRsvpSelect(ewt.event.id, status) }
+            )
         }
     }
 }

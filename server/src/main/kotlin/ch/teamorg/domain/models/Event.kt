@@ -73,7 +73,8 @@ data class CreateEventRequest(
     val minAttendees: Int? = null,
     val teamIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
     val subgroupIds: List<@Serializable(with = UUIDSerializer::class) UUID> = emptyList(),
-    val recurring: RecurringPattern? = null
+    val recurring: RecurringPattern? = null,
+    @Serializable(with = InstantSerializer::class) val responseDeadline: Instant? = null
 )
 
 @Serializable

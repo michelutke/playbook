@@ -1,6 +1,7 @@
 package ch.teamorg
 
 import ch.teamorg.infra.DatabaseFactory
+import ch.teamorg.infra.startAutoPresentJob
 import ch.teamorg.infra.startMaterialisationJob
 import ch.teamorg.plugins.*
 import io.ktor.http.*
@@ -32,4 +33,5 @@ fun Application.module() {
     configureAuth()
     configureRouting()
     startMaterialisationJob()
+    startAutoPresentJob()
 }

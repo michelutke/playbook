@@ -1,10 +1,16 @@
 package ch.teamorg
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -58,30 +64,34 @@ fun TeamorgApp(
           && currentScreen !is Screen.EventDetail
           && currentScreen !is Screen.EditEvent
           && currentScreen !is Screen.DuplicateEvent
+          && currentScreen !is Screen.PlayerProfile
 
         PlatformBackHandler(enabled = backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
         }
 
-        Scaffold(
-            contentWindowInsets = WindowInsets(0),
-            containerColor = Color(0xFF090912),
-            bottomBar = {
-                if (showBottomBar) {
-                    TeamorgBottomBar(
-                        currentRoute = currentScreen.route,
-                        onNavigate = { screen ->
-                            backStack.add(screen)
-                        }
-                    )
-                }
-            }
-        ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                AppNavigation(
-                    backStack = backStack,
-                    isLoggedIn = authState is AuthState.Authenticated,
-                    onAuthSuccess = { viewModel.checkAuthState() }
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color(0xFF090912))
+        ) {
+            // Content takes full screen — no layout shift from bottom bar
+            AppNavigation(
+                backStack = backStack,
+                isLoggedIn = authState is AuthState.Authenticated,
+                onAuthSuccess = { viewModel.checkAuthState() }
+            )
+
+            // Bottom bar overlaid on top — animates without affecting content layout
+            AnimatedVisibility(
+                visible = showBottomBar,
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                TeamorgBottomBar(
+                    currentRoute = currentScreen.route,
+                    onNavigate = { screen ->
+                        backStack.add(screen)
+                    }
                 )
             }
         }

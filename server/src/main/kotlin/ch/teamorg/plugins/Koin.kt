@@ -2,6 +2,7 @@ package ch.teamorg.plugins
 
 import ch.teamorg.di.StorageModule
 import ch.teamorg.domain.repositories.*
+import ch.teamorg.infra.AbwesenheitBackfillJob
 import io.ktor.server.application.*
 import org.koin.core.logger.Level
 import org.koin.dsl.module
@@ -13,6 +14,9 @@ val appModule = module {
     single<TeamRepository> { TeamRepositoryImpl() }
     single<InviteRepository> { InviteRepositoryImpl() }
     single<EventRepository> { EventRepositoryImpl() }
+    single<AttendanceRepository> { AttendanceRepositoryImpl() }
+    single<AbwesenheitRepository> { AbwesenheitRepositoryImpl() }
+    single { AbwesenheitBackfillJob() }
 }
 
 fun Application.configureKoin() {

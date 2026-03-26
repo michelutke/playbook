@@ -99,6 +99,17 @@ Plans:
 
 **Requirements:** AT-01–16
 
+**Plans:** 7/7 plans complete
+
+Plans:
+- [ ] 04-01-PLAN.md — Backend data foundation (V8 migration, Exposed tables, server repositories)
+- [ ] 04-02-PLAN.md — Server API routes (attendance, abwesenheit, check-in) + background jobs
+- [ ] 04-03-PLAN.md — Shared KMP contracts (domain models, repository interfaces, SQLDelight offline schema)
+- [ ] 04-04-PLAN.md — Shared KMP repository impls + offline mutation queue + stats calculator
+- [ ] 04-05-PLAN.md — Event list + detail attendance UI (RSVP buttons, member list, Begrundung sheet)
+- [ ] 04-06-PLAN.md — Coach override sheet + absence management UI (AddAbsenceSheet, profile integration)
+- [ ] 04-07-PLAN.md — End-to-end wiring + automated tests (server integration + stats unit tests)
+
 **Deliverables:**
 - Per-event response UI (confirm / decline / unsure + Begründung)
 - Response deadline enforcement (client UX + server 409)
@@ -120,6 +131,34 @@ Plans:
 3. Late sync rejected with 409 (server authoritative)
 4. Offline responses sync correctly when back online
 5. Statistics correct for a player with mixed attendance history
+
+---
+
+## Phase 4.1 — Attendance Integration Fixes
+**Goal:** Fix P0 runtime breaks and P1 degraded features identified by milestone audit.
+
+**Gap Closure:** Closes BREAK-01, PARTIAL-01, PARTIAL-02, PARTIAL-03 from v1.0 audit.
+
+**Requirements:** AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19
+
+**Plans:** 2/2 plans complete
+
+Plans:
+- [ ] 04.1-01-PLAN.md — Server fixes: CheckInEntry shape mismatch + TeamRolesTable nullable alignment
+- [ ] 04.1-02-PLAN.md — Client fixes: Stats eventTypes + Profile tab navigation
+
+**Deliverables:**
+- CheckInEntry server response aligned with client model (BREAK-01)
+- TeamRolesTable Exposed object updated to nullable user_id + SET NULL (PARTIAL-01)
+- PlayerProfileViewModel passes real eventTypes to stats calculator (PARTIAL-02)
+- Profile tab wired to PlayerProfileScreen instead of PlaceholderScreen (PARTIAL-03)
+
+**Success criteria:**
+1. Coach sees member response list on EventDetailScreen
+2. Coach can open and use CoachOverrideSheet
+3. Member removal doesn't crash subsequent role queries
+4. Stats bar shows correct per-type breakdown
+5. Player reaches attendance stats + absence management from Profile tab
 
 ---
 
@@ -184,7 +223,9 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 
 | Phase | Feature | Status |
 |---|---|---|
-| 1 | Foundation + Auth | ✅ Done |
-| 2 | 6/6 | Complete   | 2026-03-19 | 3 | 8/8 | Complete   | 2026-03-19 | 4 | Attendance Tracking | 🔲 Not started |
-| 5 | Notifications | 🔲 Not started |
-| 6 | Super Admin | 🔲 Not started |
+| 1 | Foundation + Auth | Done |
+| 2 | Team Management | Done |
+| 3 | Event Scheduling | Done |
+| 4 | Attendance Tracking | Complete | 2026-03-24 |
+| 4.1 | 2/2 | Complete   | 2026-03-24 | 5 | Notifications | Not started |
+| 6 | Super Admin | Not started |

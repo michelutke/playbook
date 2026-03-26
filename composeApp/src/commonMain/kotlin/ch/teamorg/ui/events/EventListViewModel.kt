@@ -2,9 +2,11 @@ package ch.teamorg.ui.events
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ch.teamorg.domain.AttendanceResponse
 import ch.teamorg.domain.EventWithTeams
 import ch.teamorg.domain.MatchedTeam
 import ch.teamorg.preferences.UserPreferences
+import ch.teamorg.repository.AttendanceRepository
 import ch.teamorg.repository.EventRepository
 import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,13 @@ import kotlinx.datetime.toLocalDateTime
 
 enum class EventViewMode { LIST, CALENDAR }
 
+data class EventAttendanceCounts(
+    val confirmedCount: Int = 0,
+    val maybeCount: Int = 0,
+    val declinedCount: Int = 0,
+    val myResponse: String? = null
+)
+
 data class EventListState(
     val allEvents: List<EventWithTeams> = emptyList(),
     val events: List<EventWithTeams> = emptyList(),
@@ -31,13 +40,15 @@ data class EventListState(
     val viewMode: EventViewMode = EventViewMode.LIST,
     val eventsByDate: Map<LocalDate, List<EventWithTeams>> = emptyMap(),
     val selectedDate: LocalDate? = null,
-    val selectedDayEvents: List<EventWithTeams> = emptyList()
+    val selectedDayEvents: List<EventWithTeams> = emptyList(),
+    val attendanceCounts: Map<String, EventAttendanceCounts> = emptyMap()
 )
 
 class EventListViewModel(
     private val eventRepository: EventRepository,
     private val teamRepository: TeamRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val attendanceRepository: AttendanceRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EventListState())
@@ -56,6 +67,7 @@ class EventListViewModel(
                 _state.update { it.copy(allEvents = sorted, isLoading = false, teams = teams) }
                 applyFilters()
                 checkCoachRole()
+                loadAttendanceCounts(sorted.map { it.event.id })
             }.onFailure { e ->
                 _state.update { it.copy(error = e.message, isLoading = false) }
             }
@@ -96,6 +108,57 @@ class EventListViewModel(
             }
         }
         return byDate
+    }
+
+    private fun loadAttendanceCounts(eventIds: List<String>) {
+        viewModelScope.launch {
+            val countsMap = mutableMapOf<String, EventAttendanceCounts>()
+            val userId = userPreferences.getUserId()
+            eventIds.forEach { eventId ->
+                attendanceRepository.getEventAttendance(eventId).onSuccess { responses ->
+                    val confirmed = responses.count { it.status == "confirmed" }
+                    val maybe = responses.count { it.status == "unsure" }
+                    val declined = responses.count {
+                        it.status == "declined" || it.status == "declined-auto"
+                    }
+                    val myResponse = responses.find { it.userId == userId }?.status
+                    countsMap[eventId] = EventAttendanceCounts(
+                        confirmedCount = confirmed,
+                        maybeCount = maybe,
+                        declinedCount = declined,
+                        myResponse = myResponse
+                    )
+                }
+            }
+            _state.update { it.copy(attendanceCounts = it.attendanceCounts + countsMap) }
+        }
+    }
+
+    fun submitResponse(eventId: String, status: String, reason: String?) {
+        // Optimistic update
+        _state.update { state ->
+            val counts = state.attendanceCounts.toMutableMap()
+            val current = counts[eventId] ?: EventAttendanceCounts()
+            counts[eventId] = current.copy(myResponse = status)
+            state.copy(attendanceCounts = counts)
+        }
+        viewModelScope.launch {
+            val request = ch.teamorg.domain.SubmitResponseRequest(status = status, reason = reason)
+            attendanceRepository.submitResponse(eventId, request)
+                .onSuccess {
+                    // Reload counts to get accurate numbers
+                    loadAttendanceCounts(listOf(eventId))
+                }
+                .onFailure {
+                    // Revert optimistic update
+                    _state.update { state ->
+                        val counts = state.attendanceCounts.toMutableMap()
+                        val current = counts[eventId] ?: EventAttendanceCounts()
+                        counts[eventId] = current.copy(myResponse = null)
+                        state.copy(attendanceCounts = counts)
+                    }
+                }
+        }
     }
 
     private fun checkCoachRole() {

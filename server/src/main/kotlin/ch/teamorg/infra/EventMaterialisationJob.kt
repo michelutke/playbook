@@ -14,11 +14,13 @@ private val logger = LoggerFactory.getLogger("EventMaterialisationJob")
 
 fun Application.startMaterialisationJob() {
     val eventRepository by inject<EventRepository>()
+    val backfillJob by inject<AbwesenheitBackfillJob>()
 
     launch(Dispatchers.IO) {
         try {
             val count = eventRepository.materialiseUpcomingOccurrences()
             logger.info("Initial materialisation complete: $count new occurrences created")
+            if (count > 0) backfillJob.applyRulesToAllFutureEvents()
         } catch (e: Exception) {
             logger.error("Initial materialisation failed", e)
         }
@@ -28,6 +30,7 @@ fun Application.startMaterialisationJob() {
             try {
                 val count = eventRepository.materialiseUpcomingOccurrences()
                 logger.info("Daily materialisation complete: $count new occurrences created")
+                if (count > 0) backfillJob.applyRulesToAllFutureEvents()
             } catch (e: Exception) {
                 logger.error("Daily materialisation failed", e)
             }
