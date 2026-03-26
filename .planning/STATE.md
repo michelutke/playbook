@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T07:28:38.263Z"
+last_updated: "2026-03-26T08:21:15.800Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 29
+  completed_plans: 24
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-26T07:28:38.259Z
+- **Last session:** 2026-03-26T08:21:15.797Z
 
 ## Phase Status
 
@@ -123,6 +123,8 @@ progress:
 - [Phase 04.1-01]: Server-side DTOs for CheckInEntry defined in AttendanceRepository.kt co-located with domain contracts
 - [Phase 04.1-01]: getCheckInEntries uses three separate queries merged in memory (simpler than multi-table LEFT JOIN with alias collisions)
 - [Phase 04.1-01]: kotlinx-datetime added to server build.gradle.kts for @Serializable Instant fields in response DTOs
+- [Phase 05-notifications]: createdAt stored as ISO-8601 String in Notification domain model — avoids kotlinx-datetime serialization complexity
+- [Phase 05-notifications]: NotificationRepositoryImpl uses relative URL paths — base URL configured in HttpClientFactory, consistent with all other repos
 
 ## Notes
 

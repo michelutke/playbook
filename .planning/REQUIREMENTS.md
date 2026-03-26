@@ -75,10 +75,10 @@
 - [ ] **NO-05**: Coach can choose per-response notifications (each confirm/decline/unsure)
 - [ ] **NO-06**: Coach can choose pre-event summary of no-response players
 - [ ] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
-- [ ] **NO-08**: Each user can enable/disable notification types independently
-- [ ] **NO-09**: User can configure reminder lead time
+- [x] **NO-08**: Each user can enable/disable notification types independently
+- [x] **NO-09**: User can configure reminder lead time
 - [ ] **NO-10**: Push notifications on iOS + Android (OneSignal)
-- [ ] **NO-11**: In-app notification inbox (accessible without push enabled)
+- [x] **NO-11**: In-app notification inbox (accessible without push enabled)
 - [ ] **NO-12**: No duplicate notifications; no notifications to removed members
 
 ### SA — Super Admin

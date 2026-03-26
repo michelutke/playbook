@@ -167,7 +167,7 @@ Plans:
 
 **Requirements:** NO-01–12
 
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
 - [ ] 05-01-PLAN.md — Server DB foundation (V9 migration, Exposed tables, PushService, NotificationRepository)
@@ -238,5 +238,4 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Done |
 | 4.1 | Attendance Integration Fixes | Done |
-| 5 | Notifications | Not started |
-| 6 | Super Admin | Not started |
+| 5 | 1/6 | In Progress|  | 6 | Super Admin | Not started |
