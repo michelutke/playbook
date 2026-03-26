@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T08:21:15.800Z"
+last_updated: "2026-03-26T08:22:47.811Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 29
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-26T08:21:15.797Z
+- **Last session:** 2026-03-26T08:22:47.808Z
 
 ## Phase Status
 
@@ -125,6 +125,9 @@ progress:
 - [Phase 04.1-01]: kotlinx-datetime added to server build.gradle.kts for @Serializable Instant fields in response DTOs
 - [Phase 05-notifications]: createdAt stored as ISO-8601 String in Notification domain model — avoids kotlinx-datetime serialization complexity
 - [Phase 05-notifications]: NotificationRepositoryImpl uses relative URL paths — base URL configured in HttpClientFactory, consistent with all other repos
+- [Phase 05-notifications]: Used timestamp() not timestampWithTimeZone() in NotificationTables — not in exposed-java-time 0.54.0, TIMESTAMPTZ handled by PostgreSQL JDBC transparently
+- [Phase 05-notifications]: insertIgnore used for dedup in NotificationRepository.createNotification/createBatch — maps to INSERT IGNORE ON CONFLICT DO NOTHING via Exposed
+- [Phase 05-notifications]: ktor-client-cio added to server production deps for PushServiceImpl HttpClient — CIO engine is JVM-native
 
 ## Notes
 

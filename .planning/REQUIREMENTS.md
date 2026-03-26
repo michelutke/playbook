@@ -77,9 +77,9 @@
 - [ ] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
 - [x] **NO-08**: Each user can enable/disable notification types independently
 - [x] **NO-09**: User can configure reminder lead time
-- [ ] **NO-10**: Push notifications on iOS + Android (OneSignal)
+- [x] **NO-10**: Push notifications on iOS + Android (OneSignal)
 - [x] **NO-11**: In-app notification inbox (accessible without push enabled)
-- [ ] **NO-12**: No duplicate notifications; no notifications to removed members
+- [x] **NO-12**: No duplicate notifications; no notifications to removed members
 
 ### SA — Super Admin
 - [ ] **SA-01**: SuperAdmin can create clubs and invite ClubManagers at creation time
