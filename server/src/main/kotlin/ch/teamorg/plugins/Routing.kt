@@ -7,6 +7,7 @@ import ch.teamorg.routes.checkInRoutes
 import ch.teamorg.routes.clubRoutes
 import ch.teamorg.routes.eventRoutes
 import ch.teamorg.routes.inviteRoutes
+import ch.teamorg.routes.notificationRoutes
 import ch.teamorg.routes.subGroupRoutes
 import ch.teamorg.routes.teamRoutes
 import io.ktor.http.*
@@ -28,5 +29,6 @@ fun Application.configureRouting() {
         attendanceRoutes()
         abwesenheitRoutes()
         checkInRoutes()
+        notificationRoutes()
     }
 }

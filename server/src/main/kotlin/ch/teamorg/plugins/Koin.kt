@@ -3,6 +3,7 @@ package ch.teamorg.plugins
 import ch.teamorg.di.StorageModule
 import ch.teamorg.domain.repositories.*
 import ch.teamorg.infra.AbwesenheitBackfillJob
+import ch.teamorg.infra.NotificationDispatcher
 import ch.teamorg.infra.PushService
 import ch.teamorg.infra.PushServiceImpl
 import io.ktor.client.*
@@ -29,6 +30,7 @@ val appModule = module {
         })
     }
     single<NotificationRepository> { NotificationRepositoryImpl() }
+    single { NotificationDispatcher(get(), get()) }
 }
 
 fun Application.configureKoin() {
