@@ -4,10 +4,33 @@ import ch.teamorg.db.tables.*
 import ch.teamorg.domain.models.UpdateNotificationSettingsRequest
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.util.UUID
+
+data class DueReminderRow(
+    val id: UUID,
+    val userId: UUID,
+    val eventId: UUID,
+    val fireAt: Instant
+)
+
+data class AttendanceSummary(
+    val accepted: Int,
+    val declined: Int,
+    val unsure: Int,
+    val noResponse: Int,
+    val total: Int
+)
+
+data class EventReminderInfo(
+    val eventId: UUID,
+    val eventTitle: String,
+    val teamIds: List<UUID>
+)
 
 data class NotificationRow(
     val id: UUID,
@@ -66,6 +89,15 @@ interface NotificationRepository {
     suspend fun getReminderOverride(userId: UUID, eventId: UUID): Int?
     suspend fun upsertReminderOverride(userId: UUID, eventId: UUID, leadMinutes: Int?)
     suspend fun deleteOldNotifications(olderThanDays: Int = 90)
+
+    // Reminder row management
+    suspend fun insertReminderRows(eventId: UUID, userIdToFireAt: Map<UUID, Instant>)
+    suspend fun deleteReminderRowsForEvent(eventId: UUID)
+    suspend fun getDueReminders(): List<DueReminderRow>
+    suspend fun markReminderSent(reminderId: UUID)
+    suspend fun getCoachIdsForTeam(teamId: UUID): List<UUID>
+    suspend fun getEventAttendanceSummary(eventId: UUID): AttendanceSummary
+    suspend fun getUpcomingEventsForCoachSummary(withinMinutes: Int = 120): List<EventReminderInfo>
 }
 
 class NotificationRepositoryImpl : NotificationRepository {
@@ -239,6 +271,99 @@ class NotificationRepositoryImpl : NotificationRepository {
     override suspend fun deleteOldNotifications(olderThanDays: Int): Unit = transaction {
         val cutoff = Instant.now().minusSeconds(olderThanDays.toLong() * 24 * 3600)
         NotificationsTable.deleteWhere { NotificationsTable.createdAt less cutoff }
+    }
+
+    override suspend fun insertReminderRows(eventId: UUID, userIdToFireAt: Map<UUID, Instant>): Unit = transaction {
+        for ((userId, fireAt) in userIdToFireAt) {
+            NotificationRemindersTable.insertIgnore {
+                it[NotificationRemindersTable.userId] = userId
+                it[NotificationRemindersTable.eventId] = eventId
+                it[NotificationRemindersTable.fireAt] = fireAt
+            }
+        }
+    }
+
+    override suspend fun deleteReminderRowsForEvent(eventId: UUID): Unit = transaction {
+        NotificationRemindersTable.deleteWhere { NotificationRemindersTable.eventId eq eventId }
+    }
+
+    override suspend fun getDueReminders(): List<DueReminderRow> = transaction {
+        val now = Instant.now()
+        (NotificationRemindersTable innerJoin EventsTable)
+            .select(
+                NotificationRemindersTable.id,
+                NotificationRemindersTable.userId,
+                NotificationRemindersTable.eventId,
+                NotificationRemindersTable.fireAt
+            )
+            .where {
+                (NotificationRemindersTable.fireAt lessEq now) and
+                (NotificationRemindersTable.sent eq false) and
+                (EventsTable.status eq EventStatus.active) and
+                (EventsTable.startAt greaterEq now)
+            }
+            .map {
+                DueReminderRow(
+                    id = it[NotificationRemindersTable.id],
+                    userId = it[NotificationRemindersTable.userId],
+                    eventId = it[NotificationRemindersTable.eventId],
+                    fireAt = it[NotificationRemindersTable.fireAt]
+                )
+            }
+    }
+
+    override suspend fun markReminderSent(reminderId: UUID): Unit = transaction {
+        NotificationRemindersTable.update({ NotificationRemindersTable.id eq reminderId }) {
+            it[sent] = true
+        }
+    }
+
+    override suspend fun getCoachIdsForTeam(teamId: UUID): List<UUID> = transaction {
+        TeamRolesTable.select(TeamRolesTable.userId)
+            .where {
+                (TeamRolesTable.teamId eq teamId) and
+                (TeamRolesTable.role eq "coach") and
+                (TeamRolesTable.userId.isNotNull())
+            }
+            .mapNotNull { it[TeamRolesTable.userId] }
+    }
+
+    override suspend fun getEventAttendanceSummary(eventId: UUID): AttendanceSummary = transaction {
+        val rows = AttendanceResponsesTable.selectAll()
+            .where { AttendanceResponsesTable.eventId eq eventId }
+            .toList()
+        val accepted = rows.count { it[AttendanceResponsesTable.status] == "accepted" }
+        val declined = rows.count { it[AttendanceResponsesTable.status].startsWith("declined") }
+        val unsure = rows.count { it[AttendanceResponsesTable.status] == "unsure" }
+        AttendanceSummary(
+            accepted = accepted,
+            declined = declined,
+            unsure = unsure,
+            noResponse = 0,
+            total = rows.size
+        )
+    }
+
+    override suspend fun getUpcomingEventsForCoachSummary(withinMinutes: Int): List<EventReminderInfo> = transaction {
+        val now = Instant.now()
+        val windowEnd = now.plusSeconds(withinMinutes.toLong() * 60)
+        EventsTable.selectAll()
+            .where {
+                (EventsTable.startAt greaterEq now) and
+                (EventsTable.startAt lessEq windowEnd) and
+                (EventsTable.status eq EventStatus.active)
+            }
+            .map { row ->
+                val eventId = row[EventsTable.id]
+                val teamIds = EventTeamsTable.select(EventTeamsTable.teamId)
+                    .where { EventTeamsTable.eventId eq eventId }
+                    .map { it[EventTeamsTable.teamId] }
+                EventReminderInfo(
+                    eventId = eventId,
+                    eventTitle = row[EventsTable.title],
+                    teamIds = teamIds
+                )
+            }
     }
 
     private fun rowToNotification(row: ResultRow) = NotificationRow(

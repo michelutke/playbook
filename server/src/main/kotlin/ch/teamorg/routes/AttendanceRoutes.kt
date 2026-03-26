@@ -3,13 +3,18 @@ package ch.teamorg.routes
 import ch.teamorg.domain.repositories.AttendanceRepository
 import ch.teamorg.domain.repositories.AttendanceResponseDto
 import ch.teamorg.domain.repositories.AttendanceResponseRow
+import ch.teamorg.domain.repositories.EventRepository
+import ch.teamorg.domain.repositories.NotificationRepository
 import ch.teamorg.domain.repositories.RawAttendanceRow
+import ch.teamorg.infra.NotificationDispatcher
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import java.time.Instant
@@ -49,6 +54,9 @@ private fun RawAttendanceRow.toDto() = RawAttendanceDto(
 
 fun Route.attendanceRoutes() {
     val attendanceRepo by inject<AttendanceRepository>()
+    val dispatcher by inject<NotificationDispatcher>()
+    val notificationRepo by inject<NotificationRepository>()
+    val eventRepository by inject<EventRepository>()
 
     authenticate("jwt") {
         get("/events/{id}/attendance") {
@@ -81,6 +89,32 @@ fun Route.attendanceRoutes() {
             }
 
             val updated = attendanceRepo.upsertResponse(eventId, userId, body.status, body.reason)
+
+            call.application.launch(Dispatchers.IO) {
+                val event = eventRepository.findById(eventId) ?: return@launch
+                val playerName = "A player"
+                val epoch = java.time.Instant.now().epochSecond / 3600
+                for (teamId in event.teamIds) {
+                    val coachIds = notificationRepo.getCoachIdsForTeam(teamId)
+                    for (coachId in coachIds) {
+                        val settings = notificationRepo.getSettings(coachId, teamId)
+                        val mode = settings?.coachResponseMode ?: "per_response"
+                        if (mode == "per_response") {
+                            notificationRepo.createNotification(
+                                userId = coachId,
+                                type = "response",
+                                title = "RSVP: $playerName",
+                                body = "$playerName ${body.status} for ${event.title}",
+                                entityId = eventId,
+                                entityType = "event",
+                                idempotencyKey = "response:${coachId}:${eventId}:${userId}:$epoch"
+                            )
+                        }
+                        // summary mode coaches are notified via fireCoachSummaries in ReminderSchedulerJob
+                    }
+                }
+            }
+
             call.respond(updated.toDto())
         }
 

@@ -3,14 +3,19 @@ package ch.teamorg.routes
 import ch.teamorg.domain.repositories.AbwesenheitRepository
 import ch.teamorg.domain.repositories.AbwesenheitRuleRow
 import ch.teamorg.domain.repositories.CreateAbwesenheitRule
+import ch.teamorg.domain.repositories.NotificationRepository
+import ch.teamorg.domain.repositories.TeamRepository
 import ch.teamorg.domain.repositories.UpdateAbwesenheitRule
 import ch.teamorg.infra.AbwesenheitBackfillJob
+import ch.teamorg.infra.NotificationDispatcher
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import java.time.LocalDate
@@ -73,6 +78,9 @@ private fun AbwesenheitRuleRow.toResponse() = AbwesenheitResponse(
 fun Route.abwesenheitRoutes() {
     val abwesenheitRepo by inject<AbwesenheitRepository>()
     val backfillJob by inject<AbwesenheitBackfillJob>()
+    val dispatcher by inject<NotificationDispatcher>()
+    val notificationRepo by inject<NotificationRepository>()
+    val teamRepository by inject<TeamRepository>()
 
     authenticate("jwt") {
         get("/users/me/abwesenheit") {
@@ -98,6 +106,23 @@ fun Route.abwesenheitRoutes() {
             )
             val app = application
             backfillJob.enqueue(userId, rule.id, app)
+
+            call.application.launch(Dispatchers.IO) {
+                val teamRoles = teamRepository.getUserTeamRoles(userId)
+                for ((_, teamId, _) in teamRoles) {
+                    dispatcher.notifyTeamMembers(
+                        teamId = teamId,
+                        excludeUserId = userId,
+                        type = "absence",
+                        title = "Absence Update",
+                        body = "A player updated their absence. Affects upcoming events.",
+                        entityId = rule.id,
+                        entityType = "absence",
+                        idempotencyKeySuffix = "absence:${rule.id}"
+                    )
+                }
+            }
+
             call.respond(HttpStatusCode.Created, rule.toResponse())
         }
 
@@ -119,6 +144,23 @@ fun Route.abwesenheitRoutes() {
             )
             val app = application
             backfillJob.enqueue(userId, ruleId, app)
+
+            call.application.launch(Dispatchers.IO) {
+                val teamRoles = teamRepository.getUserTeamRoles(userId)
+                for ((_, teamId, _) in teamRoles) {
+                    dispatcher.notifyTeamMembers(
+                        teamId = teamId,
+                        excludeUserId = userId,
+                        type = "absence",
+                        title = "Absence Update",
+                        body = "A player updated their absence. Affects upcoming events.",
+                        entityId = ruleId,
+                        entityType = "absence",
+                        idempotencyKeySuffix = "absence:${ruleId}"
+                    )
+                }
+            }
+
             call.respond(rule.toResponse())
         }
 
