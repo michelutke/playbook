@@ -1,5 +1,6 @@
 package ch.teamorg.data.repository
 
+import ch.teamorg.data.PushRegistration
 import ch.teamorg.domain.AuthResponse
 import ch.teamorg.domain.AuthUser
 import ch.teamorg.domain.LoginRequest
@@ -28,6 +29,7 @@ class AuthRepositoryImpl(
                 val authResponse = response.body<AuthResponse>()
                 userPreferences.saveToken(authResponse.token)
                 userPreferences.saveUserId(authResponse.userId)
+                PushRegistration.login(authResponse.userId)
                 Result.success(authResponse)
             } else {
                 Result.failure(Exception("Registration failed: ${response.status}"))
@@ -46,6 +48,7 @@ class AuthRepositoryImpl(
                 val authResponse = response.body<AuthResponse>()
                 userPreferences.saveToken(authResponse.token)
                 userPreferences.saveUserId(authResponse.userId)
+                PushRegistration.login(authResponse.userId)
                 Result.success(authResponse)
             } else {
                 Result.failure(Exception("Login failed: ${response.status}"))
@@ -56,6 +59,7 @@ class AuthRepositoryImpl(
     }
 
     override fun logout() {
+        PushRegistration.logout()
         userPreferences.clearToken()
     }
 

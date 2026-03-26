@@ -35,6 +35,7 @@ kotlin {
             implementation(libs.androidx.activityCompose)
             implementation(libs.koin.android)
             implementation(libs.androidx.lifecycleProcess)
+            implementation(libs.onesignal)
             // implementation(libs.updraft.sdk) // TODO: needs com.simplify:ink + com.rm:freedrawview repos
         }
         commonMain.dependencies {
@@ -102,6 +103,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${project.findProperty("onesignal.appId") ?: ""}\"")
     }
 
     signingConfigs {

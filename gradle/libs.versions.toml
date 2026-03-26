@@ -33,6 +33,7 @@ robolectric = "4.14"
 androidx-test-ext-junit = "1.2.1"
 testcontainers = "1.21.0"
 kizitonwose-calendar = "2.7.0"
+onesignal = "5.7.6"
 
 [libraries]
 # Kotlin
@@ -115,6 +116,9 @@ kizitonwose-calendar-compose = { module = "com.kizitonwose.calendar:compose-mult
 
 # Android: Updraft
 updraft-sdk = { module = "com.appswithlove.updraft:updraft-sdk", version.ref = "updraft" }
+
+# Push Notifications
+onesignal = { module = "com.onesignal:OneSignal", version.ref = "onesignal" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
