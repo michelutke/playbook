@@ -15,10 +15,11 @@ progress:
 
 ## Current State
 
-- **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
+- **Active phase:** Phase 05.2 — auth-retroactive-verification (Ready to plan)
 - **Mode:** YOLO
-- **Last updated:** 2026-03-24
-- **Last session:** 2026-04-01T11:39:28.569Z
+- **Last updated:** 2026-04-01
+- **Last session:** 2026-04-01
+- **Progress:** [████████████████████] 31/31 plans (100%)
 
 ## Phase Status
 
@@ -28,7 +29,9 @@ progress:
 | 2 — Team Management | ✅ Done | 2026-03-11 | 2026-03-19 |
 | 3 — Event Scheduling | ✅ Done | 2026-03-19 | 2026-03-24 |
 | 4 — Attendance Tracking | ✅ Done | 2026-03-24 | 2026-03-24 |
-| 5 — Notifications | 🔲 Not started | — | — |
+| 5 — Notifications | ✅ Done | 2026-03-25 | 2026-03-26 |
+| 5.1 — Milestone Gap Fixes | ✅ Done | 2026-04-01 | 2026-04-01 |
+| 5.2 — Auth Retroactive Verification | 🔲 Not started | — | — |
 | 6 — Super Admin | 🔲 Not started | — | — |
 
 ## What's Actually Done
@@ -142,7 +145,21 @@ progress:
 - [Phase 05.1-02]: ClubRepository injected as 3rd param to NotificationSettingsViewModel; team names fetched per distinct clubId via getClubTeams
 - [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
 
+### Phase 5 — Notifications ✅
+
+- ✅ 05-01: Notification DB foundation — V9 migration, NotificationTables, NotificationRepository
+- ✅ 05-02: Notification API routes — CRUD endpoints, settings, batch operations
+- ✅ 05-03: Notification domain — KMP shared contracts, NotificationRepositoryImpl, cache
+- ✅ 05-04: Inbox UI — NotificationListScreen, badge, pull-to-refresh, mark-read
+- ✅ 05-05: Notification settings — team picker, per-category toggles, OneSignal push registration
+- ✅ 05-06: Reminder scheduler — ReminderSchedulerJob, coach pre-event summaries, integration tests
+
+### Phase 5.1 — Milestone Gap Fixes ✅
+
+- ✅ 05.1-01: Wired offline RSVP flushQueue on app foreground + check-in GET auth guard
+- ✅ 05.1-02: Team name resolution in notification settings + dead CalendarScreen/CalendarViewModel removal
+
 ## Notes
 
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-03-24 — Phase 3 complete, starting Phase 4 (Attendance Tracking)
+- Last session: 2026-04-01 — Phase 05.1 complete, ready to plan Phase 05.2
