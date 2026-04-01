@@ -121,4 +121,6 @@
 | 4 | AT-01–16 |
 | 4.1 | AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19 (integration fixes) |
 | 5 | NO-01–12 |
+| 5.1 | AT-03, AT-04, AT-14, NO-08 (gap fixes) |
+| 5.2 | AUTH-01–06, TM-14 (retroactive verification) |
 | 6 | SA-01–12 |
