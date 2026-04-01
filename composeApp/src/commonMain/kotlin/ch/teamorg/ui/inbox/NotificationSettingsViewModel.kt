@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.teamorg.domain.NotificationSettings
 import ch.teamorg.domain.UpdateNotificationSettingsRequest
+import ch.teamorg.repository.ClubRepository
 import ch.teamorg.repository.NotificationRepository
 import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.Job
@@ -26,7 +27,8 @@ data class SettingsState(
 
 class NotificationSettingsViewModel(
     private val notificationRepository: NotificationRepository,
-    private val teamRepository: TeamRepository
+    private val teamRepository: TeamRepository,
+    private val clubRepository: ClubRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -43,10 +45,19 @@ class NotificationSettingsViewModel(
             _state.update { it.copy(isLoading = true, error = null) }
             teamRepository.getMyRoles()
                 .onSuccess { roles ->
+                    val clubIds = roles.teamRoles.map { it.clubId }.distinct()
+                    val teamNameMap = mutableMapOf<String, String>()
+                    for (clubId in clubIds) {
+                        clubRepository.getClubTeams(clubId).onSuccess { teams ->
+                            for (team in teams) {
+                                teamNameMap[team.id] = team.name
+                            }
+                        }
+                    }
                     val teams = roles.teamRoles.map { role ->
                         TeamInfo(
                             teamId = role.teamId,
-                            teamName = role.teamId,  // teamId used as display name; real name requires separate fetch
+                            teamName = teamNameMap[role.teamId] ?: role.teamId,
                             isCoach = role.role == "coach"
                         )
                     }

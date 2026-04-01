@@ -32,5 +32,5 @@ val uiModule = module {
     factory { CreateEditEventViewModel(get(), get(), get()) }
     factory { CalendarViewModel(get(), get(), get()) }
     factory { InboxViewModel(get()) }
-    factory { NotificationSettingsViewModel(get(), get()) }
+    factory { NotificationSettingsViewModel(get(), get(), get()) }
 }
