@@ -231,6 +231,11 @@ Plans:
 
 **Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, TM-14
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 05.2-01-PLAN.md — Create auth verification evidence + update requirement checkboxes
+
 **Deliverables:**
 - `01-VERIFICATION.md` created with evidence for all 6 AUTH requirements
 - TM-14 verified (backend multi-team support confirmed)
