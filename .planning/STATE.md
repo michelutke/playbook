@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-01T11:47:38.006Z"
+last_updated: "2026-04-01T11:54:53.082Z"
 progress:
   total_phases: 8
-  completed_phases: 6
-  total_plans: 31
-  completed_plans: 31
+  completed_phases: 7
+  total_plans: 32
+  completed_plans: 32
   percent: 100
 ---
 
@@ -16,11 +16,11 @@ progress:
 
 ## Current State
 
-- **Active phase:** Phase 05.2 — auth-retroactive-verification (Ready to plan)
+- **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-01T11:47:37.997Z
-- **Progress:** [████████████████████] 31/31 plans (100%)
+- **Last session:** 2026-04-01T11:54:53.078Z
+- **Progress:** [██████████] 100%
 
 ## Phase Status
 
@@ -32,7 +32,7 @@ progress:
 | 4 — Attendance Tracking | ✅ Done | 2026-03-24 | 2026-03-24 |
 | 5 — Notifications | ✅ Done | 2026-03-25 | 2026-03-26 |
 | 5.1 — Milestone Gap Fixes | ✅ Done | 2026-04-01 | 2026-04-01 |
-| 5.2 — Auth Retroactive Verification | 🔲 Not started | — | — |
+| 5.2 — Auth Retroactive Verification | ✅ Done | 2026-04-01 | 2026-04-01 |
 | 6 — Super Admin | 🔲 Not started | — | — |
 
 ## What's Actually Done
@@ -145,6 +145,8 @@ progress:
 - [Phase 05.1]: GET /events/{id}/check-in role check mirrors exact PUT pattern (getUserTeamRoles + getUserClubRoles)
 - [Phase 05.1-02]: ClubRepository injected as 3rd param to NotificationSettingsViewModel; team names fetched per distinct clubId via getClubTeams
 - [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
+- [Phase 05.2-auth-retroactive-verification]: AUTH-05 evidence: roles not in JWT; GET /auth/me/roles does live DB query per request — role changes immediate without re-login
+- [Phase 05.2-auth-retroactive-verification]: TM-14 closed: backend supports multiple TeamRoles rows per user; no UI gap per 02-VERIFICATION.md truth #15
 
 ### Phase 5 — Notifications ✅
 
@@ -160,7 +162,11 @@ progress:
 - ✅ 05.1-01: Wired offline RSVP flushQueue on app foreground + check-in GET auth guard
 - ✅ 05.1-02: Team name resolution in notification settings + dead CalendarScreen/CalendarViewModel removal
 
+### Phase 5.2 — Auth Retroactive Verification ✅
+
+- ✅ 05.2-01: Created 01-VERIFICATION.md with evidence for AUTH-01–06; checked AUTH-01–06 and TM-14 in REQUIREMENTS.md
+
 ## Notes
 
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-04-01 — Phase 05.1 complete, ready to plan Phase 05.2
+- Last session: 2026-04-01 — Phase 05.2 complete, REQUIREMENTS.md shows 62/62 v1 requirements satisfied (excluding SA-01–12)

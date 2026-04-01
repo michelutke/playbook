@@ -231,7 +231,7 @@ Plans:
 
 **Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, TM-14
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 05.2-01-PLAN.md — Create auth verification evidence + update requirement checkboxes
@@ -289,5 +289,4 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Done |
 | 4.1 | Attendance Integration Fixes | Done |
-| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | 2/2 | Complete   | 2026-04-01 | 5.2 | Auth Retroactive Verification | Not started |
-| 6 | Super Admin | Not started |
+| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | 2/2 | Complete   | 2026-04-01 | 5.2 | 1/1 | Complete   | 2026-04-01 | 6 | Super Admin | Not started |
