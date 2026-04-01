@@ -12,8 +12,6 @@ import ch.teamorg.ui.club.ClubSetupScreen
 import ch.teamorg.ui.club.ClubSetupViewModel
 import ch.teamorg.ui.emptystate.EmptyStateScreen
 import ch.teamorg.ui.emptystate.EmptyStateViewModel
-import ch.teamorg.ui.calendar.CalendarScreen
-import ch.teamorg.ui.calendar.CalendarViewModel
 import ch.teamorg.ui.events.CreateEditEventScreen
 import ch.teamorg.ui.events.CreateEditEventViewModel
 import ch.teamorg.ui.events.EventDetailScreen
