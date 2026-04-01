@@ -204,7 +204,7 @@ Plans:
 
 **Requirements:** AT-03, AT-04, AT-14, NO-08
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 05.1-01-PLAN.md — Offline sync wiring + check-in security fix (AT-03, AT-04, AT-14)
@@ -284,6 +284,5 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Done |
 | 4.1 | Attendance Integration Fixes | Done |
-| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | Milestone Gap Fixes | Not started |
-| 5.2 | Auth Retroactive Verification | Not started |
+| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | 2/2 | Complete   | 2026-04-01 | 5.2 | Auth Retroactive Verification | Not started |
 | 6 | Super Admin | Not started |

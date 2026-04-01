@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-01T11:38:38.942Z"
+last_updated: "2026-04-01T11:39:28.572Z"
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 31
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-04-01T11:38:38.939Z
+- **Last session:** 2026-04-01T11:39:28.569Z
 
 ## Phase Status
 
@@ -139,6 +139,8 @@ progress:
 - [Phase 05-notifications]: AbwesenheitRoutes had destructure bug (clubId sent as teamId) — fixed to roleTriple.first
 - [Phase 05.1]: flushQueue called inside existing LaunchedEffect(authState) — fires on auth change and foreground resume without extra observer
 - [Phase 05.1]: GET /events/{id}/check-in role check mirrors exact PUT pattern (getUserTeamRoles + getUserClubRoles)
+- [Phase 05.1-02]: ClubRepository injected as 3rd param to NotificationSettingsViewModel; team names fetched per distinct clubId via getClubTeams
+- [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
 
 ## Notes
 
