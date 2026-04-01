@@ -204,6 +204,12 @@ Plans:
 
 **Requirements:** AT-03, AT-04, AT-14, NO-08
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05.1-01-PLAN.md — Offline sync wiring + check-in security fix (AT-03, AT-04, AT-14)
+- [ ] 05.1-02-PLAN.md — Team name resolution in settings + dead code cleanup (NO-08)
+
 **Deliverables:**
 - Connectivity observer wiring `MutationQueueManager.flushQueue()` on reconnect/foreground
 - `NotificationSettingsViewModel` resolves team names instead of showing UUIDs
