@@ -22,6 +22,7 @@ import ch.teamorg.ui.components.TeamorgBottomBar
 import ch.teamorg.ui.theme.TeamorgTheme
 import ch.teamorg.ui.components.PlatformBackHandler
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ch.teamorg.data.MutationQueueManager
 import ch.teamorg.repository.NotificationRepository
 import kotlinx.coroutines.delay
 import org.koin.mp.KoinPlatform
@@ -38,6 +39,15 @@ fun TeamorgApp(
     // Poll unread count while authenticated
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) {
+            // Flush offline mutations on foreground resume
+            try {
+                val mutationQueue = KoinPlatform.getKoin().get<MutationQueueManager>()
+                if (mutationQueue.hasPendingMutations()) {
+                    mutationQueue.flushQueue()
+                }
+            } catch (_: Exception) {
+                // Silently ignore flush errors — will retry next foreground
+            }
             val notifRepo = KoinPlatform.getKoin().get<NotificationRepository>()
             while (true) {
                 notifRepo.getUnreadCount().onSuccess { unreadCount = it }
