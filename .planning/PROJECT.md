@@ -137,4 +137,4 @@ Every phase must:
 - External job queue — V2 if scale demands
 
 ---
-*Last updated: 2026-04-01 after Phase 05.1 completion — milestone gap fixes (offline sync wiring, check-in auth guard, notification settings team names, dead calendar code removal)*
+*Last updated: 2026-04-01 after Phase 05.2 completion — auth retroactive verification (62/62 v1 requirements now satisfied)*
