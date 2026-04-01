@@ -117,6 +117,7 @@ fun Route.eventRoutes() {
 
         patch("/events/{id}") {
             val id = UUID.fromString(call.parameters["id"])
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val body = call.receive<EditEventWithScope>()
             val scope = RecurringScope.valueOf(body.scope ?: "this_only")
             val editRequest = EditEventRequest(
@@ -173,7 +174,7 @@ fun Route.eventRoutes() {
                         for (teamId in updated.event.teamIds) {
                             dispatcher.notifyTeamMembers(
                                 teamId = teamId,
-                                excludeUserId = null,
+                                excludeUserId = userId,
                                 type = "event_edit",
                                 title = "Event Updated",
                                 body = "${updated.event.title} has been updated",
@@ -206,6 +207,7 @@ fun Route.eventRoutes() {
 
         post("/events/{id}/cancel") {
             val id = UUID.fromString(call.parameters["id"])
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val body = call.receive<CancelScopeRequest>()
             val scope = RecurringScope.valueOf(body.scope ?: "this_only")
 
@@ -238,7 +240,7 @@ fun Route.eventRoutes() {
                     for (teamId in existing.teamIds) {
                         dispatcher.notifyTeamMembers(
                             teamId = teamId,
-                            excludeUserId = null,
+                            excludeUserId = userId,
                             type = "event_cancel",
                             title = "Event Cancelled",
                             body = "${existing.title} has been cancelled",

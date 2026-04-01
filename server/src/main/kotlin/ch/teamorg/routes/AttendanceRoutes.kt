@@ -111,7 +111,7 @@ fun Route.attendanceRoutes() {
                                     body = "$playerName ${body.status} for ${event.title}",
                                     entityId = eventId,
                                     entityType = "event",
-                                    idempotencyKey = "response:${coachId}:${eventId}:${userId}:$epoch"
+                                    idempotencyKey = "response:${coachId}:${eventId}:${userId}:${body.status}:$epoch"
                                 )
                             }
                             // summary mode coaches are notified via fireCoachSummaries in ReminderSchedulerJob

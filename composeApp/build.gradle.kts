@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -103,7 +104,14 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${project.findProperty("onesignal.appId") ?: ""}\"")
+        val onesignalAppId: String by lazy {
+            val props = providers.gradleProperty("onesignal.appId").orNull
+                ?: rootProject.file("local.properties").takeIf { it.exists() }?.readLines()
+                    ?.firstOrNull { it.startsWith("onesignal.appId=") }?.substringAfter("=")
+                ?: ""
+            props
+        }
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"$onesignalAppId\"")
     }
 
     signingConfigs {

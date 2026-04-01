@@ -22,6 +22,8 @@ import ch.teamorg.ui.components.TeamorgBottomBar
 import ch.teamorg.ui.theme.TeamorgTheme
 import ch.teamorg.ui.components.PlatformBackHandler
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ch.teamorg.repository.NotificationRepository
+import kotlinx.coroutines.delay
 import org.koin.mp.KoinPlatform
 
 @Composable
@@ -31,6 +33,20 @@ fun TeamorgApp(
     val authState by viewModel.state.collectAsState()
     val backStack = remember { mutableStateListOf<Screen>(Screen.Loading) }
     val pendingToken by DeepLinkHandler.pendingToken
+    var unreadCount by remember { mutableLongStateOf(0L) }
+
+    // Poll unread count while authenticated
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated) {
+            val notifRepo = KoinPlatform.getKoin().get<NotificationRepository>()
+            while (true) {
+                notifRepo.getUnreadCount().onSuccess { unreadCount = it }
+                delay(15_000)
+            }
+        } else {
+            unreadCount = 0
+        }
+    }
 
     TeamorgTheme {
         LaunchedEffect(authState, pendingToken) {
@@ -91,7 +107,8 @@ fun TeamorgApp(
                     currentRoute = currentScreen.route,
                     onNavigate = { screen ->
                         backStack.add(screen)
-                    }
+                    },
+                    unreadCount = unreadCount
                 )
             }
         }

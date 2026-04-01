@@ -27,6 +27,7 @@ fun InboxScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isLoading) {
         if (!state.isLoading) isRefreshing = false
@@ -39,9 +40,15 @@ fun InboxScreen(
                 title = { Text("Inbox") },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BgPrimary),
                 actions = {
-                    if (state.hasUnread) {
-                        TextButton(onClick = { viewModel.markAllRead() }) {
-                            Text("Mark all read", color = PrimaryBlue)
+                    if (state.notifications.isNotEmpty()) {
+                        if (state.hasUnread) {
+                            TextButton(onClick = { viewModel.markAllRead() }) {
+                                Text("Mark all read", color = PrimaryBlue)
+                            }
+                        } else {
+                            TextButton(onClick = { showDeleteConfirm = true }) {
+                                Text("Delete all", color = Color(0xFFE57373))
+                            }
                         }
                     }
                     IconButton(onClick = { onNavigate(Screen.NotificationSettings) }) {
@@ -54,6 +61,26 @@ fun InboxScreen(
             )
         }
     ) { padding ->
+        if (showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                title = { Text("Delete all notifications?") },
+                text = { Text("This will permanently remove all notifications from your inbox.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteConfirm = false
+                        viewModel.deleteAll()
+                    }) {
+                        Text("Delete", color = Color(0xFFE57373))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirm = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
@@ -66,12 +93,12 @@ fun InboxScreen(
                 .background(BgPrimary)
         ) {
             when {
-                state.isLoading -> {
+                state.isLoading && !isRefreshing && state.notifications.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
-                state.error != null -> {
+                state.error != null && state.notifications.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Card(modifier = Modifier.padding(16.dp)) {
                             Text(

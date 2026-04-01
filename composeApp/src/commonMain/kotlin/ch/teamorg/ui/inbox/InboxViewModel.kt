@@ -95,6 +95,13 @@ class InboxViewModel(
         }
     }
 
+    fun deleteAll() {
+        _state.update { it.copy(notifications = emptyList(), unreadCount = 0, hasUnread = false) }
+        viewModelScope.launch {
+            notificationRepository.deleteAll()
+        }
+    }
+
     fun refresh() {
         loadNotifications()
     }

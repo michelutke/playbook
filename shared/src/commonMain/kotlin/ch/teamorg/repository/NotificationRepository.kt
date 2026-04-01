@@ -10,6 +10,7 @@ interface NotificationRepository {
     suspend fun getUnreadCount(): Result<Long>
     suspend fun markRead(notificationId: String): Result<Boolean>
     suspend fun markAllRead(): Result<Int>
+    suspend fun deleteAll(): Result<Unit>
     suspend fun getSettings(teamId: String): Result<NotificationSettings>
     suspend fun updateSettings(teamId: String, request: UpdateNotificationSettingsRequest): Result<Unit>
     suspend fun getReminderOverride(eventId: String): Result<ReminderOverride>

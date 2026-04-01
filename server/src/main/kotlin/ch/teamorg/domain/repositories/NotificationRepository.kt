@@ -80,6 +80,7 @@ interface NotificationRepository {
     suspend fun getNotifications(userId: UUID, limit: Int = 50, offset: Int = 0): List<NotificationRow>
     suspend fun markRead(userId: UUID, notificationId: UUID): Boolean
     suspend fun markAllRead(userId: UUID): Int
+    suspend fun deleteAll(userId: UUID)
     suspend fun getUnreadCount(userId: UUID): Long
     suspend fun getSettings(userId: UUID, teamId: UUID): NotificationSettingsRow?
     suspend fun upsertSettings(userId: UUID, teamId: UUID, settings: UpdateNotificationSettingsRequest)
@@ -167,6 +168,11 @@ class NotificationRepositoryImpl : NotificationRepository {
         NotificationsTable.update({ NotificationsTable.userId eq userId }) {
             it[isRead] = true
         }
+    }
+
+    override suspend fun deleteAll(userId: UUID): Unit = transaction {
+        NotificationsTable.deleteWhere { NotificationsTable.userId eq userId }
+        Unit
     }
 
     override suspend fun getUnreadCount(userId: UUID): Long = transaction {

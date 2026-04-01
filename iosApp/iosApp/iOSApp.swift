@@ -1,6 +1,8 @@
 import SwiftUI
 import ComposeApp
+#if canImport(OneSignalFramework)
 import OneSignalFramework
+#endif
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
@@ -38,18 +40,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         MainViewControllerKt.doInitKoin()
 
         // OneSignal init
+        #if canImport(OneSignalFramework)
         OneSignal.Debug.setLogLevel(.LL_NONE)
-        // Replace "ONESIGNAL_APP_ID_PLACEHOLDER" with your OneSignal App ID from
-        // OneSignal Dashboard -> Settings -> Keys & IDs -> App ID
-        OneSignal.initialize("ONESIGNAL_APP_ID_PLACEHOLDER", withLaunchOptions: launchOptions)
-
-        // Request push permission
+        OneSignal.initialize("2281f6c6-e979-49e3-a16b-d7b7628b67ea", withLaunchOptions: launchOptions)
         OneSignal.Notifications.requestPermission({ accepted in
             print("Push permission: \(accepted)")
         }, fallbackToSettings: true)
-
-        // TODO: Call OneSignal.login(userId) here after verifying the user is authenticated.
-        // Example: OneSignal.login(UserDefaults.standard.string(forKey: "userId") ?? "")
+        #endif
 
         return true
     }

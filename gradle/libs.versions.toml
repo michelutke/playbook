@@ -34,6 +34,7 @@ androidx-test-ext-junit = "1.2.1"
 testcontainers = "1.21.0"
 kizitonwose-calendar = "2.7.0"
 onesignal = "5.7.6"
+googleServices = "4.4.2"
 
 [libraries]
 # Kotlin
@@ -132,3 +133,4 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }

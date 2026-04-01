@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -127,9 +128,10 @@ fun EventDetailScreen(
             // Edit / more
             if (state.isCoach) {
                 Box {
-                    Text(
-                        "✏",
-                        fontSize = 16.sp,
+                    Icon(
+                        imageVector = Icons.Outlined.MoreVert,
+                        contentDescription = "More options",
+                        tint = Color.White,
                         modifier = Modifier.clickable { showMenu = true }
                     )
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {

@@ -33,7 +33,7 @@ class PushServiceTest {
         val client = HttpClient(mockEngine) {
             install(ContentNegotiation) { json() }
         }
-        val pushService = PushServiceImpl(client)
+        val pushService = PushServiceImpl(client, appId = "test-app-id", apiKey = "test-api-key")
 
         runBlocking {
             pushService.sendToUsers(
@@ -66,7 +66,7 @@ class PushServiceTest {
         }
 
         val client = HttpClient(mockEngine)
-        val pushService = PushServiceImpl(client)
+        val pushService = PushServiceImpl(client, appId = "test-app-id", apiKey = "test-api-key")
 
         runBlocking {
             pushService.sendToUsers(emptyList(), "t", "b")
@@ -84,7 +84,7 @@ class PushServiceTest {
         val client = HttpClient(mockEngine) {
             install(ContentNegotiation) { json() }
         }
-        val pushService = PushServiceImpl(client)
+        val pushService = PushServiceImpl(client, appId = "test-app-id", apiKey = "test-api-key")
 
         // Should not throw even on 500
         runBlocking {

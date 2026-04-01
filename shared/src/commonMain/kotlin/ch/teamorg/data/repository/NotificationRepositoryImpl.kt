@@ -28,30 +28,31 @@ class NotificationRepositoryImpl(
 
     override suspend fun getNotifications(limit: Int, offset: Int): Result<List<Notification>> {
         return try {
-            val notifications: List<Notification> = httpClient.get("/notifications") {
+            val response = httpClient.get("/notifications") {
                 parameter("limit", limit)
                 parameter("offset", offset)
-            }.body()
-            cacheManager.saveNotifications(notifications)
-            Result.success(notifications)
-        } catch (e: ConnectTimeoutException) {
-            Result.success(cacheManager.getCachedNotifications(limit.toLong(), offset.toLong()))
-        } catch (e: HttpRequestTimeoutException) {
-            Result.success(cacheManager.getCachedNotifications(limit.toLong(), offset.toLong()))
-        } catch (e: IOException) {
+            }
+            if (response.status == io.ktor.http.HttpStatusCode.OK) {
+                val notifications: List<Notification> = response.body()
+                cacheManager.saveNotifications(notifications)
+                Result.success(notifications)
+            } else {
+                Result.success(cacheManager.getCachedNotifications(limit.toLong(), offset.toLong()))
+            }
+        } catch (_: Exception) {
             Result.success(cacheManager.getCachedNotifications(limit.toLong(), offset.toLong()))
         }
     }
 
     override suspend fun getUnreadCount(): Result<Long> {
         return try {
-            val response: UnreadCountResponse = httpClient.get("/notifications/unread-count").body()
-            Result.success(response.count)
-        } catch (e: ConnectTimeoutException) {
-            Result.success(cacheManager.getUnreadCount())
-        } catch (e: HttpRequestTimeoutException) {
-            Result.success(cacheManager.getUnreadCount())
-        } catch (e: IOException) {
+            val response = httpClient.get("/notifications/unread-count")
+            if (response.status == io.ktor.http.HttpStatusCode.OK) {
+                Result.success(response.body<UnreadCountResponse>().count)
+            } else {
+                Result.success(cacheManager.getUnreadCount())
+            }
+        } catch (_: Exception) {
             Result.success(cacheManager.getUnreadCount())
         }
     }
@@ -81,6 +82,16 @@ class NotificationRepositoryImpl(
             Result.failure(Exception("Offline — cannot mark all read"))
         } catch (e: IOException) {
             Result.failure(Exception("Offline — cannot mark all read"))
+        }
+    }
+
+    override suspend fun deleteAll(): Result<Unit> {
+        return try {
+            httpClient.post("/notifications/delete-all")
+            cacheManager.clearAll()
+            Result.success(Unit)
+        } catch (_: Exception) {
+            Result.failure(Exception("Failed to delete notifications"))
         }
     }
 

@@ -43,6 +43,8 @@ class NotificationCacheManager(private val db: TeamorgDb) {
 
     fun markAllRead() { queries.markAllRead() }
 
+    fun clearAll() { queries.deleteAll() }
+
     fun cleanup(olderThanMillis: Long) { queries.deleteOlderThan(olderThanMillis) }
 
     private fun parseIsoToEpochMillis(iso: String): Long =

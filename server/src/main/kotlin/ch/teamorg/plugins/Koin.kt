@@ -15,7 +15,7 @@ import org.koin.core.logger.Level
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 
-val appModule = module {
+fun appModule(environment: ApplicationEnvironment) = module {
     single<UserRepository> { UserRepositoryImpl() }
     single<ClubRepository> { ClubRepositoryImpl() }
     single<TeamRepository> { TeamRepositoryImpl() }
@@ -25,9 +25,14 @@ val appModule = module {
     single<AbwesenheitRepository> { AbwesenheitRepositoryImpl() }
     single { AbwesenheitBackfillJob() }
     single<PushService> {
-        PushServiceImpl(HttpClient(CIO) {
-            install(ContentNegotiation) { json() }
-        })
+        val config = environment.config
+        PushServiceImpl(
+            client = HttpClient(CIO) {
+                install(ContentNegotiation) { json() }
+            },
+            appId = config.propertyOrNull("onesignal.app-id")?.getString() ?: "",
+            apiKey = config.propertyOrNull("onesignal.api-key")?.getString() ?: ""
+        )
     }
     single<NotificationRepository> { NotificationRepositoryImpl() }
     single { NotificationDispatcher(get(), get()) }
@@ -36,6 +41,6 @@ val appModule = module {
 fun Application.configureKoin() {
     install(Koin) {
         printLogger(Level.INFO)
-        modules(appModule, StorageModule)
+        modules(appModule(environment), StorageModule)
     }
 }

@@ -47,16 +47,24 @@ fun NotificationRow(
             tint = iconTint,
             modifier = Modifier.size(20.dp)
         )
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = notification.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFFF0F0FF)
+                style = MaterialTheme.typography.labelSmall,
+                color = MutedForeground
             )
+            if (notification.body.isNotBlank()) {
+                Text(
+                    text = notification.body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFFF0F0FF),
+                    maxLines = 2
+                )
+            }
             Text(
                 text = formatRelativeTime(notification.createdAt),
-                style = MaterialTheme.typography.labelMedium,
-                color = MutedForeground
+                style = MaterialTheme.typography.labelSmall,
+                color = MutedForeground.copy(alpha = 0.7f)
             )
         }
         if (!notification.isRead) {
@@ -85,7 +93,7 @@ private fun notificationIcon(type: String): ImageVector = when (type) {
 fun formatRelativeTime(isoTimestamp: String): String {
     return try {
         val epochMillis = parseIsoToMillis(isoTimestamp)
-        val nowMillis = System.currentTimeMillis()
+        val nowMillis = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
         val diffMs = nowMillis - epochMillis
         val diffMin = diffMs / 60_000
         val diffHours = diffMin / 60

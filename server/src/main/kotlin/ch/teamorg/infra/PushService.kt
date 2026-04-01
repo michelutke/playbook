@@ -23,17 +23,21 @@ interface PushService {
 
 private val logger = LoggerFactory.getLogger("PushService")
 
-class PushServiceImpl(private val client: HttpClient) : PushService {
+class PushServiceImpl(
+    private val client: HttpClient,
+    private val appId: String,
+    private val apiKey: String
+) : PushService {
     override suspend fun sendToUsers(
         userIds: List<String>,
         title: String,
         body: String,
         data: Map<String, String>
     ) {
-        if (userIds.isEmpty()) return
+        if (userIds.isEmpty() || appId.isBlank() || apiKey.isBlank()) return
         try {
             val payload = buildJsonObject {
-                put("app_id", System.getenv("ONESIGNAL_APP_ID"))
+                put("app_id", appId)
                 putJsonObject("include_aliases") {
                     putJsonArray("external_id") {
                         userIds.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) }
@@ -47,7 +51,7 @@ class PushServiceImpl(private val client: HttpClient) : PushService {
                 }
             }
             client.post("https://api.onesignal.com/notifications?c=push") {
-                header("Authorization", "Key ${System.getenv("ONESIGNAL_API_KEY")}")
+                header("Authorization", "Key $apiKey")
                 contentType(ContentType.Application.Json)
                 setBody(payload)
             }

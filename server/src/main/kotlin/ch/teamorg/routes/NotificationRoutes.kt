@@ -81,6 +81,12 @@ fun Route.notificationRoutes() {
             call.respond(MarkAllReadResponse(count))
         }
 
+        post("/notifications/delete-all") {
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
+            notificationRepo.deleteAll(userId)
+            call.respond(HttpStatusCode.OK)
+        }
+
         get("/notifications/settings/{teamId}") {
             val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val teamId = UUID.fromString(call.parameters["teamId"])
