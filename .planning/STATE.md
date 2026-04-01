@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-01T11:34:48.380Z"
+last_updated: "2026-04-01T11:38:38.942Z"
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # STATE.md — Playbook
@@ -18,7 +18,7 @@ progress:
 - **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
 - **Mode:** YOLO
 - **Last updated:** 2026-03-24
-- **Last session:** 2026-03-26T08:51:24.296Z
+- **Last session:** 2026-04-01T11:38:38.939Z
 
 ## Phase Status
 
@@ -137,6 +137,8 @@ progress:
 - [Phase 05-notifications]: EventDetailViewModel: NotificationRepository injected as 5th param; reminder loaded in loadEvent flow
 - [Phase 05-notifications]: fireCoachSummaries made internal for direct test invocation
 - [Phase 05-notifications]: AbwesenheitRoutes had destructure bug (clubId sent as teamId) — fixed to roleTriple.first
+- [Phase 05.1]: flushQueue called inside existing LaunchedEffect(authState) — fires on auth change and foreground resume without extra observer
+- [Phase 05.1]: GET /events/{id}/check-in role check mirrors exact PUT pattern (getUserTeamRoles + getUserClubRoles)
 
 ## Notes
 

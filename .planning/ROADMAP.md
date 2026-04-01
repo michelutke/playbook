@@ -284,7 +284,6 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Done |
 | 4.1 | Attendance Integration Fixes | Done |
-| 5 | Notifications | Done |
-| 5.1 | Milestone Gap Fixes | Not started |
+| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | Milestone Gap Fixes | Not started |
 | 5.2 | Auth Retroactive Verification | Not started |
 | 6 | Super Admin | Not started |
