@@ -102,7 +102,6 @@ jobs:
             -scheme iosApp-Workspace \
             -destination "id=$SIMULATOR_UDID" \
             -derivedDataPath DerivedData \
-            OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED=YES \
             | xcpretty
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
