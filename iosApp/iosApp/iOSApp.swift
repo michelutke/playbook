@@ -1,5 +1,8 @@
 import SwiftUI
 import ComposeApp
+#if canImport(OneSignalFramework)
+import OneSignalFramework
+#endif
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
@@ -35,6 +38,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         MainViewControllerKt.doInitKoin()
+
+        // OneSignal init
+        #if canImport(OneSignalFramework)
+        OneSignal.Debug.setLogLevel(.LL_NONE)
+        OneSignal.initialize("2281f6c6-e979-49e3-a16b-d7b7628b67ea", withLaunchOptions: launchOptions)
+        OneSignal.Notifications.requestPermission({ accepted in
+            print("Push permission: \(accepted)")
+        }, fallbackToSettings: true)
+        #endif
+
         return true
     }
 }

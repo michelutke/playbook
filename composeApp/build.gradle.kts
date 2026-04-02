@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -35,6 +36,7 @@ kotlin {
             implementation(libs.androidx.activityCompose)
             implementation(libs.koin.android)
             implementation(libs.androidx.lifecycleProcess)
+            implementation(libs.onesignal)
             // implementation(libs.updraft.sdk) // TODO: needs com.simplify:ink + com.rm:freedrawview repos
         }
         commonMain.dependencies {
@@ -102,6 +104,14 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        val onesignalAppId: String by lazy {
+            val props = providers.gradleProperty("onesignal.appId").orNull
+                ?: rootProject.file("local.properties").takeIf { it.exists() }?.readLines()
+                    ?.firstOrNull { it.startsWith("onesignal.appId=") }?.substringAfter("=")
+                ?: ""
+            props
+        }
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"$onesignalAppId\"")
     }
 
     signingConfigs {

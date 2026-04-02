@@ -4,13 +4,18 @@ import ch.teamorg.domain.models.CreateEventRequest
 import ch.teamorg.domain.models.EditEventRequest
 import ch.teamorg.domain.models.RecurringScope
 import ch.teamorg.domain.repositories.EventRepository
+import ch.teamorg.domain.repositories.NotificationRepository
 import ch.teamorg.infra.AbwesenheitBackfillJob
+import ch.teamorg.infra.NotificationDispatcher
+import org.slf4j.LoggerFactory
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import java.time.Instant
@@ -34,9 +39,18 @@ private data class EditEventWithScope(
 @Serializable
 private data class CancelScopeRequest(val scope: String? = "this_only")
 
+private val routeLogger = LoggerFactory.getLogger("EventRoutes")
+
+private fun formatDate(instant: Instant): String {
+    val zdt = instant.atZone(java.time.ZoneId.of("UTC"))
+    return "${zdt.dayOfMonth} ${zdt.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }} ${zdt.year}"
+}
+
 fun Route.eventRoutes() {
     val eventRepository by inject<EventRepository>()
     val backfillJob by inject<AbwesenheitBackfillJob>()
+    val dispatcher by inject<NotificationDispatcher>()
+    val notificationRepo by inject<NotificationRepository>()
 
     authenticate("jwt") {
         get("/users/me/events") {
@@ -69,11 +83,41 @@ fun Route.eventRoutes() {
             val request = call.receive<CreateEventRequest>()
             val event = eventRepository.create(request, userId)
             backfillJob.applyRulesToNewEvent(event.id, event.startAt, event.teamIds)
+
+            call.application.launch(Dispatchers.IO) {
+                try {
+                    for (teamId in event.teamIds) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = teamId,
+                            excludeUserId = userId,
+                            type = "event_new",
+                            title = "New Event",
+                            body = "${event.title} on ${formatDate(event.startAt)}",
+                            entityId = event.id,
+                            entityType = "event",
+                            idempotencyKeySuffix = "create"
+                        )
+                        val memberIds = notificationRepo.getTeamMemberIds(teamId)
+                        val userIdToFireAt = memberIds.associateWith { memberId ->
+                            val settings = notificationRepo.getSettings(memberId, teamId)
+                            val leadMinutes = notificationRepo.getReminderOverride(memberId, event.id)
+                                ?: settings?.reminderLeadMinutes
+                                ?: 120
+                            event.startAt.minusSeconds(leadMinutes.toLong() * 60)
+                        }
+                        notificationRepo.insertReminderRows(event.id, userIdToFireAt)
+                    }
+                } catch (e: Exception) {
+                    routeLogger.warn("Event create notification dispatch failed: ${e.message}")
+                }
+            }
+
             call.respond(HttpStatusCode.Created, event)
         }
 
         patch("/events/{id}") {
             val id = UUID.fromString(call.parameters["id"])
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val body = call.receive<EditEventWithScope>()
             val scope = RecurringScope.valueOf(body.scope ?: "this_only")
             val editRequest = EditEventRequest(
@@ -124,12 +168,46 @@ fun Route.eventRoutes() {
             }
 
             val updated = eventRepository.findByIdWithTeams(id)
-            if (updated != null) call.respond(updated)
-            else call.respond(HttpStatusCode.NotFound)
+            if (updated != null) {
+                call.application.launch(Dispatchers.IO) {
+                    try {
+                        for (teamId in updated.event.teamIds) {
+                            dispatcher.notifyTeamMembers(
+                                teamId = teamId,
+                                excludeUserId = userId,
+                                type = "event_edit",
+                                title = "Event Updated",
+                                body = "${updated.event.title} has been updated",
+                                entityId = updated.event.id,
+                                entityType = "event",
+                                idempotencyKeySuffix = "edit"
+                            )
+                        }
+                        notificationRepo.deleteReminderRowsForEvent(id)
+                        for (teamId in updated.event.teamIds) {
+                            val memberIds = notificationRepo.getTeamMemberIds(teamId)
+                            val userIdToFireAt = memberIds.associateWith { memberId ->
+                                val settings = notificationRepo.getSettings(memberId, teamId)
+                                val leadMinutes = notificationRepo.getReminderOverride(memberId, id)
+                                    ?: settings?.reminderLeadMinutes
+                                    ?: 120
+                                updated.event.startAt.minusSeconds(leadMinutes.toLong() * 60)
+                            }
+                            notificationRepo.insertReminderRows(id, userIdToFireAt)
+                        }
+                    } catch (e: Exception) {
+                        routeLogger.warn("Event edit notification dispatch failed: ${e.message}")
+                    }
+                }
+                call.respond(updated)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
 
         post("/events/{id}/cancel") {
             val id = UUID.fromString(call.parameters["id"])
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
             val body = call.receive<CancelScopeRequest>()
             val scope = RecurringScope.valueOf(body.scope ?: "this_only")
 
@@ -156,6 +234,26 @@ fun Route.eventRoutes() {
                     eventRepository.cancel(id)
                 }
             }
+
+            call.application.launch(Dispatchers.IO) {
+                try {
+                    for (teamId in existing.teamIds) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = teamId,
+                            excludeUserId = userId,
+                            type = "event_cancel",
+                            title = "Event Cancelled",
+                            body = "${existing.title} has been cancelled",
+                            entityId = id,
+                            entityType = "event",
+                            idempotencyKeySuffix = "cancel"
+                        )
+                    }
+                    notificationRepo.deleteReminderRowsForEvent(id)
+                } catch (e: Exception) {
+                    routeLogger.warn("Event cancel notification dispatch failed: ${e.message}")
+                }
+            }  // end of cancel notification launch
 
             call.respond(HttpStatusCode.OK)
         }

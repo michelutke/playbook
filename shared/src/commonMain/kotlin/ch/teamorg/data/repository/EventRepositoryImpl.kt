@@ -17,6 +17,7 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.utils.io.errors.IOException
 import kotlinx.datetime.Clock
@@ -136,12 +137,13 @@ class EventRepositoryImpl(
 
     override suspend fun getSubGroups(teamId: String): Result<List<SubGroup>> {
         return try {
-            Result.success(httpClient.get("/teams/$teamId/subgroups").body())
-        } catch (e: ConnectTimeoutException) {
-            Result.success(emptyList())
-        } catch (e: HttpRequestTimeoutException) {
-            Result.success(emptyList())
-        } catch (e: IOException) {
+            val response = httpClient.get("/teams/$teamId/subgroups")
+            if (response.status == HttpStatusCode.OK) {
+                Result.success(response.body())
+            } else {
+                Result.success(emptyList())
+            }
+        } catch (_: Exception) {
             Result.success(emptyList())
         }
     }

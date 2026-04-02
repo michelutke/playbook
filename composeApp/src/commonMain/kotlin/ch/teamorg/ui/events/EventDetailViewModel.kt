@@ -9,6 +9,7 @@ import ch.teamorg.domain.SubmitResponseRequest
 import ch.teamorg.preferences.UserPreferences
 import ch.teamorg.repository.AttendanceRepository
 import ch.teamorg.repository.EventRepository
+import ch.teamorg.repository.NotificationRepository
 import ch.teamorg.repository.TeamRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +30,9 @@ data class EventDetailState(
     val declinedCount: Int = 0,
     val responseDeadline: Instant? = null,
     val deadlinePassed: Boolean = false,
-    val checkInEntries: List<CheckInEntry> = emptyList()
+    val checkInEntries: List<CheckInEntry> = emptyList(),
+    val reminderLeadMinutes: Int? = null,
+    val isLoadingReminder: Boolean = false
 )
 
 sealed class DetailEvent {
@@ -41,7 +44,8 @@ class EventDetailViewModel(
     private val eventRepository: EventRepository,
     private val teamRepository: TeamRepository,
     private val userPreferences: UserPreferences,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val notificationRepository: NotificationRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EventDetailState())
@@ -58,6 +62,7 @@ class EventDetailViewModel(
                     _state.update { it.copy(event = ewt, isLoading = false) }
                     checkCoachRole()
                     loadAttendance(eventId)
+                    loadReminderOverride(eventId)
                 }
                 .onFailure { e ->
                     _state.update { it.copy(error = e.message, isLoading = false) }
@@ -148,6 +153,28 @@ class EventDetailViewModel(
                 }
                 .onFailure { e ->
                     _state.update { it.copy(error = e.message) }
+                }
+        }
+    }
+
+    fun loadReminderOverride(eventId: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingReminder = true) }
+            notificationRepository.getReminderOverride(eventId)
+                .onSuccess { override ->
+                    _state.update { it.copy(reminderLeadMinutes = override.reminderLeadMinutes, isLoadingReminder = false) }
+                }
+                .onFailure {
+                    _state.update { it.copy(isLoadingReminder = false) }
+                }
+        }
+    }
+
+    fun setReminderOverride(eventId: String, leadMinutes: Int?) {
+        viewModelScope.launch {
+            notificationRepository.setReminderOverride(eventId, leadMinutes)
+                .onSuccess {
+                    _state.update { it.copy(reminderLeadMinutes = leadMinutes) }
                 }
         }
     }

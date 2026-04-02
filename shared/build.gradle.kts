@@ -35,6 +35,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.clientOkhttp)
             implementation(libs.sqldelight.androidDriver)
+            implementation(libs.onesignal)
         }
 
         iosMain.dependencies {

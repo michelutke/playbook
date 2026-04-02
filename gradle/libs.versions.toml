@@ -33,6 +33,8 @@ robolectric = "4.14"
 androidx-test-ext-junit = "1.2.1"
 testcontainers = "1.21.0"
 kizitonwose-calendar = "2.7.0"
+onesignal = "5.7.6"
+googleServices = "4.4.2"
 
 [libraries]
 # Kotlin
@@ -74,8 +76,10 @@ koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 ktor-clientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-clientOkhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-clientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-clientCio = { module = "io.ktor:ktor-client-cio-jvm", version.ref = "ktor" }
 ktor-clientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-clientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-clientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-serializationKotlinxJson = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 # Ktor Server
@@ -115,6 +119,9 @@ kizitonwose-calendar-compose = { module = "com.kizitonwose.calendar:compose-mult
 # Android: Updraft
 updraft-sdk = { module = "com.appswithlove.updraft:updraft-sdk", version.ref = "updraft" }
 
+# Push Notifications
+onesignal = { module = "com.onesignal:OneSignal", version.ref = "onesignal" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -126,3 +133,4 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }

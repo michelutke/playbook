@@ -506,6 +506,7 @@ class AttendanceRoutesTest : IntegrationTestBase() {
     fun `check-in entries return empty for event with no team`() = withTeamorgTestApplication {
         val client = createJsonClient()
         val auth = registerAndLogin("ci_noteam@example.com", displayName = "No Team User")
+        setupClubAndTeam(auth.token) // grants club_manager role
 
         // Event created without teamIds
         val event = createEvent(auth.token, "Training No Team")
@@ -517,6 +518,25 @@ class AttendanceRoutesTest : IntegrationTestBase() {
         assertEquals(HttpStatusCode.OK, response.status)
         val entries = response.body<List<CheckInEntryPayload>>()
         assertTrue(entries.isEmpty())
+    }
+
+    @Test
+    fun `non-coach cannot read check-in list`() = withTeamorgTestApplication {
+        val client = createJsonClient()
+        val coachAuth = registerAndLogin("ci_guard_coach@example.com", displayName = "Coach Guard")
+        val playerAuth = registerAndLogin("ci_guard_player@example.com", displayName = "Player Guard")
+
+        val (_, teamId) = setupClubAndTeam(coachAuth.token)
+        invitePlayerToTeam(coachAuth.token, teamId, playerAuth.token)
+
+        val event = createEvent(coachAuth.token, "Training Guard", teamIds = listOf(teamId))
+
+        // playerAuth has no coach or club_manager role
+        val response = client.get("/events/${event.id}/check-in") {
+            header(HttpHeaders.Authorization, "Bearer ${playerAuth.token}")
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     // --- absence auto-decline on event creation ---

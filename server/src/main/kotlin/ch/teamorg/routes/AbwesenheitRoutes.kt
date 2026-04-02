@@ -3,15 +3,21 @@ package ch.teamorg.routes
 import ch.teamorg.domain.repositories.AbwesenheitRepository
 import ch.teamorg.domain.repositories.AbwesenheitRuleRow
 import ch.teamorg.domain.repositories.CreateAbwesenheitRule
+import ch.teamorg.domain.repositories.NotificationRepository
+import ch.teamorg.domain.repositories.TeamRepository
 import ch.teamorg.domain.repositories.UpdateAbwesenheitRule
 import ch.teamorg.infra.AbwesenheitBackfillJob
+import ch.teamorg.infra.NotificationDispatcher
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.slf4j.LoggerFactory
 import org.koin.ktor.ext.inject
 import java.time.LocalDate
 import java.util.UUID
@@ -56,6 +62,8 @@ private data class AbwesenheitResponse(
 @Serializable
 private data class BackfillStatusResponse(val status: String)
 
+private val abwLogger = LoggerFactory.getLogger("AbwesenheitRoutes")
+
 private fun AbwesenheitRuleRow.toResponse() = AbwesenheitResponse(
     id = id.toString(),
     userId = userId.toString(),
@@ -73,6 +81,9 @@ private fun AbwesenheitRuleRow.toResponse() = AbwesenheitResponse(
 fun Route.abwesenheitRoutes() {
     val abwesenheitRepo by inject<AbwesenheitRepository>()
     val backfillJob by inject<AbwesenheitBackfillJob>()
+    val dispatcher by inject<NotificationDispatcher>()
+    val notificationRepo by inject<NotificationRepository>()
+    val teamRepository by inject<TeamRepository>()
 
     authenticate("jwt") {
         get("/users/me/abwesenheit") {
@@ -98,6 +109,27 @@ fun Route.abwesenheitRoutes() {
             )
             val app = application
             backfillJob.enqueue(userId, rule.id, app)
+
+            call.application.launch(Dispatchers.IO) {
+                try {
+                    val teamRoles = teamRepository.getUserTeamRoles(userId)
+                    for (roleTriple in teamRoles) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = roleTriple.first,
+                            excludeUserId = userId,
+                            type = "absence",
+                            title = "Absence Update",
+                            body = "A player updated their absence. Affects upcoming events.",
+                            entityId = rule.id,
+                            entityType = "absence",
+                            idempotencyKeySuffix = "absence:${rule.id}"
+                        )
+                    }
+                } catch (e: Exception) {
+                    abwLogger.warn("Absence create notification dispatch failed: ${e.message}")
+                }
+            }
+
             call.respond(HttpStatusCode.Created, rule.toResponse())
         }
 
@@ -119,6 +151,27 @@ fun Route.abwesenheitRoutes() {
             )
             val app = application
             backfillJob.enqueue(userId, ruleId, app)
+
+            call.application.launch(Dispatchers.IO) {
+                try {
+                    val teamRoles = teamRepository.getUserTeamRoles(userId)
+                    for (roleTriple in teamRoles) {
+                        dispatcher.notifyTeamMembers(
+                            teamId = roleTriple.first,
+                            excludeUserId = userId,
+                            type = "absence",
+                            title = "Absence Update",
+                            body = "A player updated their absence. Affects upcoming events.",
+                            entityId = ruleId,
+                            entityType = "absence",
+                            idempotencyKeySuffix = "absence:${ruleId}"
+                        )
+                    }
+                } catch (e: Exception) {
+                    abwLogger.warn("Absence update notification dispatch failed: ${e.message}")
+                }
+            }
+
             call.respond(rule.toResponse())
         }
 

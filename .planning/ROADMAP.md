@@ -167,6 +167,16 @@ Plans:
 
 **Requirements:** NO-01–12
 
+**Plans:** 6/6 plans complete
+
+Plans:
+- [ ] 05-01-PLAN.md — Server DB foundation (V9 migration, Exposed tables, PushService, NotificationRepository)
+- [ ] 05-02-PLAN.md — Server routes + notification triggers + ReminderSchedulerJob
+- [ ] 05-03-PLAN.md — Shared KMP contracts (domain models, repository interface, SQLDelight cache, Ktor impl)
+- [ ] 05-04-PLAN.md — OneSignal SDK integration (Android + iOS init, login/logout hooks)
+- [ ] 05-05-PLAN.md — Notification UI (InboxScreen, settings, ReminderPickerSheet, badge, EventDetail reminder row)
+- [ ] 05-06-PLAN.md — Integration + unit tests (NotificationRoutesTest, PushServiceTest)
+
 **Deliverables:**
 - OneSignal integration (iOS + Android, behind PushService abstraction)
 - Event notifications: new event, edits, cancellations
@@ -184,6 +194,57 @@ Plans:
 3. Reminder fires at configured lead time
 4. In-app inbox shows all notifications without push enabled
 5. No duplicate notifications sent
+
+---
+
+## Phase 5.1 — Milestone Gap Fixes
+**Goal:** Close P1/P2 integration gaps and security issues from v1.0 milestone audit.
+
+**Gap Closure:** Closes AT-03/AT-04 offline sync, NO-08 UX, check-in role check, dead code cleanup.
+
+**Requirements:** AT-03, AT-04, AT-14, NO-08
+
+**Plans:** 2/2 plans complete
+
+Plans:
+- [ ] 05.1-01-PLAN.md — Offline sync wiring + check-in security fix (AT-03, AT-04, AT-14)
+- [ ] 05.1-02-PLAN.md — Team name resolution in settings + dead code cleanup (NO-08)
+
+**Deliverables:**
+- Connectivity observer wiring `MutationQueueManager.flushQueue()` on reconnect/foreground
+- `NotificationSettingsViewModel` resolves team names instead of showing UUIDs
+- Role check added to `GET /events/{id}/check-in`
+- Dead `CalendarScreen.kt`, `CalendarViewModel.kt`, and Koin factory removed
+
+**Success criteria:**
+1. Offline RSVP responses sync to server on reconnect
+2. Notification settings screen shows team names, not UUIDs
+3. Non-coach users cannot read check-in list
+4. No dead CalendarScreen/CalendarViewModel references remain
+
+---
+
+## Phase 5.2 — Auth Retroactive Verification
+**Goal:** Retroactively verify Phase 01 auth requirements and close remaining checkbox gaps.
+
+**Gap Closure:** Closes AUTH-01–06 orphaned verification, TM-14 partial status.
+
+**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, TM-14
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 05.2-01-PLAN.md — Create auth verification evidence + update requirement checkboxes
+
+**Deliverables:**
+- `01-VERIFICATION.md` created with evidence for all 6 AUTH requirements
+- TM-14 verified (backend multi-team support confirmed)
+- REQUIREMENTS.md checkboxes updated
+
+**Success criteria:**
+1. All AUTH requirements have verification evidence
+2. TM-14 checkbox reflects actual implementation status
+3. Re-audit passes with 62/62 requirements satisfied
 
 ---
 
@@ -226,6 +287,7 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 1 | Foundation + Auth | Done |
 | 2 | Team Management | Done |
 | 3 | Event Scheduling | Done |
-| 4 | Attendance Tracking | Complete | 2026-03-24 |
-| 4.1 | 2/2 | Complete   | 2026-03-24 | 5 | Notifications | Not started |
+| 4 | Attendance Tracking | Done |
+| 4.1 | Attendance Integration Fixes | Done |
+| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | 2/2 | Complete   | 2026-04-01 | 5.2 | Auth Retroactive Verification | Not started |
 | 6 | Super Admin | Not started |

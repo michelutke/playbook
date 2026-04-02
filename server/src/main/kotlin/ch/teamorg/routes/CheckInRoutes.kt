@@ -47,6 +47,18 @@ fun Route.checkInRoutes() {
     authenticate("jwt") {
         get("/events/{id}/check-in") {
             val eventId = UUID.fromString(call.parameters["id"])
+            val userId = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
+
+            // Require coach or club_manager role
+            val teamRoles = teamRepository.getUserTeamRoles(userId)
+            val clubRoles = teamRepository.getUserClubRoles(userId)
+            val isCoachOrManager = teamRoles.any { it.third == "coach" } ||
+                clubRoles.any { it.second == "club_manager" }
+            if (!isCoachOrManager) {
+                call.respond(HttpStatusCode.Forbidden, "Coach role required")
+                return@get
+            }
+
             val entries = attendanceRepo.getCheckInEntries(eventId)
             call.respond(entries)
         }

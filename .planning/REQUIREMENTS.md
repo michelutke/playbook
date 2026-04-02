@@ -68,18 +68,18 @@
 - [x] **AT-16**: Audit log of manual coach overrides
 
 ### NO — Notifications
-- [ ] **NO-01**: Player notified when new event created for their team
-- [ ] **NO-02**: Player receives configurable reminder before event (1h, 2h, 1 day, 2 days)
-- [ ] **NO-03**: Player notified when event is edited (time/location change)
-- [ ] **NO-04**: Player notified when event is cancelled
-- [ ] **NO-05**: Coach can choose per-response notifications (each confirm/decline/unsure)
-- [ ] **NO-06**: Coach can choose pre-event summary of no-response players
-- [ ] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
-- [ ] **NO-08**: Each user can enable/disable notification types independently
-- [ ] **NO-09**: User can configure reminder lead time
-- [ ] **NO-10**: Push notifications on iOS + Android (OneSignal)
-- [ ] **NO-11**: In-app notification inbox (accessible without push enabled)
-- [ ] **NO-12**: No duplicate notifications; no notifications to removed members
+- [x] **NO-01**: Player notified when new event created for their team
+- [x] **NO-02**: Player receives configurable reminder before event (1h, 2h, 1 day, 2 days)
+- [x] **NO-03**: Player notified when event is edited (time/location change)
+- [x] **NO-04**: Player notified when event is cancelled
+- [x] **NO-05**: Coach can choose per-response notifications (each confirm/decline/unsure)
+- [x] **NO-06**: Coach can choose pre-event summary of no-response players
+- [x] **NO-07**: Coach notified when player adds/modifies Abwesenheit affecting upcoming events
+- [x] **NO-08**: Each user can enable/disable notification types independently
+- [x] **NO-09**: User can configure reminder lead time
+- [x] **NO-10**: Push notifications on iOS + Android (OneSignal)
+- [x] **NO-11**: In-app notification inbox (accessible without push enabled)
+- [x] **NO-12**: No duplicate notifications; no notifications to removed members
 
 ### SA — Super Admin
 - [ ] **SA-01**: SuperAdmin can create clubs and invite ClubManagers at creation time
@@ -121,4 +121,6 @@
 | 4 | AT-01–16 |
 | 4.1 | AT-04, AT-05, AT-06, AT-08, AT-11, AT-12, AT-13, TM-17, TM-19 (integration fixes) |
 | 5 | NO-01–12 |
+| 5.1 | AT-03, AT-04, AT-14, NO-08 (gap fixes) |
+| 5.2 | AUTH-01–06, TM-14 (retroactive verification) |
 | 6 | SA-01–12 |

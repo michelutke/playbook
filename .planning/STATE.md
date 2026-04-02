@@ -3,22 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T17:29:52.510Z"
+last_updated: "2026-04-01T11:47:38.006Z"
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 8
+  completed_phases: 6
+  total_plans: 31
+  completed_plans: 31
+  percent: 100
 ---
 
 # STATE.md — Playbook
 
 ## Current State
 
-- **Active phase:** Phase 4 — Attendance Tracking (COMPLETE)
+- **Active phase:** Phase 05.2 — auth-retroactive-verification (Ready to plan)
 - **Mode:** YOLO
-- **Last updated:** 2026-03-24
-- **Last session:** 2026-03-24T17:29:46.623Z
+- **Last updated:** 2026-04-01
+- **Last session:** 2026-04-01T11:47:37.997Z
+- **Progress:** [████████████████████] 31/31 plans (100%)
 
 ## Phase Status
 
@@ -28,7 +30,9 @@ progress:
 | 2 — Team Management | ✅ Done | 2026-03-11 | 2026-03-19 |
 | 3 — Event Scheduling | ✅ Done | 2026-03-19 | 2026-03-24 |
 | 4 — Attendance Tracking | ✅ Done | 2026-03-24 | 2026-03-24 |
-| 5 — Notifications | 🔲 Not started | — | — |
+| 5 — Notifications | ✅ Done | 2026-03-25 | 2026-03-26 |
+| 5.1 — Milestone Gap Fixes | ✅ Done | 2026-04-01 | 2026-04-01 |
+| 5.2 — Auth Retroactive Verification | 🔲 Not started | — | — |
 | 6 — Super Admin | 🔲 Not started | — | — |
 
 ## What's Actually Done
@@ -123,8 +127,40 @@ progress:
 - [Phase 04.1-01]: Server-side DTOs for CheckInEntry defined in AttendanceRepository.kt co-located with domain contracts
 - [Phase 04.1-01]: getCheckInEntries uses three separate queries merged in memory (simpler than multi-table LEFT JOIN with alias collisions)
 - [Phase 04.1-01]: kotlinx-datetime added to server build.gradle.kts for @Serializable Instant fields in response DTOs
+- [Phase 05-notifications]: createdAt stored as ISO-8601 String in Notification domain model — avoids kotlinx-datetime serialization complexity
+- [Phase 05-notifications]: NotificationRepositoryImpl uses relative URL paths — base URL configured in HttpClientFactory, consistent with all other repos
+- [Phase 05-notifications]: Used timestamp() not timestampWithTimeZone() in NotificationTables — not in exposed-java-time 0.54.0, TIMESTAMPTZ handled by PostgreSQL JDBC transparently
+- [Phase 05-notifications]: insertIgnore used for dedup in NotificationRepository.createNotification/createBatch — maps to INSERT IGNORE ON CONFLICT DO NOTHING via Exposed
+- [Phase 05-notifications]: ktor-client-cio added to server production deps for PushServiceImpl HttpClient — CIO engine is JVM-native
+- [Phase 05-notifications]: PushRegistration expect/actual: Android calls OneSignal.login/logout; iOS+JVM no-op (iOS OneSignal SDK is native Swift, not accessible from KMM)
+- [Phase 05-notifications]: ONESIGNAL_APP_ID read from onesignal.appId local.properties via findProperty() in BuildConfig
+- [Phase 05-notifications]: iOS OneSignal SPM package requires manual Xcode setup; placeholder string in iOSApp.swift marks substitution point
+- [Phase 05-notifications]: call.application.launch(Dispatchers.IO) used in route handlers — top-level launch() is deprecated in Ktor route context
+- [Phase 05-notifications]: Reminder row management methods added to NotificationRepository interface — insertReminderRows, deleteReminderRowsForEvent, getDueReminders, getCoachIdsForTeam, getEventAttendanceSummary, getUpcomingEventsForCoachSummary
+- [Phase 05-notifications]: TeamRoleEntry has no teamName field — used teamId as display label in team picker
+- [Phase 05-notifications]: EventDetailViewModel: NotificationRepository injected as 5th param; reminder loaded in loadEvent flow
+- [Phase 05-notifications]: fireCoachSummaries made internal for direct test invocation
+- [Phase 05-notifications]: AbwesenheitRoutes had destructure bug (clubId sent as teamId) — fixed to roleTriple.first
+- [Phase 05.1]: flushQueue called inside existing LaunchedEffect(authState) — fires on auth change and foreground resume without extra observer
+- [Phase 05.1]: GET /events/{id}/check-in role check mirrors exact PUT pattern (getUserTeamRoles + getUserClubRoles)
+- [Phase 05.1-02]: ClubRepository injected as 3rd param to NotificationSettingsViewModel; team names fetched per distinct clubId via getClubTeams
+- [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
+
+### Phase 5 — Notifications ✅
+
+- ✅ 05-01: Notification DB foundation — V9 migration, NotificationTables, NotificationRepository
+- ✅ 05-02: Notification API routes — CRUD endpoints, settings, batch operations
+- ✅ 05-03: Notification domain — KMP shared contracts, NotificationRepositoryImpl, cache
+- ✅ 05-04: Inbox UI — NotificationListScreen, badge, pull-to-refresh, mark-read
+- ✅ 05-05: Notification settings — team picker, per-category toggles, OneSignal push registration
+- ✅ 05-06: Reminder scheduler — ReminderSchedulerJob, coach pre-event summaries, integration tests
+
+### Phase 5.1 — Milestone Gap Fixes ✅
+
+- ✅ 05.1-01: Wired offline RSVP flushQueue on app foreground + check-in GET auth guard
+- ✅ 05.1-02: Team name resolution in notification settings + dead CalendarScreen/CalendarViewModel removal
 
 ## Notes
 
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-03-24 — Phase 3 complete, starting Phase 4 (Attendance Tracking)
+- Last session: 2026-04-01 — Phase 05.1 complete, ready to plan Phase 05.2
