@@ -3,12 +3,12 @@
 ## v1 Requirements
 
 ### AUTH — Authentication
-- [ ] **AUTH-01**: User can register with email + password
-- [ ] **AUTH-02**: User can log in and stay logged in across sessions (JWT, roles from DB)
-- [ ] **AUTH-03**: User can log out; session invalidated
-- [ ] **AUTH-04**: User receives email invite and is prompted to register when following an invite link
-- [ ] **AUTH-05**: Role changes take effect immediately without re-login
-- [ ] **AUTH-06**: SuperAdmin role granted manually only (not via registration)
+- [x] **AUTH-01**: User can register with email + password
+- [x] **AUTH-02**: User can log in and stay logged in across sessions (JWT, roles from DB)
+- [x] **AUTH-03**: User can log out; session invalidated
+- [x] **AUTH-04**: User receives email invite and is prompted to register when following an invite link
+- [x] **AUTH-05**: Role changes take effect immediately without re-login
+- [x] **AUTH-06**: SuperAdmin role granted manually only (not via registration)
 
 ### TM — Team Management
 - [x] **TM-01**: ClubManager can create and edit club profile (name, logo, sport type, location)
@@ -24,7 +24,7 @@
 - [x] **TM-11**: Coach can view the full team roster with player profiles
 - [x] **TM-12**: Coach can assign jersey numbers and positions (optional)
 - [x] **TM-13**: Coach can create and manage sub-groups within a team
-- [ ] **TM-14**: Player can belong to multiple teams
+- [x] **TM-14**: Player can belong to multiple teams
 - [x] **TM-15**: Player can leave a team themselves
 - [x] **TM-16**: Player has a profile: name, avatar, jersey number, position, contact info
 - [x] **TM-17**: Player profile shows attendance statistics summary
