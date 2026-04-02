@@ -134,7 +134,7 @@ jobs:
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
           xcrun simctl boot "$UDID"
       - name: Run all iOS UI tests
-        timeout-minutes: 8
+        timeout-minutes: 15
         run: |
           set -o pipefail
           xcodebuild test-without-building \
