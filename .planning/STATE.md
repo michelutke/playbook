@@ -3,24 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-04T18:46:19.745Z"
+last_updated: "2026-04-04T18:46:48.274Z"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 39
+  total_plans: 32
   completed_plans: 33
-  percent: 85
+  percent: 100
 ---
 
 # STATE.md — Playbook
 
 ## Current State
 
-- **Active phase:** Phase 06 — Super Admin (in progress, plan 1/7 complete)
+- **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-04T18:46:19.742Z
-- **Progress:** [█████████░] 85%
+- **Last session:** 2026-04-04T18:46:48.271Z
+- **Progress:** [██████████] 100%
 
 ## Phase Status
 
@@ -33,7 +33,7 @@ progress:
 | 5 — Notifications | ✅ Done | 2026-03-25 | 2026-03-26 |
 | 5.1 — Milestone Gap Fixes | ✅ Done | 2026-04-01 | 2026-04-01 |
 | 5.2 — Auth Retroactive Verification | ✅ Done | 2026-04-01 | 2026-04-01 |
-| 6 — Super Admin | 🔄 In Progress | 2026-04-04 | — |
+| 6 — Super Admin | 🔲 Not started | — | — |
 
 ## What's Actually Done
 
@@ -147,9 +147,8 @@ progress:
 - [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
 - [Phase 05.2-auth-retroactive-verification]: AUTH-05 evidence: roles not in JWT; GET /auth/me/roles does live DB query per request — role changes immediate without re-login
 - [Phase 05.2-auth-retroactive-verification]: TM-14 closed: backend supports multiple TeamRoles rows per user; no UI gap per 02-VERIFICATION.md truth #15
-- [Phase 06-super-admin]: audit_log uses JSONB in SQL but TEXT in Exposed to avoid exposed-json dependency
-- [Phase 06-super-admin]: SA-12 immutability: REVOKE UPDATE/DELETE documented in migration COMMENT, must be applied as superuser in production
-- [Phase 06-super-admin]: clubs soft-deleted (status=deleted) to preserve historical data
+- [Phase 06-super-admin]: Used @sveltejs/vite-plugin-svelte v5 and import from @sveltejs/kit/vite — resolves vite v6 peer dep conflict in SvelteKit 2 + Tailwind v4 setup
+- [Phase 06-super-admin]: Svelte 5 requires event handler function references (not inline strings) — extracted onFocus/onBlur as typed functions in admin login form
 
 ### Phase 5 — Notifications ✅
 
@@ -168,10 +167,6 @@ progress:
 ### Phase 5.2 — Auth Retroactive Verification ✅
 
 - ✅ 05.2-01: Created 01-VERIFICATION.md with evidence for AUTH-01–06; checked AUTH-01–06 and TM-14 in REQUIREMENTS.md
-
-### Phase 6 — Super Admin 🔄
-
-- ✅ 06-01: Admin DB foundation — V10 migration (clubs.status + audit_log + impersonation_sessions), AuditLogRepository, AdminRepository, requireSuperAdmin middleware
 
 ## Notes
 
