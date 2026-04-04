@@ -90,10 +90,10 @@
 - [ ] **SA-06**: SuperAdmin can invite and assign ClubManagers to a club
 - [ ] **SA-07**: SuperAdmin can remove a ClubManager
 - [ ] **SA-08**: SuperAdmin can impersonate a ClubManager (audit-logged, 1h max, clearly indicated)
-- [ ] **SA-09**: SuperAdmin dashboard: total clubs, users, active events today, recent sign-ups
-- [ ] **SA-10**: SuperAdmin can search users by name/email and view club memberships
-- [ ] **SA-11**: SuperAdmin can view immutable audit log of all admin actions
-- [ ] **SA-12**: Audit logs retained minimum 2 years; app DB role has no UPDATE/DELETE on audit_log
+- [x] **SA-09**: SuperAdmin dashboard: total clubs, users, active events today, recent sign-ups
+- [x] **SA-10**: SuperAdmin can search users by name/email and view club memberships
+- [x] **SA-11**: SuperAdmin can view immutable audit log of all admin actions
+- [x] **SA-12**: Audit logs retained minimum 2 years; app DB role has no UPDATE/DELETE on audit_log
 
 ## v2 Requirements (Deferred)
 - External calendar sync (iCal/Google Calendar export)
