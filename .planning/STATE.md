@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-04T18:52:29.252Z"
+last_updated: "2026-04-04T18:58:16.684Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 39
-  completed_plans: 35
-  percent: 90
+  completed_plans: 36
+  percent: 92
 ---
 
 # STATE.md — Playbook
@@ -19,8 +19,8 @@ progress:
 - **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-04T18:52:29.249Z
-- **Progress:** [█████████░] 90%
+- **Last session:** 2026-04-04T18:58:16.681Z
+- **Progress:** [█████████░] 92%
 
 ## Phase Status
 
@@ -151,6 +151,8 @@ progress:
 - [Phase 06-super-admin]: Svelte 5 requires event handler function references (not inline strings) — extracted onFocus/onBlur as typed functions in admin login form
 - [Phase 06-super-admin]: createClub() in AdminRepository (not ClubRepository) — SA creates clubs without self-assigning club_manager role
 - [Phase 06-super-admin]: POST /impersonate/end uses JWT claims for impersonator identity — not requireSuperAdmin — impersonation token subject is targetUser
+- [Phase 06-super-admin]: API helper in $lib/server/api.ts with generic <T> return — callers define response interfaces inline (YAGNI)
+- [Phase 06-super-admin]: SvelteKit confirmation modals as inline #if blocks with $state booleans — no shared modal component
 
 ### Phase 5 — Notifications ✅
 
