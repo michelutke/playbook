@@ -26,7 +26,7 @@
 		},
 		{
 			label: 'Recent Sign-ups',
-			value: data.stats.recentSignUps,
+			value: data.stats.recentSignups.length,
 			icon: UserPlus
 		}
 	]);
@@ -75,7 +75,7 @@
 		<h2 class="font-semibold" style="font-size: 16px; color: #F0F0FF;">Recent Sign-ups</h2>
 	</div>
 
-	{#if data.stats.recentUsers && data.stats.recentUsers.length > 0}
+	{#if data.stats.recentSignups && data.stats.recentSignups.length > 0}
 		<table class="w-full" style="border-collapse: collapse;">
 			<thead>
 				<tr style="background-color: #13131F;">
@@ -97,7 +97,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each data.stats.recentUsers as user, i}
+				{#each data.stats.recentSignups as user, i}
 					<tr
 						style="
 							background-color: #1C1C2E;
@@ -106,7 +106,7 @@
 					>
 						<td style="font-size: 14px; color: #F0F0FF; padding: 12px 16px;">{user.displayName}</td>
 						<td style="font-size: 14px; color: #9090B0; padding: 12px 16px;">{user.email}</td>
-						<td style="font-size: 14px; color: #9090B0; padding: 12px 16px;">{formatDate(user.joinedAt)}</td>
+						<td style="font-size: 14px; color: #9090B0; padding: 12px 16px;">{formatDate(user.createdAt)}</td>
 					</tr>
 				{/each}
 			</tbody>
