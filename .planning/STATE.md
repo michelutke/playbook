@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-04T19:06:00.138Z"
+last_updated: "2026-04-04T19:13:31.969Z"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 39
-  completed_plans: 38
-  percent: 97
+  completed_plans: 39
+  percent: 100
 ---
 
 # STATE.md — Playbook
@@ -19,8 +19,8 @@ progress:
 - **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-04T19:06:00.134Z
-- **Progress:** [██████████] 97%
+- **Last session:** 2026-04-04T19:13:31.966Z
+- **Progress:** [██████████] 100%
 
 ## Phase Status
 
@@ -156,6 +156,8 @@ progress:
 - [Phase 06-05]: Audit log filter action options hardcoded in component — matches exact action strings from AdminRoutes.kt
 - [Phase 06-super-admin]: Svelte 5 $effect for countdown initialization — consistent with runes codebase convention
 - [Phase 06-super-admin]: impersonateTarget state stores {id, name} — enables modal copy without extra API fetch
+- [Phase 06-super-admin]: audit_log details/impersonation_context columns changed from JSONB to TEXT in V10 migration — Exposed text() column was incompatible with JSONB
+- [Phase 06-super-admin]: ImpersonationStatusResponse @Serializable DTO replaces mixed-type mapOf for /admin/impersonate/status endpoint
 
 ### Phase 5 — Notifications ✅
 
