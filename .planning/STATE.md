@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-04T18:46:48.274Z"
+last_updated: "2026-04-04T18:52:29.252Z"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 32
-  completed_plans: 33
-  percent: 100
+  total_plans: 39
+  completed_plans: 35
+  percent: 90
 ---
 
 # STATE.md — Playbook
@@ -19,8 +19,8 @@ progress:
 - **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-04T18:46:48.271Z
-- **Progress:** [██████████] 100%
+- **Last session:** 2026-04-04T18:52:29.249Z
+- **Progress:** [█████████░] 90%
 
 ## Phase Status
 
@@ -149,6 +149,8 @@ progress:
 - [Phase 05.2-auth-retroactive-verification]: TM-14 closed: backend supports multiple TeamRoles rows per user; no UI gap per 02-VERIFICATION.md truth #15
 - [Phase 06-super-admin]: Used @sveltejs/vite-plugin-svelte v5 and import from @sveltejs/kit/vite — resolves vite v6 peer dep conflict in SvelteKit 2 + Tailwind v4 setup
 - [Phase 06-super-admin]: Svelte 5 requires event handler function references (not inline strings) — extracted onFocus/onBlur as typed functions in admin login form
+- [Phase 06-super-admin]: createClub() in AdminRepository (not ClubRepository) — SA creates clubs without self-assigning club_manager role
+- [Phase 06-super-admin]: POST /impersonate/end uses JWT claims for impersonator identity — not requireSuperAdmin — impersonation token subject is targetUser
 
 ### Phase 5 — Notifications ✅
 

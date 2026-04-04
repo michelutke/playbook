@@ -85,11 +85,11 @@
 - [x] **SA-01**: SuperAdmin can create clubs and invite ClubManagers at creation time
 - [x] **SA-02**: SuperAdmin can deactivate/reactivate a club (data preserved)
 - [x] **SA-03**: SuperAdmin can view all clubs with status, team count, member count
-- [ ] **SA-04**: SuperAdmin can edit club details
-- [ ] **SA-05**: SuperAdmin can delete a club permanently (with confirmation)
-- [ ] **SA-06**: SuperAdmin can invite and assign ClubManagers to a club
-- [ ] **SA-07**: SuperAdmin can remove a ClubManager
-- [ ] **SA-08**: SuperAdmin can impersonate a ClubManager (audit-logged, 1h max, clearly indicated)
+- [x] **SA-04**: SuperAdmin can edit club details
+- [x] **SA-05**: SuperAdmin can delete a club permanently (with confirmation)
+- [x] **SA-06**: SuperAdmin can invite and assign ClubManagers to a club
+- [x] **SA-07**: SuperAdmin can remove a ClubManager
+- [x] **SA-08**: SuperAdmin can impersonate a ClubManager (audit-logged, 1h max, clearly indicated)
 - [x] **SA-09**: SuperAdmin dashboard: total clubs, users, active events today, recent sign-ups
 - [x] **SA-10**: SuperAdmin can search users by name/email and view club memberships
 - [x] **SA-11**: SuperAdmin can view immutable audit log of all admin actions
