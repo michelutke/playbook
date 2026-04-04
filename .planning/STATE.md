@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-04T18:58:16.684Z"
+last_updated: "2026-04-04T18:52:29.252Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 39
-  completed_plans: 36
-  percent: 92
+  completed_plans: 35
+  percent: 90
 ---
 
 # STATE.md — Playbook
@@ -19,8 +19,8 @@ progress:
 - **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-04T18:58:16.681Z
-- **Progress:** [█████████░] 92%
+- **Last session:** 2026-04-04T18:52:29.249Z
+- **Progress:** [█████████░] 90%
 
 ## Phase Status
 
@@ -151,8 +151,9 @@ progress:
 - [Phase 06-super-admin]: Svelte 5 requires event handler function references (not inline strings) — extracted onFocus/onBlur as typed functions in admin login form
 - [Phase 06-super-admin]: createClub() in AdminRepository (not ClubRepository) — SA creates clubs without self-assigning club_manager role
 - [Phase 06-super-admin]: POST /impersonate/end uses JWT claims for impersonator identity — not requireSuperAdmin — impersonation token subject is targetUser
-- [Phase 06-super-admin]: API helper in $lib/server/api.ts with generic <T> return — callers define response interfaces inline (YAGNI)
-- [Phase 06-super-admin]: SvelteKit confirmation modals as inline #if blocks with $state booleans — no shared modal component
+- [Phase 06-05]: Created api.ts with apiGet/apiPost/apiPatch/apiDelete — plan referenced $lib/server/api but only auth.ts existed; shared by all admin load functions
+- [Phase 06-05]: User detail fetched client-side via /admin/users/[userId] API route — token never hits browser (route handler reads locals.token server-side)
+- [Phase 06-05]: Audit log filter action options hardcoded in component — matches exact action strings from AdminRoutes.kt
 
 ### Phase 5 — Notifications ✅
 
@@ -175,4 +176,4 @@ progress:
 ## Notes
 
 - CI budget exhausted until ~2026-04-01 — work on feature branches, only merge to main when ready
-- Last session: 2026-04-01 — Phase 05.2 complete, REQUIREMENTS.md shows 62/62 v1 requirements satisfied (excluding SA-01–12)
+- Last session: 2026-04-04 — Phase 06 in progress: plans 01–03 + 05 complete (user search + audit log UI done); 04 (clubs UI), 06 (impersonation), 07 (dashboard) pending
