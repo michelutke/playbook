@@ -34,6 +34,14 @@ data class ImpersonationResponse(
     val expiresInSeconds: Int
 )
 
+@Serializable
+data class ImpersonationStatusResponse(
+    val impersonating: Boolean,
+    val impersonatorId: String? = null,
+    val sessionId: String? = null,
+    val remainingSeconds: Long? = null
+)
+
 fun Route.impersonationRoutes() {
     val userRepository by inject<UserRepository>()
     val auditLogRepository by inject<AuditLogRepository>()
@@ -142,7 +150,7 @@ fun Route.impersonationRoutes() {
                 val sessionId = principal?.payload?.getClaim("impersonation_session_id")?.asString()
 
                 if (impersonatorId == null || sessionId == null) {
-                    call.respond(mapOf("impersonating" to false))
+                    call.respond(ImpersonationStatusResponse(impersonating = false))
                 } else {
                     val sessionRow = transaction {
                         ImpersonationSessionsTable.selectAll()
@@ -157,11 +165,11 @@ fun Route.impersonationRoutes() {
                     }
 
                     call.respond(
-                        mapOf(
-                            "impersonating" to true,
-                            "impersonatorId" to impersonatorId,
-                            "sessionId" to sessionId,
-                            "remainingSeconds" to remainingSeconds
+                        ImpersonationStatusResponse(
+                            impersonating = true,
+                            impersonatorId = impersonatorId,
+                            sessionId = sessionId,
+                            remainingSeconds = remainingSeconds
                         )
                     )
                 }

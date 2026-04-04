@@ -9,8 +9,8 @@ CREATE TABLE audit_log (
     action               TEXT NOT NULL,
     target_type          TEXT,
     target_id            TEXT,
-    details              JSONB,
-    impersonation_context JSONB,
+    details              TEXT,
+    impersonation_context TEXT,
     created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_audit_log_actor      ON audit_log(actor_id);
