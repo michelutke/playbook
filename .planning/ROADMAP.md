@@ -253,15 +253,15 @@ Plans:
 
 **Requirements:** SA-01–12
 
-**Plans:** 4/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 - [x] 06-01-PLAN.md — Backend DB foundation (V10 migration, Exposed tables, repositories, middleware)
 - [x] 06-02-PLAN.md — SvelteKit project scaffold + auth + layout shell
 - [x] 06-03-PLAN.md — Admin API routes (club CRUD, impersonation endpoints)
 - [x] 06-04-PLAN.md — SvelteKit dashboard + club management pages
-- [ ] 06-05-PLAN.md — SvelteKit user search + audit log viewer
-- [ ] 06-06-PLAN.md — Impersonation UI (banner, countdown, start/end flow)
+- [x] 06-05-PLAN.md — SvelteKit user search + audit log viewer
+- [x] 06-06-PLAN.md — Impersonation UI (banner, countdown, start/end flow)
 - [ ] 06-07-PLAN.md — Integration tests + human verification
 
 **Deliverables:**
