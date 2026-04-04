@@ -253,7 +253,7 @@ Plans:
 
 **Requirements:** SA-01–12
 
-**Plans:** 7/7 plans complete
+**Plans:** 8 plans (7 complete, 1 gap closure)
 
 Plans:
 - [x] 06-01-PLAN.md — Backend DB foundation (V10 migration, Exposed tables, repositories, middleware)
@@ -263,6 +263,7 @@ Plans:
 - [x] 06-05-PLAN.md — SvelteKit user search + audit log viewer
 - [x] 06-06-PLAN.md — Impersonation UI (banner, countdown, start/end flow)
 - [x] 06-07-PLAN.md — Integration tests + human verification
+- [ ] 06-08-PLAN.md — Gap closure: fix frontend TS interfaces (dashboard stats, clubs pagination, manager IDs)
 
 **Deliverables:**
 - SvelteKit admin panel (fresh start, failed example as reference)
