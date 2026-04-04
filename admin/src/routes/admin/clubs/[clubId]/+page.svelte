@@ -15,8 +15,8 @@
 	let showDeleteModal = $state(false);
 	let showAddManagerForm = $state(false);
 	let deleteConfirmInput = $state('');
-	let removeManagerTarget = $state<{ id: string; name: string } | null>(null);
-	let impersonateTarget = $state<{ id: string; name: string } | null>(null);
+	let removeManagerTarget = $state<{ userId: string; name: string } | null>(null);
+	let impersonateTarget = $state<{ userId: string; name: string } | null>(null);
 
 	let deleteEnabled = $derived(deleteConfirmInput === data.club.name);
 
@@ -207,13 +207,13 @@
 							<div class="flex gap-2 justify-end">
 								<button
 									type="button"
-									onclick={() => (impersonateTarget = { id: manager.id, name: manager.displayName })}
+									onclick={() => (impersonateTarget = { userId: manager.userId, name: manager.displayName })}
 									style="background: transparent; border: 1px solid #F97316; color: #F97316; font-size: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer;"
 									aria-label="Impersonate {manager.displayName}"
 								>Impersonate</button>
 								<button
 									type="button"
-									onclick={() => (removeManagerTarget = { id: manager.id, name: manager.displayName })}
+									onclick={() => (removeManagerTarget = { userId: manager.userId, name: manager.displayName })}
 									style="background: transparent; border: 1px solid #EF4444; color: #EF4444; font-size: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer;"
 									aria-label="Remove {manager.displayName} as ClubManager"
 								>Remove</button>
@@ -405,7 +405,7 @@
 			</p>
 			<div class="flex gap-3">
 				<form method="POST" action="?/removeManager">
-					<input type="hidden" name="userId" value={removeManagerTarget.id} />
+					<input type="hidden" name="userId" value={removeManagerTarget.userId} />
 					<button
 						type="submit"
 						style="background-color: #EF4444; color: #FFFFFF; font-size: 14px; font-weight: 600; height: 40px; padding: 0 16px; border-radius: 6px; border: none; cursor: pointer;"
@@ -437,7 +437,7 @@
 			</p>
 			<div class="flex gap-3">
 				<form method="POST" action="/admin/impersonate/start" use:enhance>
-					<input type="hidden" name="targetUserId" value={impersonateTarget.id} />
+					<input type="hidden" name="targetUserId" value={impersonateTarget.userId} />
 					<button
 						type="submit"
 						style="background-color: #F97316; color: #FFFFFF; font-size: 14px; font-weight: 600; height: 40px; padding: 0 16px; border-radius: 6px; border: none; cursor: pointer;"

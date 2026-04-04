@@ -17,7 +17,7 @@ interface ClubsResponse {
 	clubs: ClubListItem[];
 	page: number;
 	pageSize: number;
-	total: number;
+	totalCount: number;
 }
 
 export const load: PageServerLoad = async ({ locals, url }) => {

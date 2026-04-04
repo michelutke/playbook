@@ -10,7 +10,7 @@
 
 	let showCreateForm = $state(false);
 	let totalPages = $derived(
-		data.clubs ? Math.ceil(data.clubs.total / data.clubs.pageSize) : 1
+		data.clubs ? Math.ceil(data.clubs.totalCount / data.clubs.pageSize) : 1
 	);
 
 	function statusColor(status: string): string {
