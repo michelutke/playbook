@@ -82,9 +82,9 @@
 - [x] **NO-12**: No duplicate notifications; no notifications to removed members
 
 ### SA — Super Admin
-- [ ] **SA-01**: SuperAdmin can create clubs and invite ClubManagers at creation time
-- [ ] **SA-02**: SuperAdmin can deactivate/reactivate a club (data preserved)
-- [ ] **SA-03**: SuperAdmin can view all clubs with status, team count, member count
+- [x] **SA-01**: SuperAdmin can create clubs and invite ClubManagers at creation time
+- [x] **SA-02**: SuperAdmin can deactivate/reactivate a club (data preserved)
+- [x] **SA-03**: SuperAdmin can view all clubs with status, team count, member count
 - [ ] **SA-04**: SuperAdmin can edit club details
 - [ ] **SA-05**: SuperAdmin can delete a club permanently (with confirmation)
 - [ ] **SA-06**: SuperAdmin can invite and assign ClubManagers to a club

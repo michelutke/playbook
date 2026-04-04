@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-01T11:58:11.928Z"
+last_updated: "2026-04-04T18:46:48.274Z"
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 7
   total_plans: 32
-  completed_plans: 32
+  completed_plans: 33
   percent: 100
 ---
 
@@ -19,7 +19,7 @@ progress:
 - **Active phase:** Phase 06 — Super Admin (next)
 - **Mode:** YOLO
 - **Last updated:** 2026-04-01
-- **Last session:** 2026-04-01T11:54:53.078Z
+- **Last session:** 2026-04-04T18:46:48.271Z
 - **Progress:** [██████████] 100%
 
 ## Phase Status
@@ -147,6 +147,8 @@ progress:
 - [Phase 05.1-02]: CalendarScreen.kt and CalendarViewModel.kt deleted; Screen.Calendar case retained in AppNavigation using EventListScreen+EventViewMode.CALENDAR
 - [Phase 05.2-auth-retroactive-verification]: AUTH-05 evidence: roles not in JWT; GET /auth/me/roles does live DB query per request — role changes immediate without re-login
 - [Phase 05.2-auth-retroactive-verification]: TM-14 closed: backend supports multiple TeamRoles rows per user; no UI gap per 02-VERIFICATION.md truth #15
+- [Phase 06-super-admin]: Used @sveltejs/vite-plugin-svelte v5 and import from @sveltejs/kit/vite — resolves vite v6 peer dep conflict in SvelteKit 2 + Tailwind v4 setup
+- [Phase 06-super-admin]: Svelte 5 requires event handler function references (not inline strings) — extracted onFocus/onBlur as typed functions in admin login form
 
 ### Phase 5 — Notifications ✅
 
