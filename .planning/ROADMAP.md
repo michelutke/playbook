@@ -253,6 +253,18 @@ Plans:
 
 **Requirements:** SA-01–12
 
+**Plans:** 8 plans (7 complete, 1 gap closure)
+
+Plans:
+- [x] 06-01-PLAN.md — Backend DB foundation (V10 migration, Exposed tables, repositories, middleware)
+- [x] 06-02-PLAN.md — SvelteKit project scaffold + auth + layout shell
+- [x] 06-03-PLAN.md — Admin API routes (club CRUD, impersonation endpoints)
+- [x] 06-04-PLAN.md — SvelteKit dashboard + club management pages
+- [x] 06-05-PLAN.md — SvelteKit user search + audit log viewer
+- [x] 06-06-PLAN.md — Impersonation UI (banner, countdown, start/end flow)
+- [x] 06-07-PLAN.md — Integration tests + human verification
+- [ ] 06-08-PLAN.md — Gap closure: fix frontend TS interfaces (dashboard stats, clubs pagination, manager IDs)
+
 **Deliverables:**
 - SvelteKit admin panel (fresh start, failed example as reference)
 - Club management (create, deactivate, delete)
@@ -274,7 +286,7 @@ Plans:
 
 ## Phase Order Rationale
 
-Auth → Teams → Events → Attendance → Notifications → Admin
+Auth -> Teams -> Events -> Attendance -> Notifications -> Admin
 
 Each phase depends on the previous. At the end of each phase, the product is working and testable for everything shipped so far.
 
@@ -289,4 +301,7 @@ Each phase depends on the previous. At the end of each phase, the product is wor
 | 3 | Event Scheduling | Done |
 | 4 | Attendance Tracking | Done |
 | 4.1 | Attendance Integration Fixes | Done |
-| 5 | 6/6 | Complete   | 2026-04-01 | 5.1 | 2/2 | Complete   | 2026-04-01 | 5.2 | 1/1 | Complete   | 2026-04-01 | 6 | Super Admin | Not started |
+| 5 | Notifications | Done |
+| 5.1 | Milestone Gap Fixes | Done |
+| 5.2 | Auth Retroactive Verification | Done |
+| 6 | Super Admin | In progress |
