@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import { onMount, onDestroy } from 'svelte';
 	import { LayoutDashboard, Building2, Users, ScrollText, LogOut } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
@@ -23,16 +26,82 @@
 	function isActive(href: string): boolean {
 		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
 	}
+
+	// Impersonation countdown
+	let remainingSeconds = $state(0);
+	let interval: ReturnType<typeof setInterval> | undefined;
+
+	$effect(() => {
+		if (data.impersonation?.active && data.impersonation.expiresAt) {
+			remainingSeconds = Math.max(
+				0,
+				Math.floor((data.impersonation.expiresAt - Date.now()) / 1000)
+			);
+		}
+	});
+
+	onMount(() => {
+		if (data.impersonation?.active) {
+			interval = setInterval(() => {
+				remainingSeconds = Math.max(0, remainingSeconds - 1);
+				if (remainingSeconds <= 0) {
+					clearInterval(interval);
+					// Auto-expire: reload page (hooks.server.ts will clean up)
+					invalidateAll();
+				}
+			}, 1000);
+		}
+	});
+
+	onDestroy(() => {
+		if (interval) clearInterval(interval);
+	});
+
+	function formatCountdown(seconds: number): string {
+		const m = Math.floor(seconds / 60);
+		const s = seconds % 60;
+		return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+	}
+
+	const isImpersonating = $derived(!!data.impersonation?.active);
 </script>
 
 {#if isLoginPage}
 	{@render children()}
 {:else}
-	<div class="flex min-h-screen" style="background-color: #090912;">
+	{#if isImpersonating}
+		<div
+			class="fixed top-0 left-0 right-0 flex items-center justify-between px-6 z-50"
+			style="height: 44px; background-color: #F97316;"
+			role="alert"
+		>
+			<span class="font-semibold" style="font-size: 14px; color: #FFFFFF;">
+				Impersonating {data.impersonation?.targetName} — {formatCountdown(remainingSeconds)} remaining
+			</span>
+			<form method="POST" action="/admin/impersonate/end" use:enhance>
+				<button
+					type="submit"
+					style="
+						background: transparent;
+						border: 1px solid #FFFFFF;
+						color: #FFFFFF;
+						font-size: 14px;
+						font-weight: 600;
+						height: 30px;
+						padding: 0 12px;
+						border-radius: 6px;
+						cursor: pointer;
+					"
+				>End Session</button>
+			</form>
+		</div>
+	{/if}
+
+	<div class="flex min-h-screen" style="background-color: #090912; {isImpersonating ? 'padding-top: 44px;' : ''}">
 		<!-- Sidebar -->
 		<aside
-			class="fixed top-0 left-0 h-full flex flex-col"
-			style="width: 240px; background-color: #13131F; border-right: 1px solid #2A2A40;"
+			class="fixed left-0 h-full flex flex-col"
+			style="top: {isImpersonating ? '44px' : '0'}; width: 240px; height: calc(100vh - {isImpersonating ? '44px' : '0px'}); background-color: #13131F; border-right: 1px solid #2A2A40;"
 		>
 			<!-- Logo -->
 			<div class="p-6" style="border-bottom: 1px solid #2A2A40;">

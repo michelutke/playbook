@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
 
 	interface Props {
@@ -15,6 +16,7 @@
 	let showAddManagerForm = $state(false);
 	let deleteConfirmInput = $state('');
 	let removeManagerTarget = $state<{ id: string; name: string } | null>(null);
+	let impersonateTarget = $state<{ id: string; name: string } | null>(null);
 
 	let deleteEnabled = $derived(deleteConfirmInput === data.club.name);
 
@@ -193,7 +195,7 @@
 				<tr style="background-color: #13131F;">
 					<th scope="col" class="text-left font-semibold" style="font-size: 12px; color: #9090B0; padding: 10px 16px;">Name</th>
 					<th scope="col" class="text-left font-semibold" style="font-size: 12px; color: #9090B0; padding: 10px 16px;">Email</th>
-					<th scope="col" class="font-semibold" style="font-size: 12px; color: #9090B0; padding: 10px 16px; text-align: right;">Action</th>
+					<th scope="col" class="font-semibold" style="font-size: 12px; color: #9090B0; padding: 10px 16px; text-align: right;">Actions</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -202,12 +204,20 @@
 						<td style="font-size: 14px; color: #F0F0FF; padding: 12px 16px;">{manager.displayName}</td>
 						<td style="font-size: 14px; color: #9090B0; padding: 12px 16px;">{manager.email}</td>
 						<td style="padding: 12px 16px; text-align: right;">
-							<button
-								type="button"
-								onclick={() => (removeManagerTarget = { id: manager.id, name: manager.displayName })}
-								style="background: transparent; border: 1px solid #EF4444; color: #EF4444; font-size: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer;"
-								aria-label="Remove {manager.displayName} as ClubManager"
-							>Remove</button>
+							<div class="flex gap-2 justify-end">
+								<button
+									type="button"
+									onclick={() => (impersonateTarget = { id: manager.id, name: manager.displayName })}
+									style="background: transparent; border: 1px solid #F97316; color: #F97316; font-size: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer;"
+									aria-label="Impersonate {manager.displayName}"
+								>Impersonate</button>
+								<button
+									type="button"
+									onclick={() => (removeManagerTarget = { id: manager.id, name: manager.displayName })}
+									style="background: transparent; border: 1px solid #EF4444; color: #EF4444; font-size: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer;"
+									aria-label="Remove {manager.displayName} as ClubManager"
+								>Remove</button>
+							</div>
 						</td>
 					</tr>
 				{/each}
@@ -405,6 +415,37 @@
 				<button
 					type="button"
 					onclick={() => (removeManagerTarget = null)}
+					style="background: transparent; border: 1px solid #2A2A40; color: #F0F0FF; font-size: 14px; height: 40px; padding: 0 16px; border-radius: 6px; cursor: pointer;"
+				>Cancel</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Impersonate confirmation modal -->
+{#if impersonateTarget}
+	<div
+		style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50;"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="impersonate-title"
+	>
+		<div style="background-color: #1C1C2E; border: 1px solid #2A2A40; border-radius: 8px; padding: 24px; max-width: 480px; width: 100%; margin: 0 16px;">
+			<h3 id="impersonate-title" class="font-semibold mb-3" style="font-size: 20px; color: #F0F0FF;">Impersonate {impersonateTarget.name}?</h3>
+			<p class="mb-6" style="font-size: 14px; color: #9090B0;">
+				You will act as ClubManager for 1 hour. All actions are audit-logged.
+			</p>
+			<div class="flex gap-3">
+				<form method="POST" action="/admin/impersonate/start" use:enhance>
+					<input type="hidden" name="targetUserId" value={impersonateTarget.id} />
+					<button
+						type="submit"
+						style="background-color: #F97316; color: #FFFFFF; font-size: 14px; font-weight: 600; height: 40px; padding: 0 16px; border-radius: 6px; border: none; cursor: pointer;"
+					>Confirm</button>
+				</form>
+				<button
+					type="button"
+					onclick={() => (impersonateTarget = null)}
 					style="background: transparent; border: 1px solid #2A2A40; color: #F0F0FF; font-size: 14px; height: 40px; padding: 0 16px; border-radius: 6px; cursor: pointer;"
 				>Cancel</button>
 			</div>
