@@ -13,6 +13,7 @@ interface AdminRepository {
     fun searchUsers(query: String, page: Int = 1, pageSize: Int = 50): UserSearchPage
     fun findAllClubs(page: Int = 1, pageSize: Int = 50): ClubListPage
     fun findClubWithManagers(clubId: UUID): ClubDetail?
+    fun createClub(name: String, sportType: String, location: String?): ClubListItem
     fun deactivateClub(clubId: UUID)
     fun reactivateClub(clubId: UUID)
     fun deleteClub(clubId: UUID)
@@ -253,6 +254,25 @@ class AdminRepositoryImpl : AdminRepository {
             teamCount = teamCount,
             memberCount = memberCount,
             createdAt = clubRow[ClubsTable.createdAt].toString()
+        )
+    }
+
+    override fun createClub(name: String, sportType: String, location: String?): ClubListItem = transaction {
+        val newId = ClubsTable.insert {
+            it[ClubsTable.name] = name
+            it[ClubsTable.sportType] = sportType
+            it[ClubsTable.location] = location
+            it[ClubsTable.status] = "active"
+        } get ClubsTable.id
+        ClubListItem(
+            id = newId.toString(),
+            name = name,
+            sportType = sportType,
+            location = location,
+            status = "active",
+            teamCount = 0,
+            memberCount = 0,
+            createdAt = Instant.now().toString()
         )
     }
 
