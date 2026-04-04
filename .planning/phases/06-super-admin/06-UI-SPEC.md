@@ -51,7 +51,7 @@ Exceptions: Impersonation banner height fixed at 44px (touch/click target minimu
 | Body | 14px | 400 | 1.5 | Table rows, form labels, descriptions |
 | Label | 12px | 600 | 1.4 | Table headers, section labels, badge text, nav item text |
 | Heading | 20px | 600 | 1.2 | Page titles, panel headings, modal titles |
-| Display | 28px | 700 | 1.15 | Dashboard stat numbers (club count, user count, etc.) |
+| Display | 28px | 600 | 1.15 | Dashboard stat numbers (club count, user count, etc.) |
 
 Font stack: `Inter, ui-sans-serif, system-ui, sans-serif`
 
@@ -94,7 +94,7 @@ Additional semantic colors (from pencil/design.md, used for status display only)
 - Pagination controls: Previous / Next buttons, "Page N of M" label. Button: `--primary` on active, `--border` on disabled.
 
 ### Dashboard Widgets
-- Stat card: `#1C1C2E` bg, `lg` (24px) padding. Stat number: 28px/700. Label: 12px/600 `--muted-foreground`. Icon (Lucide, 20px, `--primary`).
+- Stat card: `#1C1C2E` bg, `lg` (24px) padding. Stat number: 28px/600. Label: 12px/600 `--muted-foreground`. Icon (Lucide, 20px, `--primary`).
 - 4-column grid layout on ≥1024px, 2-column on 768–1023px, 1-column on <768px.
 
 ### Forms
