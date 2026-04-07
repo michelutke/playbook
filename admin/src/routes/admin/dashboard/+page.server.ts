@@ -16,6 +16,6 @@ interface AdminStats {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const stats = await apiGet<AdminStats>('/admin/stats', locals.token!);
+	const stats = await apiGet<AdminStats>('/admin/stats', locals.adminToken!);
 	return { stats };
 };

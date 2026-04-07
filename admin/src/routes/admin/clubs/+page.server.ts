@@ -22,7 +22,7 @@ interface ClubsResponse {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const page = parseInt(url.searchParams.get('page') || '1');
-	const clubs = await apiGet<ClubsResponse>(`/admin/clubs?page=${page}&pageSize=50`, locals.token!);
+	const clubs = await apiGet<ClubsResponse>(`/admin/clubs?page=${page}&pageSize=50`, locals.adminToken!);
 	return { clubs, page };
 };
 
@@ -36,7 +36,7 @@ export const actions: Actions = {
 
 		if (!name) return fail(400, { error: 'Club name required' });
 
-		const club = await apiPost<{ id: string }>('/admin/clubs', locals.token!, {
+		const club = await apiPost<{ id: string }>('/admin/clubs', locals.adminToken!, {
 			name,
 			sportType,
 			location,

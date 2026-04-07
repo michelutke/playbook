@@ -3,7 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import { LayoutDashboard, Building2, Users, ScrollText, LogOut } from 'lucide-svelte';
+	import { LayoutDashboard, Building2, Users, ScrollText, LogOut, Trophy } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 
@@ -15,13 +15,24 @@
 	let { data, children }: Props = $props();
 
 	const isLoginPage = $derived($page.url.pathname === '/admin/login');
+	const isImpersonating = $derived(!!data.impersonation?.active);
 
-	const navItems = [
+	const adminNavItems = [
 		{ href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 		{ href: '/admin/clubs', label: 'Clubs', icon: Building2 },
 		{ href: '/admin/users', label: 'Users', icon: Users },
 		{ href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText }
 	];
+
+	const impersonationNavItems = $derived(
+		data.impersonation?.clubId
+			? [{ href: `/admin/clubs/${data.impersonation.clubId}/teams`, label: 'Teams', icon: Trophy }]
+			: []
+	);
+
+	const navItems = $derived(
+		isImpersonating ? impersonationNavItems : adminNavItems
+	);
 
 	function isActive(href: string): boolean {
 		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
@@ -62,8 +73,6 @@
 		const s = seconds % 60;
 		return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 	}
-
-	const isImpersonating = $derived(!!data.impersonation?.active);
 </script>
 
 {#if isLoginPage}
@@ -76,7 +85,11 @@
 			role="alert"
 		>
 			<span class="font-semibold" style="font-size: 14px; color: #FFFFFF;">
-				Impersonating {data.impersonation?.targetName} — {formatCountdown(remainingSeconds)} remaining
+				Impersonating {data.impersonation?.targetName}
+				{#if data.impersonation?.clubName}
+					<span style="opacity: 0.8;">@ {data.impersonation.clubName}</span>
+				{/if}
+				 — {formatCountdown(remainingSeconds)} remaining
 			</span>
 			<form method="POST" action="/admin/impersonate/end" use:enhance>
 				<button
@@ -105,10 +118,17 @@
 		>
 			<!-- Logo -->
 			<div class="p-6" style="border-bottom: 1px solid #2A2A40;">
-				<span class="font-semibold" style="font-size: 20px; color: #F0F0FF;">TeamOrg</span>
-				<span class="block font-semibold" style="font-size: 12px; color: #9090B0; margin-top: 2px;">
-					Admin Panel
-				</span>
+				{#if isImpersonating && data.impersonation?.clubName}
+					<span class="font-semibold" style="font-size: 20px; color: #F0F0FF;">{data.impersonation.clubName}</span>
+					<span class="block font-semibold" style="font-size: 12px; color: #F97316; margin-top: 2px;">
+						Club Manager View
+					</span>
+				{:else}
+					<span class="font-semibold" style="font-size: 20px; color: #F0F0FF;">TeamOrg</span>
+					<span class="block font-semibold" style="font-size: 12px; color: #9090B0; margin-top: 2px;">
+						Admin Panel
+					</span>
+				{/if}
 			</div>
 
 			<!-- Nav items -->
@@ -140,33 +160,60 @@
 				{/each}
 			</nav>
 
-			<!-- Logout -->
+			<!-- Logout / End session -->
 			<div class="p-4" style="border-top: 1px solid #2A2A40;">
 				{#if data.user}
 					<div class="mb-3" style="font-size: 12px; color: #9090B0; padding: 0 4px;">
-						{data.user.displayName}
+						{#if isImpersonating}
+							Acting as {data.impersonation?.targetName}
+						{:else}
+							{data.user.displayName}
+						{/if}
 					</div>
 				{/if}
-				<form method="POST" action="/admin/logout">
-					<button
-						type="submit"
-						class="flex items-center gap-3 w-full"
-						style="
-							background: transparent;
-							border: 1px solid #2A2A40;
-							color: #9090B0;
-							font-size: 14px;
-							padding: 8px 12px;
-							border-radius: 6px;
-							cursor: pointer;
-							width: 100%;
-							text-align: left;
-						"
-					>
-						<LogOut size={16} />
-						Sign Out
-					</button>
-				</form>
+				{#if isImpersonating}
+					<form method="POST" action="/admin/impersonate/end" use:enhance>
+						<button
+							type="submit"
+							class="flex items-center gap-3 w-full"
+							style="
+								background: transparent;
+								border: 1px solid #F97316;
+								color: #F97316;
+								font-size: 14px;
+								padding: 8px 12px;
+								border-radius: 6px;
+								cursor: pointer;
+								width: 100%;
+								text-align: left;
+							"
+						>
+							<LogOut size={16} />
+							End Impersonation
+						</button>
+					</form>
+				{:else}
+					<form method="POST" action="/admin/logout">
+						<button
+							type="submit"
+							class="flex items-center gap-3 w-full"
+							style="
+								background: transparent;
+								border: 1px solid #2A2A40;
+								color: #9090B0;
+								font-size: 14px;
+								padding: 8px 12px;
+								border-radius: 6px;
+								cursor: pointer;
+								width: 100%;
+								text-align: left;
+							"
+						>
+							<LogOut size={16} />
+							Sign Out
+						</button>
+					</form>
+				{/if}
 			</div>
 		</aside>
 

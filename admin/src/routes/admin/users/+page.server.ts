@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	if (query.length >= 2) {
 		const users = await apiGet<UserSearchResult>(
 			`/admin/users?q=${encodeURIComponent(query)}&page=${page}&pageSize=50`,
-			locals.token!
+			locals.adminToken!
 		);
 		return { users, query, page };
 	}

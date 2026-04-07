@@ -63,15 +63,6 @@
 	<title>{data.club.name} — TeamOrg Admin</title>
 </svelte:head>
 
-<!-- Breadcrumb -->
-<nav class="mb-4" style="font-size: 14px; color: #9090B0;">
-	<a href="/admin/clubs" style="color: #9090B0; text-decoration: none;">Clubs</a>
-	<span class="mx-2">›</span>
-	<span style="color: #F0F0FF;">{data.club.name}</span>
-</nav>
-
-<h1 class="font-semibold mb-6" style="font-size: 20px; color: #F0F0FF;">{data.club.name}</h1>
-
 <!-- Club info card -->
 <div
 	class="mb-6"
@@ -438,6 +429,9 @@
 			<div class="flex gap-3">
 				<form method="POST" action="/admin/impersonate/start" use:enhance>
 					<input type="hidden" name="targetUserId" value={impersonateTarget.userId} />
+					<input type="hidden" name="clubId" value={data.club.id} />
+					<input type="hidden" name="clubName" value={data.club.name} />
+					<input type="hidden" name="redirectTo" value="/admin/clubs/{data.club.id}/teams" />
 					<button
 						type="submit"
 						style="background-color: #F97316; color: #FFFFFF; font-size: 14px; font-weight: 600; height: 40px; padding: 0 16px; border-radius: 6px; border: none; cursor: pointer;"

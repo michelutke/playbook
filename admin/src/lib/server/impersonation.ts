@@ -17,12 +17,15 @@ interface ImpersonationState {
 	targetEmail?: string;
 	sessionId?: string;
 	expiresAt?: number; // Unix timestamp ms
+	clubId?: string;
+	clubName?: string;
 }
 
 export async function startImpersonation(
 	targetUserId: string,
 	cookies: Cookies,
-	currentToken: string
+	currentToken: string,
+	club?: { id: string; name: string }
 ): Promise<{ success: boolean; error?: string }> {
 	const res = await fetch(`${API_BASE}/admin/impersonate/start`, {
 		method: 'POST',
@@ -55,7 +58,9 @@ export async function startImpersonation(
 		targetName: data.targetUser.displayName,
 		targetEmail: data.targetUser.email,
 		sessionId: data.sessionId,
-		expiresAt: Date.now() + data.expiresInSeconds * 1000
+		expiresAt: Date.now() + data.expiresInSeconds * 1000,
+		clubId: club?.id,
+		clubName: club?.name
 	};
 
 	cookies.set(IMPERSONATION_COOKIE, JSON.stringify(state), {

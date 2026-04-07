@@ -14,9 +14,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const refreshedUser = await getSession(event.cookies);
 		event.locals.user = refreshedUser ?? undefined;
 		event.locals.token = getToken(event.cookies) ?? undefined;
+		event.locals.adminToken = event.locals.token;
 		event.locals.impersonation = undefined;
+	} else if (impersonation.active) {
+		// During impersonation, admin API calls need the original SA token
+		const originalToken = event.cookies.get('admin_session_original') ?? undefined;
+		event.locals.adminToken = originalToken ?? event.locals.token;
+		event.locals.impersonation = impersonation;
 	} else {
-		event.locals.impersonation = impersonation.active ? impersonation : undefined;
+		event.locals.adminToken = event.locals.token;
+		event.locals.impersonation = undefined;
 	}
 
 	return resolve(event);

@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	const log = await apiGet<AuditLogResponse>(
 		`/admin/audit-log?${params.toString()}`,
-		locals.token!
+		locals.adminToken!
 	);
 	return { log, filters: { action, actor, startDate, endDate }, page };
 };
